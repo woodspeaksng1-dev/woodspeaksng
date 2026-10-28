@@ -11,8 +11,9 @@ const STROKE = 13; // reveal width around each letter outline, in wordmark units
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 
 /**
- * First-visit intro: a calligraphy pen writes the wordmark, then the page appears.
- * - Plays once per browser session; the page renders underneath while it plays.
+ * Intro: a calligraphy pen writes the wordmark, then the page appears.
+ * - Plays on every load of the home page, and on the first page of a session elsewhere; the page
+ *   renders underneath while it plays.
  * - Not skippable by tapping (client request).
  * - Reduce-motion users see the finished wordmark briefly instead of the animation.
  * - A CSS failsafe in globals hides it after 4 s even if this script never runs.
@@ -24,7 +25,7 @@ export function Preloader() {
 
   useEffect(() => {
     const html = document.documentElement;
-    // Already played this session: CSS hides the overlay, nothing to animate.
+    // Skipped by the intro script in the layout: CSS hides the overlay, nothing to animate.
     if (html.dataset.intro === "seen") return;
 
     html.style.overflow = "hidden";

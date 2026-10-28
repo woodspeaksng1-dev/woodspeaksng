@@ -1,13 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { useCart } from "@/lib/cart-store";
 import { formatNaira } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
 /**
- * Buy buttons. Personalised products get "Personalise" (the customizer is the
- * next build step); plain products add straight to the cart.
+ * Buy buttons. Personalised products go to the customizer, which adds to the cart
+ * after the final check; plain products add straight to the cart.
  * On phones the button sits in a sticky bar at the bottom of the screen.
  */
 export function AddToCart({ product }: { product: Product }) {
@@ -24,14 +25,12 @@ export function AddToCart({ product }: { product: Product }) {
   }, []);
 
   const button = personalisable ? (
-    <button
-      type="button"
-      disabled
-      title="The customizer is being built next"
-      className="h-12 w-full rounded-full bg-oxblood text-vellum opacity-60 md:w-auto md:px-10"
+    <Link
+      href={`/products/${product.slug}/personalise`}
+      className="flex h-12 w-full items-center justify-center rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine md:inline-flex md:w-auto md:px-10"
     >
       Personalise
-    </button>
+    </Link>
   ) : (
     <button
       type="button"

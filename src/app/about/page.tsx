@@ -11,8 +11,8 @@ export const metadata: Metadata = pageMeta({
   path: "/about",
 });
 
-// Copy from the client's asset list (22 Oct 2026). "Our story" and
-// "What inspires us" are waiting on the client's own text.
+// Intro from the client's asset list (22 Oct 2026). "Our story" and "What inspires us" are DRAFTS
+// written from the old site's wording (28 Oct 2026); replace or approve with the client's own text.
 export default function AboutPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 pt-8 pb-28 sm:px-6">
@@ -30,14 +30,41 @@ export default function AboutPage() {
         <h2 id="our-story" className="text-3xl text-oxblood">
           Our story
         </h2>
-        <p className="mt-4 text-ink-soft">Text to come from Woodspeaks.</p>
+        <div className="mt-4 space-y-4 text-lg text-ink-soft">
+          <p>
+            Woodspeaks began in Lagos in 2024 with a simple belief: the things we feel most deeply are often
+            the hardest to say out loud. A text disappears in a scroll of messages. A card is read once and
+            put away. We wanted to make something people would keep.
+          </p>
+          <p>
+            So we started writing letters by hand on aged parchment, rolling them onto wooden handles and
+            sealing them with wax. Then came the keepsakes: lockets that hold a face you love, a puzzle with
+            twenty reasons, a journal for the years ahead. Every piece is made by hand, one at a time, for one
+            person.
+          </p>
+          <p>
+            Every piece we create is more than wood and craftsmanship. It is a story, a feeling, a moment
+            meant to be remembered.
+          </p>
+        </div>
       </section>
 
       <section className="mt-12 border-t border-rule pt-10" aria-labelledby="inspires">
         <h2 id="inspires" className="text-3xl text-oxblood">
           What inspires us
         </h2>
-        <p className="mt-4 text-ink-soft">Text to come from Woodspeaks.</p>
+        <div className="mt-4 space-y-4 text-lg text-ink-soft">
+          <p>
+            The moment the seal breaks. The quiet while someone reads. The way a person holds a letter a
+            little longer than they need to, because they want to read it again.
+          </p>
+          <p>
+            We are inspired by the old ways of saying things that matter: handwriting, wax, paper that ages
+            well. And by the people who come to us with something they have been meaning to say for a long
+            time, to a partner, a mother, a friend, a team. Our work is to help those words arrive the way
+            they were meant.
+          </p>
+        </div>
       </section>
 
       <section className="mt-12 border-t border-rule pt-10" aria-labelledby="gallery">

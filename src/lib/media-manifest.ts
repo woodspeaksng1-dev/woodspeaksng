@@ -7,6 +7,7 @@ export const MEDIA_FILES: readonly string[] = [
   "brands/scotfree.png",
   "brands/senocean.png",
   "brands/totalenergies.png",
+  "customizer/scroll-closed.webp",
   "gallery/m01.webp",
   "gallery/m02.webp",
   "gallery/m03.webp",
@@ -25,7 +26,7 @@ export const MEDIA_FILES: readonly string[] = [
   "products/20-reasons-i-love-you-puzzle.webp",
   "products/journal.webp",
   "products/locket.webp",
-  "products/love-scroll-cutout.webp",
+  "products/love-scroll.webp",
   "products/pocket-watch.webp",
   "products/polaroid.webp",
   "seal/stamp.webp"

@@ -46,7 +46,14 @@ export type CartCustomization =
   | { kind: "none" }
   | { kind: "letter"; text: string }
   | { kind: "reasons"; mode: "standard" | "custom"; reasons: string[] }
-  | { kind: "photo"; photoNames: string[] };
+  | { kind: "photo"; photoNames: string[]; crop?: PhotoCrop };
+
+/** How the photo sits in its frame: zoom (1 = fills the frame) and offset in % of the frame. */
+export interface PhotoCrop {
+  zoom: number;
+  x: number;
+  y: number;
+}
 
 export interface CartItem {
   /** Unique per line, so the same product with different text is two lines. */

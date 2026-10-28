@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OCCASION_LABELS, PRODUCTS, RECIPIENT_LABELS } from "@/lib/catalog";
 import { formatNaira } from "@/lib/format";
 import type { Occasion, Product, Recipient } from "@/lib/types";
 import { CloseIcon, WizardHatIcon } from "../ui/icons";
+import { Chips } from "../ui/Chips";
 import { imageSrc } from "@/lib/media";
 
 const wizard = imageSrc("mascot/wizard");
 
 type View = "home" | "suggest" | "results";
+
+const NUDGE_FIRST_MS = 6000; // after the preloader has cleared
+const NUDGE_SHOW_MS = 4000;
+const NUDGE_EVERY_MS = 20000;
+const NUDGE_KEY = "ws-wizard-opened";
 
 function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): Product[] {
   const sellable = PRODUCTS.filter((p) => !p.addOn);
@@ -20,43 +26,9 @@ function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): P
   return [...pool].sort(() => Math.random() - 0.5).slice(0, count);
 }
 
-function Chips<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: Record<T, string>;
-  value: T | null;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <fieldset className="mt-4">
-      <legend className="text-sm text-ink-soft">{label}</legend>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {(Object.keys(options) as T[]).map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onChange(key)}
-            aria-pressed={value === key}
-            className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-              value === key
-                ? "border-oxblood bg-oxblood text-vellum"
-                : "border-rule bg-vellum text-ink hover:border-oxblood"
-            }`}
-          >
-            {options[key]}
-          </button>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
-
 /**
- * The wizard mascot. Opens only when tapped (no auto pop-up).
+ * The wizard mascot. Opens only when tapped (no auto pop-up); until it has been opened this session,
+ * a small "Click me" bubble appears beside it at intervals.
  * "Suggest a gift" works now from catalog tags. "Write my message" lives in the
  * customizer, where its drafts drop straight into the text box (built next).
  */
@@ -66,7 +38,32 @@ export function MascotPanel() {
   const [recipient, setRecipient] = useState<Recipient | null>(null);
   const [occasion, setOccasion] = useState<Occasion | null>(null);
   const [results, setResults] = useState<Product[]>([]);
+  const [nudge, setNudge] = useState(false);
+  const [opened, setOpened] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(NUDGE_KEY)) return;
+    } catch {}
+    if (opened) return;
+    let hide = 0;
+    const show = () => {
+      setNudge(true);
+      hide = window.setTimeout(() => setNudge(false), NUDGE_SHOW_MS);
+    };
+    let repeat = 0;
+    const first = window.setTimeout(() => {
+      show();
+      repeat = window.setInterval(show, NUDGE_EVERY_MS);
+    }, NUDGE_FIRST_MS);
+    return () => {
+      window.clearTimeout(first);
+      window.clearTimeout(hide);
+      window.clearInterval(repeat);
+    };
+  }, [opened]);
 
   useEffect(() => {
     if (!open) return;
@@ -75,6 +72,18 @@ export function MascotPanel() {
     panelRef.current?.focus();
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  const toggle = () => {
+    if (open) reset();
+    else {
+      setNudge(false);
+      setOpened(true);
+      try {
+        sessionStorage.setItem(NUDGE_KEY, "1");
+      } catch {}
+    }
+    setOpen((o) => !o);
+  };
 
   const reset = () => {
     setView("home");
@@ -184,25 +193,41 @@ export function MascotPanel() {
         )}
       </AnimatePresence>
 
-      <button
-        type="button"
-        onClick={() => {
-          setOpen((o) => !o);
-          if (open) reset();
-        }}
-        className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-oxblood-deep text-gold-light shadow-[0_8px_24px_-8px_rgb(42_23_18/0.5)] ring-2 ring-gold-light/60 transition-transform hover:-translate-y-0.5"
-        aria-label={open ? "Close the gift wizard" : "Open the gift wizard"}
-        aria-expanded={open}
-      >
-        {open ? (
-          <CloseIcon />
-        ) : wizard ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={wizard} alt="" className="h-full w-full scale-[1.35] object-cover object-[50%_22%]" />
-        ) : (
-          <WizardHatIcon width={30} height={30} />
-        )}
-      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={toggle}
+          className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-oxblood-deep text-gold-light shadow-[0_8px_24px_-8px_rgb(42_23_18/0.5)] ring-2 ring-gold-light/60 transition-transform hover:-translate-y-0.5"
+          aria-label={open ? "Close the gift wizard" : "Open the gift wizard"}
+          aria-expanded={open}
+        >
+          {open ? (
+            <CloseIcon />
+          ) : wizard ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={wizard} alt="" className="h-full w-full scale-[1.35] object-cover object-[50%_22%]" />
+          ) : (
+            <WizardHatIcon width={30} height={30} />
+          )}
+        </button>
+        <AnimatePresence>
+          {nudge && !open && (
+            <motion.button
+              type="button"
+              onClick={toggle}
+              initial={reduceMotion ? false : { opacity: 0, x: -6, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={reduceMotion ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, x: -6, scale: 0.9 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              aria-hidden="true"
+              tabIndex={-1}
+              className="absolute top-1/2 left-full ml-3 -translate-y-1/2 whitespace-nowrap rounded-full rounded-bl-sm bg-vellum px-3.5 py-1.5 text-sm text-oxblood shadow-[0_8px_24px_-10px_rgb(42_23_18/0.45)] ring-1 ring-rule"
+            >
+              Click me
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

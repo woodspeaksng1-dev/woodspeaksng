@@ -5,7 +5,13 @@
 E-commerce rebuild for Woodspeaks Limited (woodspeaks.ng), a Lagos gifting brand: personalised scrolls,
 keepsakes, flowers and treats. Sole aim is conversion. Mobile-first: most buyers are on phones over mobile data.
 
-Planning docs (source of truth for scope): Project Plan v2, Site Concept, Build Standards & Safeguards.
+**Read `docs/PLAN.md` before building any feature.** It holds the full scope (customizer, checkout, NFC,
+wizard, admin panel, backend, launch checklist), the current status, the order of work and the open
+questions for the client. This file holds the rules; PLAN.md holds what to build.
+
+Working method: one feature per session. Plan it, build it, run it, check it on a phone-sized screen,
+run lint, types and build, then commit. When a feature is done, update the Status section in PLAN.md.
+Payments, auth and Firestore rules get line-by-line review and failure-case tests.
 
 ## Stack
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4
@@ -19,8 +25,9 @@ Planning docs (source of truth for scope): Project Plan v2, Site Concept, Build 
 - `node scripts/generate-wordmark.mjs` — regenerates the preloader wordmark paths
 
 ## Layout
-- `src/app/` routes. Home, shop, products/[slug], about, contact are real; checkout, account, corporate, faq,
-  policies are `ComingSoon` placeholders.
+- `src/app/` routes. Home, shop, products/[slug], about, about/gallery, contact are real; checkout, account,
+  corporate, faq, policies are `ComingSoon` placeholders.
+- `docs/PLAN.md` full build plan and status
 - `src/components/` by area: layout, home, product, cart, floating (mascot, WhatsApp), preloader, ui
 - `src/lib/` types, mock catalog (from the client's asset list), cart store, validation, formatting, contact
 
