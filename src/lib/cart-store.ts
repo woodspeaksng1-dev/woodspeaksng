@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { CartCustomization, CartItem } from "./types";
@@ -89,3 +90,12 @@ export function lineTotal(item: CartItem) {
 
 export const cartCount = (items: CartItem[]) => items.reduce((n, i) => n + i.quantity, 0);
 export const cartSubtotal = (items: CartItem[]) => items.reduce((n, i) => n + lineTotal(i), 0);
+
+/** True once the saved cart has been restored, so pages don't flash "your cart is empty". */
+export function useCartHydrated() {
+  return useSyncExternalStore(
+    (onChange) => useCart.persist.onFinishHydration(onChange),
+    () => useCart.persist.hasHydrated(),
+    () => false,
+  );
+}

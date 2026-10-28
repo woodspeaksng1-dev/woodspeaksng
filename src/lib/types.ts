@@ -70,4 +70,6 @@ export interface ShippingZone {
   /** null until the client sends the delivery matrix. */
   fee: number | null;
   estimate: string | null;
+  /** Cake, flowers and roses can only go to these zones (fresh on the day). */
+  perishables: boolean;
 }

@@ -144,14 +144,22 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-/** Delivery fees and estimates are pending from the client. */
+/**
+ * Delivery fees and estimates are pending from the client. Which zones take perishables
+ * is an assumption (Lagos Island and Mainland only) TO CONFIRM.
+ */
 export const SHIPPING_ZONES: ShippingZone[] = [
-  { id: "lagos-island", name: "Lagos Island, Lekki, Ajah", fee: null, estimate: null },
-  { id: "lagos-mainland", name: "Lagos Mainland", fee: null, estimate: null },
-  { id: "lagos-outskirts", name: "Lagos outskirts (Ikorodu, Epe, Badagry)", fee: null, estimate: null },
-  { id: "interstate-major", name: "Abuja, Port Harcourt, Ibadan", fee: null, estimate: null },
-  { id: "nationwide", name: "Other states", fee: null, estimate: null },
+  { id: "lagos-island", name: "Lagos Island, Lekki, Ajah", fee: null, estimate: null, perishables: true },
+  { id: "lagos-mainland", name: "Lagos Mainland", fee: null, estimate: null, perishables: true },
+  { id: "lagos-outskirts", name: "Lagos outskirts (Ikorodu, Epe, Badagry)", fee: null, estimate: null, perishables: false },
+  { id: "interstate-major", name: "Abuja, Port Harcourt, Ibadan", fee: null, estimate: null, perishables: false },
+  { id: "nationwide", name: "Other states", fee: null, estimate: null, perishables: false },
 ];
+
+export const getZone = (id: string) => SHIPPING_ZONES.find((z) => z.id === id);
+
+/** Days to make an order before it can be delivered. TO CONFIRM with the client (2–3 days). */
+export const CRAFTING_DAYS = 3;
 
 export const getProduct = (id: string) => PRODUCTS.find((p) => p.id === id);
 export const getProductBySlug = (slug: string) => PRODUCTS.find((p) => p.slug === slug);

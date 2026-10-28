@@ -37,11 +37,17 @@ Done (frontend, mock data):
 - Love scroll card photo taken from the old site (`products/love-scroll.webp`); the closed-scroll
   cut-out moved to `customizer/scroll-closed.webp`
 - About: "Our story" and "What inspires us" are DRAFTS from the old site's wording, for client approval
+- Checkout (`/checkout`) and confirmation (`/checkout/confirmation`), DEMO: one-page guest form with
+  Zod validation (`src/lib/checkout.ts`), Nigerian phone check, recipient fields, zone dropdown, earliest
+  date from crafting time, perishables limited to Lagos Island and Mainland, hide-price option, order
+  summary with personalisation. "Place order (demo)" takes no payment: it keeps the order in the tab
+  (`src/lib/demo-order.ts`), clears the cart and shows the confirmation (order number, delivery date,
+  "Remind me" button that saves nothing yet). Set `PAYMENTS_LIVE` in `CheckoutForm.tsx` when Paystack lands.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
 1. ~~Customizer~~ (done 28 Oct; NFC tag upload comes with the NFC backend)
-2. Checkout page UI and order confirmation (mock, no payment yet)
+2. ~~Checkout page UI and order confirmation~~ (done 28 Oct, demo; Paystack in the backend stage)
 3. Account, Corporate (with enquiry form), FAQ and policy pages (layouts; copy from the client)
 4. Admin panel screens (mock data)
 5. Phone testing and polish, then the 31 Oct demo
@@ -246,12 +252,13 @@ full checkout on a real phone in test mode, then one small live payment and refu
 4. What goes on the scroll's personalised wax stamp (initials, a symbol?)
 5. How many photos the polaroid takes
 6. Whether any product takes an engraving, and if so the font and limits
-7. Delivery fees and estimates for the 5 zones; crafting time; shortest notice for a preferred date; rush delivery in Lagos
+7. Delivery fees and estimates for the 5 zones (checkout shows "We'll confirm the fee" until then); which
+   zones take cake, flowers and roses (assumed Lagos Island and Mainland); crafting time (assumed 3 days); shortest notice for a preferred date; rush delivery in Lagos
 8. NFC: media types, size limits, how long memory pages stay online, whether buyers can change the message after delivery, which products can take the tag
 9. Names (with consent) for the customer moments; real reviews. The old site shows six reviews
    (Korede O., Adeola A., Chinaza A., Daniel O., Jackson D., Blessing A.) that mention engraving, gold inlay
    and gift boxes we don't sell: confirm whether they are real before using any of them
-10. Photos for bouquet, magnifying glass, cake, real rose and NFC tag (temporary generated images were
-    approved for the demo, but not made yet: the image tool had no credits)
+10. Photos for bouquet, magnifying glass, cake, real rose and NFC tag (left as drawn placeholders for the
+    demo, 28 Oct)
 11. About text (Our story, What inspires us), FAQ answers, policy details, opening hours, business email
 12. Who on their team uses the admin panel, and how many staff accounts

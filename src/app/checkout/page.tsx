@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 
-export default function Page() {
-  return <ComingSoon title="Checkout" note="Checkout is built in the backend stage, with Paystack." />;
+export default function CheckoutPage() {
+  return (
+    <div className="mx-auto max-w-6xl px-4 pt-8 pb-28 sm:px-6 lg:px-10">
+      <CheckoutForm />
+    </div>
+  );
 }
