@@ -52,13 +52,22 @@ Done (frontend, mock data):
   Until email sending exists, a valid enquiry opens WhatsApp with the details filled in (`EMAIL_LIVE`).
 - Account (`/account`), DEMO: email-link sign-in form (sends nothing), then a labelled sample account with
   order tracking (Paid, Crafting, Dispatched, Delivered), saved addresses, reminders and memory messages
+- Admin panel (`/admin`), DEMO with SAMPLE data (`src/lib/admin/sample-data.ts`) in an in-memory store
+  (`src/lib/admin/store.ts`; resets on reload): overview, orders (filter, detail with full personalisation,
+  move status forward, print order sheet, NFC approve, copy link, mark written; an NFC order can't be
+  dispatched until its tag is written), products (edit details, price, tags, limits, SEO, featured, hidden),
+  homepage (6 featured, moment order, logos), reviews (add with consent, approve), delivery (zone fees,
+  estimates, perishables, crafting time), customers, emails (preview, test first, confirm before sending),
+  reminders, enquiries and an activity log. Public pages moved into the `(site)` route group so admin has
+  its own layout. `/admin` is OPEN (no sign-in) and `noindex`; it must sit behind the staff claim before
+  it touches real data.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
 1. ~~Customizer~~ (done 28 Oct; NFC tag upload comes with the NFC backend)
 2. ~~Checkout page UI and order confirmation~~ (done 28 Oct, demo; Paystack in the backend stage)
 3. ~~Account, Corporate, FAQ and policy pages~~ (done 28 Oct; copy and policies need client approval)
-4. Admin panel screens (mock data)
+4. ~~Admin panel screens~~ (done 28 Oct, sample data; real data and staff sign-in in the backend stage)
 5. Phone testing and polish, then the 31 Oct demo
 6. Backend (from 1 Nov), see "Backend" below
 

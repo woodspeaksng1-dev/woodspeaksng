@@ -25,8 +25,10 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 - `node scripts/generate-wordmark.mjs` — regenerates the preloader wordmark paths
 
 ## Layout
-- `src/app/` routes: home, shop, products/[slug] (+ /personalise), about, about/gallery, contact, corporate,
-  faq, policies/[slug]. Checkout, confirmation and account are demos until the backend (no payment, no sign-in).
+- `src/app/(site)/` shop routes (navbar, footer, cart, floating helpers via `SiteChrome`): home, shop,
+  products/[slug] (+ /personalise), about, about/gallery, contact, corporate, faq, policies/[slug]. Checkout,
+  confirmation and account are demos until the backend (no payment, no sign-in).
+- `src/app/admin/` staff panel with its own shell; sample data in `src/lib/admin/` until the backend.
 - `docs/PLAN.md` full build plan and status
 - `src/components/` by area: layout, home, product, cart, floating (mascot, WhatsApp), preloader, ui
 - `src/lib/` types, mock catalog (from the client's asset list), cart store, validation, formatting, contact

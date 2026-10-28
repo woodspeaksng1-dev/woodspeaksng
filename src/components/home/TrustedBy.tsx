@@ -8,7 +8,7 @@ import { imageSrc } from "@/lib/media";
  * client's current site, turned into single-colour (white) marks so the row reads
  * as one set: public/media/brands/<key>.png.
  */
-const BRANDS = [
+export const BRANDS = [
   { key: "totalenergies", name: "TotalEnergies", h: "h-9" },
   { key: "kpmg", name: "KPMG", h: "h-7" },
   { key: "mavins", name: "Mavin Records", h: "h-11" },

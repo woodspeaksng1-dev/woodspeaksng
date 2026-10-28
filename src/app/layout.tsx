@@ -1,12 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { manrope, playfair } from "./fonts";
-import { Preloader } from "@/components/preloader/Preloader";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { CartDrawer } from "@/components/cart/CartDrawer";
-import { MascotPanel } from "@/components/floating/MascotPanel";
-import { WhatsAppButton } from "@/components/floating/WhatsAppButton";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE } from "@/lib/site";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
@@ -50,21 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <JsonLd data={[organizationLd(), websiteLd()]} />
       </head>
       <body className="flex min-h-dvh flex-col antialiased">
-        <Preloader />
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-oxblood focus:px-4 focus:py-2 focus:text-vellum"
-        >
-          Skip to content
-        </a>
-        <Navbar />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <Footer />
-        <CartDrawer />
-        <MascotPanel />
-        <WhatsAppButton />
+        {children}
       </body>
     </html>
   );
