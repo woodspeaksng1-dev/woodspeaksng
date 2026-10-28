@@ -1,0 +1,34 @@
+import type { NextConfig } from "next";
+
+// Baseline security headers. A full Content-Security-Policy (allowing Paystack,
+// Firebase and the email provider) is added in the backend stage.
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(self)" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+];
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  partialPrefetching: true,
+  // Tailwind CSS v4 runs as a Turbopack loader (there is no PostCSS config).
+  turbopack: {
+    rules: {
+      "*.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
+      },
+    },
+  },
+  poweredByHeader: false,
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
+};
+
+export default nextConfig;

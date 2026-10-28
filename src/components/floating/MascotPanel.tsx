@@ -1,0 +1,208 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { OCCASION_LABELS, PRODUCTS, RECIPIENT_LABELS } from "@/lib/catalog";
+import { formatNaira } from "@/lib/format";
+import type { Occasion, Product, Recipient } from "@/lib/types";
+import { CloseIcon, WizardHatIcon } from "../ui/icons";
+import { imageSrc } from "@/lib/media";
+
+const wizard = imageSrc("mascot/wizard");
+
+type View = "home" | "suggest" | "results";
+
+function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): Product[] {
+  const sellable = PRODUCTS.filter((p) => !p.addOn);
+  const matches = sellable.filter((p) => p.recipients.includes(recipient) && p.occasions.includes(occasion));
+  const pool = matches.length >= count ? matches : [...matches, ...sellable.filter((p) => p.featured && !matches.includes(p))];
+  return [...pool].sort(() => Math.random() - 0.5).slice(0, count);
+}
+
+function Chips<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: Record<T, string>;
+  value: T | null;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <fieldset className="mt-4">
+      <legend className="text-sm text-ink-soft">{label}</legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {(Object.keys(options) as T[]).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key)}
+            aria-pressed={value === key}
+            className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+              value === key
+                ? "border-oxblood bg-oxblood text-vellum"
+                : "border-rule bg-vellum text-ink hover:border-oxblood"
+            }`}
+          >
+            {options[key]}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * The wizard mascot. Opens only when tapped (no auto pop-up).
+ * "Suggest a gift" works now from catalog tags. "Write my message" lives in the
+ * customizer, where its drafts drop straight into the text box (built next).
+ */
+export function MascotPanel() {
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState<View>("home");
+  const [recipient, setRecipient] = useState<Recipient | null>(null);
+  const [occasion, setOccasion] = useState<Occasion | null>(null);
+  const [results, setResults] = useState<Product[]>([]);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    panelRef.current?.focus();
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const reset = () => {
+    setView("home");
+    setRecipient(null);
+    setOccasion(null);
+    setResults([]);
+  };
+
+  return (
+    <div className="fixed bottom-[calc(1rem+var(--sticky-bar,0px))] left-4 z-30 flex flex-col items-start gap-3 md:bottom-6 md:left-6">
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            ref={panelRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-label="Woodspeaks gift wizard"
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="max-h-[70dvh] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-vellum p-5 shadow-[0_16px_48px_-16px_rgb(42_23_18/0.45)] outline-none"
+          >
+            {view === "home" && (
+              <>
+                <div className="flex items-center gap-3">
+                  {wizard && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={wizard} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover object-[50%_25%] ring-1 ring-rule" />
+                  )}
+                  <p className="font-display text-xl leading-snug text-oxblood">Hello, I&rsquo;m the Woodspeaks wizard.</p>
+                </div>
+                <p className="mt-2 text-ink">
+                  I can suggest a gift, or help you write the perfect message when you personalise one.
+                </p>
+                <div className="mt-5 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setView("suggest")}
+                    className="h-11 rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine"
+                  >
+                    Suggest a gift
+                  </button>
+                  <Link
+                    href="/shop?personalised=1"
+                    onClick={() => setOpen(false)}
+                    className="flex h-11 items-center justify-center rounded-full border border-oxblood text-oxblood transition-colors hover:bg-oxblood hover:text-vellum"
+                  >
+                    Write my message
+                  </Link>
+                </div>
+              </>
+            )}
+
+            {view === "suggest" && (
+              <>
+                <p className="font-display text-xl text-oxblood">Who is it for?</p>
+                <Chips label="Recipient" options={RECIPIENT_LABELS} value={recipient} onChange={setRecipient} />
+                <Chips label="Occasion" options={OCCASION_LABELS} value={occasion} onChange={setOccasion} />
+                <button
+                  type="button"
+                  disabled={!recipient || !occasion}
+                  onClick={() => {
+                    if (!recipient || !occasion) return;
+                    setResults(pickSuggestions(recipient, occasion));
+                    setView("results");
+                  }}
+                  className="mt-6 h-11 w-full rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Show me gifts
+                </button>
+              </>
+            )}
+
+            {view === "results" && (
+              <>
+                <p className="font-display text-xl text-oxblood">Three I think they&rsquo;d love</p>
+                <ul className="mt-4 flex flex-col gap-2">
+                  {results.map((p) => (
+                    <li key={p.id}>
+                      <Link
+                        href={`/products/${p.slug}`}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-rule px-4 py-3 transition-colors hover:border-oxblood"
+                      >
+                        <span className="font-display text-lg leading-snug">{p.name}</span>
+                        <span className="shrink-0 text-sm text-ink-soft tabular-nums">{formatNaira(p.price)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 flex gap-4 text-sm">
+                  <button
+                    type="button"
+                    onClick={() => recipient && occasion && setResults(pickSuggestions(recipient, occasion))}
+                    className="text-oxblood underline underline-offset-2"
+                  >
+                    Show three more
+                  </button>
+                  <button type="button" onClick={reset} className="text-ink-soft underline underline-offset-2">
+                    Start again
+                  </button>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        type="button"
+        onClick={() => {
+          setOpen((o) => !o);
+          if (open) reset();
+        }}
+        className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-oxblood-deep text-gold-light shadow-[0_8px_24px_-8px_rgb(42_23_18/0.5)] ring-2 ring-gold-light/60 transition-transform hover:-translate-y-0.5"
+        aria-label={open ? "Close the gift wizard" : "Open the gift wizard"}
+        aria-expanded={open}
+      >
+        {open ? (
+          <CloseIcon />
+        ) : wizard ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={wizard} alt="" className="h-full w-full scale-[1.35] object-cover object-[50%_22%]" />
+        ) : (
+          <WizardHatIcon width={30} height={30} />
+        )}
+      </button>
+    </div>
+  );
+}

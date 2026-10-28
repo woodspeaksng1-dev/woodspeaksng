@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+ * Woodspeaks design tokens.
+ * Colours are PROVISIONAL (burgundy, cream, gold direction from the client's
+ * asset list, 22 Oct 2026). Swap the hex values here when the brand kit
+ * arrives; never use raw hex values in components.
+ */
+@theme {
+  --color-oxblood: #4a1420;      /* primary burgundy: bands, buttons, wax */
+  --color-oxblood-deep: #2c0b12; /* preloader, footer */
+  --color-wine: #6e2232;         /* hover / pressed burgundy */
+  --color-parchment: #eee2cb;    /* page background, scroll paper */
+  --color-vellum: #f8f2e6;       /* raised surfaces: cards, drawer */
+  --color-gold: #a8823a;         /* accents on light backgrounds */
+  --color-gold-light: #d6b46a;   /* accents on dark backgrounds */
+  --color-ink: #2a1712;          /* body text */
+  --color-ink-soft: #6b5446;     /* secondary text */
+  --color-rule: #d8c8aa;         /* hairlines on parchment */
+  --color-paper-shade: #d9c59f;  /* scroll paper edges and rolls */
+  --color-wood: #7a4f2e;         /* scroll rods (placeholder art) */
+  --color-wood-dark: #4a2d18;
+  --color-rose: #8c1728;         /* rose placeholder art */
+  --color-rose-deep: #4f0a15;
+  --color-leaf: #3e4a2c;
+  --color-leaf-light: #6d7a4a;
+
+  /* Card tones: the soft backdrop behind each product photo, light at top. */
+  --color-sand: #d8c093;
+  --color-dusk: #b98088;
+  --color-blush: #d9aaa2;
+  --color-sage: #b0b394;
+
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 18px 40px -22px rgb(42 23 18 / 0.45), 0 2px 6px -2px rgb(42 23 18 / 0.12);
+
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+
+  --ease-quill: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-parchment);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    min-height: 100dvh;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 420;
+    line-height: 1.06;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  ::selection { background: var(--color-oxblood); color: var(--color-vellum); }
+}
+
+/* Preloader: hidden on repeat views within a session (set by an inline script). */
+html[data-intro="seen"] .ws-preloader { display: none; }
+/* Failsafe: if the intro script never runs, the overlay still clears after 4 s. */
+.ws-preloader { animation: ws-failsafe 0.3s 4s forwards; }
+@keyframes ws-failsafe { to { opacity: 0; visibility: hidden; } }
+
+/* Fine paper grain for parchment surfaces. */
+.paper-grain {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track { animation: marquee 40s linear infinite; }
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track,
+.marquee[data-paused="true"] .marquee-track { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
