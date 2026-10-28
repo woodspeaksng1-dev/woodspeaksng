@@ -25,8 +25,8 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 - `node scripts/generate-wordmark.mjs` — regenerates the preloader wordmark paths
 
 ## Layout
-- `src/app/` routes. Home, shop, products/[slug], about, about/gallery, contact are real; checkout, account,
-  corporate, faq, policies are `ComingSoon` placeholders.
+- `src/app/` routes: home, shop, products/[slug] (+ /personalise), about, about/gallery, contact, corporate,
+  faq, policies/[slug]. Checkout, confirmation and account are demos until the backend (no payment, no sign-in).
 - `docs/PLAN.md` full build plan and status
 - `src/components/` by area: layout, home, product, cart, floating (mascot, WhatsApp), preloader, ui
 - `src/lib/` types, mock catalog (from the client's asset list), cart store, validation, formatting, contact
@@ -65,7 +65,8 @@ contact details (lib/contact.ts), crafting time, delivery fees (SHIPPING_ZONES),
   and Twitter tags (Next replaces `openGraph` per page, so never set it by hand). Default share image: `public/og.jpg`.
 - Structured data (`src/lib/structured-data.ts`): Organization + WebSite in the layout, Product + BreadcrumbList on
   product pages. Never add ratings or reviews to it until real reviews exist.
-- `app/sitemap.ts` lists real pages only; "coming soon" pages stay `noindex` and out of the sitemap.
+- `app/sitemap.ts` lists indexable pages only. Checkout, account, the customizer and draft policies stay
+  `noindex` and out of the sitemap.
 - Icons: `app/icon.png`, `app/apple-icon.png`, `app/favicon.ico` (from the seal).
 
 ## Security rules (non-negotiable)

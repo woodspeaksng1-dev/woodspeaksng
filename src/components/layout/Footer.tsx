@@ -26,6 +26,7 @@ const GROUPS = [
       { href: "/policies/refunds", label: "Refunds and remakes" },
       { href: "/policies/privacy", label: "Privacy" },
       { href: "/policies/terms", label: "Terms of sale" },
+      { href: "/policies/acceptable-use", label: "Acceptable use" },
     ],
   },
 ];

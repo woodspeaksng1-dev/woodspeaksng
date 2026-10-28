@@ -43,12 +43,21 @@ Done (frontend, mock data):
   summary with personalisation. "Place order (demo)" takes no payment: it keeps the order in the tab
   (`src/lib/demo-order.ts`), clears the cart and shows the confirmation (order number, delivery date,
   "Remind me" button that saves nothing yet). Set `PAYMENTS_LIVE` in `CheckoutForm.tsx` when Paystack lands.
+- FAQ (`/faq`, indexed): delivery, personalisation, payment and refund answers built from this plan;
+  limits and crafting time come from the catalog, so they update in one place
+- Policies (`/policies/<slug>`): delivery, refunds, privacy, terms and acceptable use, written as DRAFTS in
+  `src/lib/policies.ts`. They show a "being finalised" note and stay `noindex` and out of the sitemap
+  until `draft: false`. Acceptable use added to the footer.
+- Corporate (`/corporate`, indexed): what we offer, the brand logos and an enquiry form (Zod, honeypot).
+  Until email sending exists, a valid enquiry opens WhatsApp with the details filled in (`EMAIL_LIVE`).
+- Account (`/account`), DEMO: email-link sign-in form (sends nothing), then a labelled sample account with
+  order tracking (Paid, Crafting, Dispatched, Delivered), saved addresses, reminders and memory messages
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
 1. ~~Customizer~~ (done 28 Oct; NFC tag upload comes with the NFC backend)
 2. ~~Checkout page UI and order confirmation~~ (done 28 Oct, demo; Paystack in the backend stage)
-3. Account, Corporate (with enquiry form), FAQ and policy pages (layouts; copy from the client)
+3. ~~Account, Corporate, FAQ and policy pages~~ (done 28 Oct; copy and policies need client approval)
 4. Admin panel screens (mock data)
 5. Phone testing and polish, then the 31 Oct demo
 6. Backend (from 1 Nov), see "Backend" below
@@ -260,5 +269,9 @@ full checkout on a real phone in test mode, then one small live payment and refu
    and gift boxes we don't sell: confirm whether they are real before using any of them
 10. Photos for bouquet, magnifying glass, cake, real rose and NFC tag (left as drawn placeholders for the
     demo, 28 Oct)
-11. About text (Our story, What inspires us), FAQ answers, policy details, opening hours, business email
+11. About text (Our story, What inspires us), FAQ answers, policy details, opening hours, business email.
+    The draft policies include details we assumed and the client must confirm or change: damage or
+    mistakes reported within 48 hours with a photo; cancellation with a full refund only before crafting
+    starts; the rider calls the recipient, and a second delivery attempt may carry a fee; data requests
+    answered within 30 days. The privacy policy also needs a Nigerian data protection practitioner's review.
 12. Who on their team uses the admin panel, and how many staff accounts
