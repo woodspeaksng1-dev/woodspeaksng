@@ -5,7 +5,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <Link
       href="/"
-      className={`font-display text-[1.65rem] leading-none italic tracking-[-0.01em] ${className}`}
+      className={`-my-2 inline-block py-2 font-display text-[1.65rem] leading-none italic tracking-[-0.01em] ${className}`}
       aria-label="Woodspeaks home"
     >
       Woodspeaks

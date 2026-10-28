@@ -28,7 +28,7 @@ export function HeroMoment({ className = "" }: { className?: string }) {
         <p className="mt-0.5 text-sm text-ink-soft">A love scroll, read aloud over lunch</p>
         <Link
           href="/about/gallery"
-          className="mt-1.5 inline-block text-sm text-oxblood underline decoration-gold/60 underline-offset-4 hover:decoration-oxblood"
+          className="mt-1.5 -mb-2.5 inline-block py-2.5 text-sm text-oxblood underline decoration-gold/60 underline-offset-4 hover:decoration-oxblood"
         >
           See more moments
         </Link>

@@ -15,7 +15,7 @@ export default function GalleryPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 pb-28 sm:px-6 lg:px-10">
       <nav aria-label="Breadcrumb" className="text-sm text-ink-soft">
-        <Link href="/about" className="hover:text-oxblood">
+        <Link href="/about" className="-my-2.5 inline-block py-2.5 hover:text-oxblood">
           About us
         </Link>
         <span aria-hidden className="mx-2">

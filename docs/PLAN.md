@@ -61,6 +61,11 @@ Done (frontend, mock data):
   reminders, enquiries and an activity log. Public pages moved into the `(site)` route group so admin has
   its own layout. `/admin` is OPEN (no sign-in) and `noindex`; it must sit behind the staff claim before
   it touches real data.
+- Phone polish (28 Oct, 375px, every page): no horizontal overflow anywhere; footer, logo, contact and
+  small text links enlarged to 40px+ tap targets; shop sort menu at 16px so iPhones don't zoom; footer no
+  longer hidden behind the product page's sticky buy bar; the wizard is hidden on checkout. Still to do on
+  a real phone: Android Chrome and iPhone Safari, slow 3G, and the reviews section, which still shows
+  placeholder cards until real reviews arrive.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -68,7 +73,7 @@ Next, in this order:
 2. ~~Checkout page UI and order confirmation~~ (done 28 Oct, demo; Paystack in the backend stage)
 3. ~~Account, Corporate, FAQ and policy pages~~ (done 28 Oct; copy and policies need client approval)
 4. ~~Admin panel screens~~ (done 28 Oct, sample data; real data and staff sign-in in the backend stage)
-5. Phone testing and polish, then the 31 Oct demo
+5. ~~Phone polish~~ (done 28 Oct in the browser at phone size; one pass on real phones still due), then the 31 Oct demo
 6. Backend (from 1 Nov), see "Backend" below
 
 ## Products and personalisation

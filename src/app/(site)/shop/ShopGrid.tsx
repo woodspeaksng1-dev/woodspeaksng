@@ -77,7 +77,7 @@ export function ShopGrid({ personalisedOnly }: { personalisedOnly: boolean }) {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="rounded-full border border-rule bg-vellum px-3 py-1.5"
+              className="h-10 rounded-full border border-rule bg-vellum px-3 text-base"
             >
               <option value="featured">Featured</option>
               <option value="price-asc">Price, low to high</option>

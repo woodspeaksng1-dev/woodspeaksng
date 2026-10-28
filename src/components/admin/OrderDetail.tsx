@@ -65,7 +65,7 @@ export function OrderDetail({ number }: { number: string }) {
 
   return (
     <div>
-      <Link href="/admin/orders" className="text-sm text-ink-soft underline underline-offset-2 print:hidden">
+      <Link href="/admin/orders" className="-my-2.5 inline-block py-2.5 text-sm text-ink-soft underline underline-offset-2 print:hidden">
         All orders
       </Link>
       <header className="mt-3 flex flex-wrap items-end justify-between gap-4">

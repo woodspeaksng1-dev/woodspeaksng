@@ -48,11 +48,11 @@ export function Footer() {
           <p className="mt-4 text-vellum/75">
             A place for emotions. Handcrafted keepsakes made in Lagos, delivered across Nigeria.
           </p>
-          <div className="mt-6 flex flex-col gap-1 text-vellum/90">
-            <a href={CONTACT.whatsappUrl()} className="hover:text-gold-light" rel="noopener">
+          <div className="mt-5 flex flex-col text-vellum/90">
+            <a href={CONTACT.whatsappUrl()} className="py-2 hover:text-gold-light" rel="noopener">
               WhatsApp {CONTACT.phoneDisplay}
             </a>
-            <a href={CONTACT.instagramUrl} className="hover:text-gold-light" rel="noopener">
+            <a href={CONTACT.instagramUrl} className="py-2 hover:text-gold-light" rel="noopener">
               Instagram {CONTACT.instagramHandle}
             </a>
           </div>
@@ -60,10 +60,10 @@ export function Footer() {
         {GROUPS.map((g) => (
           <div key={g.title}>
             <h2 className="font-sans text-sm font-semibold text-gold-light">{g.title}</h2>
-            <ul className="mt-4 flex flex-col gap-3">
+            <ul className="mt-2 flex flex-col">
               {g.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-vellum/80 hover:text-vellum">
+                  <Link href={l.href} className="inline-block py-2.5 text-vellum/80 hover:text-vellum">
                     {l.label}
                   </Link>
                 </li>

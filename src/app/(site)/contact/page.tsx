@@ -20,13 +20,13 @@ export default function ContactPage() {
       <ul className="mt-10 divide-y divide-rule border-y border-rule">
         <li className="flex flex-wrap items-center justify-between gap-3 py-5">
           <span className="text-ink-soft">WhatsApp</span>
-          <a href={CONTACT.whatsappUrl()} className="font-display text-xl text-oxblood hover:underline" rel="noopener">
+          <a href={CONTACT.whatsappUrl()} className="-my-2 py-2 font-display text-xl text-oxblood hover:underline" rel="noopener">
             {CONTACT.phoneDisplay}
           </a>
         </li>
         <li className="flex flex-wrap items-center justify-between gap-3 py-5">
           <span className="text-ink-soft">Instagram</span>
-          <a href={CONTACT.instagramUrl} className="font-display text-xl text-oxblood hover:underline" rel="noopener">
+          <a href={CONTACT.instagramUrl} className="-my-2 py-2 font-display text-xl text-oxblood hover:underline" rel="noopener">
             {CONTACT.instagramHandle}
           </a>
         </li>

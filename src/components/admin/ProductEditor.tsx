@@ -82,7 +82,7 @@ export function ProductEditor({ slug }: { slug: string }) {
 
   return (
     <form onSubmit={save} noValidate>
-      <Link href="/admin/products" className="text-sm text-ink-soft underline underline-offset-2">
+      <Link href="/admin/products" className="-my-2.5 inline-block py-2.5 text-sm text-ink-soft underline underline-offset-2">
         All products
       </Link>
       <h1 className="mt-3 text-4xl text-oxblood">{saved.name}</h1>

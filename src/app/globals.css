@@ -67,6 +67,11 @@
   ::selection { background: var(--color-oxblood); color: var(--color-vellum); }
 }
 
+/* Product pages on phones: keep the end of the page clear of the sticky buy bar (set in AddToCart). */
+@media (max-width: 767px) {
+  body { padding-bottom: var(--sticky-bar, 0px); }
+}
+
 /* Preloader: hidden on repeat views within a session (set by an inline script). */
 html[data-intro="seen"] .ws-preloader { display: none; }
 /* Failsafe: if the intro script never runs, the overlay still clears after 4 s. */

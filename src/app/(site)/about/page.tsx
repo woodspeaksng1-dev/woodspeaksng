@@ -72,7 +72,7 @@ export default function AboutPage() {
           <h2 id="gallery" className="text-3xl text-oxblood">
             Gallery
           </h2>
-          <Link href="/about/gallery" className="text-oxblood underline decoration-gold/60 underline-offset-4 hover:decoration-oxblood">
+          <Link href="/about/gallery" className="-my-2.5 inline-block py-2.5 text-oxblood underline decoration-gold/60 underline-offset-4 hover:decoration-oxblood">
             See the gallery
           </Link>
         </div>

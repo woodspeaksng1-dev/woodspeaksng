@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OCCASION_LABELS, PRODUCTS, RECIPIENT_LABELS } from "@/lib/catalog";
@@ -28,11 +29,12 @@ function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): P
 
 /**
  * The wizard mascot. Opens only when tapped (no auto pop-up); until it has been opened this session,
- * a small "Click me" bubble appears beside it at intervals.
+ * a small "Click me" bubble appears beside it at intervals. Hidden during checkout.
  * "Suggest a gift" works now from catalog tags. "Write my message" lives in the
  * customizer, where its drafts drop straight into the text box (built next).
  */
 export function MascotPanel() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("home");
   const [recipient, setRecipient] = useState<Recipient | null>(null);
@@ -91,6 +93,9 @@ export function MascotPanel() {
     setOccasion(null);
     setResults([]);
   };
+
+  // Nothing floats over the checkout form.
+  if (pathname.startsWith("/checkout")) return null;
 
   return (
     <div className="fixed bottom-[calc(1rem+var(--sticky-bar,0px))] left-4 z-30 flex flex-col items-start gap-3 md:bottom-6 md:left-6">

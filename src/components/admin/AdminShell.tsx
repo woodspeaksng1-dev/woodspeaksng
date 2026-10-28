@@ -33,7 +33,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Link href="/admin" className="font-display text-2xl text-oxblood italic">
               Woodspeaks
             </Link>
-            <Link href="/" className="text-sm text-ink-soft underline underline-offset-2 md:mt-1 md:block">
+            <Link href="/" className="-my-2.5 inline-block py-2.5 text-sm text-ink-soft underline underline-offset-2 md:mt-1 md:block">
               View the shop
             </Link>
           </div>
