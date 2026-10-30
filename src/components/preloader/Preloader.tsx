@@ -3,17 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import { WORDMARK } from "./wordmark-data";
 
-const WRITE_MS = 1500; // pen writing
+const WRITE_MS = 2000; // pen writing
 const HOLD_MS = 250; // finished wordmark rests
 const FADE_MS = 350; // overlay fades out
 const STROKE = 13; // reveal width around each letter outline, in wordmark units
+/** When the intro starts to fade on a first visit; the hero enters on this cue. */
+export const INTRO_MS = WRITE_MS + HOLD_MS;
 
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 
+// Where the first stroke starts, so the pen waits there before the script runs.
+const [START_X, START_Y] = (WORDMARK.contours[0].match(/^M\s*([\d.-]+)[ ,]([\d.-]+)/)?.slice(1) ?? ["0", "0"]).map(Number);
+
 /**
  * Intro: a calligraphy pen writes the wordmark, then the page appears.
- * - Plays on every load of the home page, and on the first page of a session elsewhere; the page
- *   renders underneath while it plays.
+ * - Plays once per visit (browser tab session), on whichever page comes first; the page renders
+ *   underneath while it plays.
+ * - The server sends the wordmark unwritten (pathLength 1, dash offset 1, strokes hidden) so a
+ *   slow phone never sees it finished before the pen moves.
  * - Not skippable by tapping (client request).
  * - Reduce-motion users see the finished wordmark briefly instead of the animation.
  * - A CSS failsafe in globals hides it after 4 s even if this script never runs.
@@ -47,16 +54,14 @@ export function Preloader() {
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
-      paths.forEach((p) => (p.style.strokeDashoffset = "0"));
+      paths.forEach((p) => {
+        p.style.strokeDashoffset = "0";
+        p.style.visibility = "visible";
+      });
       if (nibRef.current) nibRef.current.style.opacity = "0";
       const t = window.setTimeout(finish, 700);
       return () => window.clearTimeout(t);
     }
-
-    paths.forEach((p, i) => {
-      p.style.strokeDasharray = `${lengths[i]} ${lengths[i]}`;
-      p.style.strokeDashoffset = `${lengths[i]}`;
-    });
 
     let raf = 0;
     const start = performance.now();
@@ -68,7 +73,9 @@ export function Preloader() {
       for (let i = 0; i < paths.length; i++) {
         const len = lengths[i];
         const visible = Math.max(0, Math.min(len, drawn));
-        paths[i].style.strokeDashoffset = `${len - visible}`;
+        paths[i].style.strokeDashoffset = `${1 - visible / len}`;
+        // A stroke not yet started stays hidden: its round cap would otherwise show as a dot.
+        paths[i].style.visibility = visible > 0 ? "visible" : "hidden";
         if (!nibPoint && drawn < len) nibPoint = paths[i].getPointAtLength(Math.max(0, visible));
         drawn -= len;
       }
@@ -107,6 +114,10 @@ export function Preloader() {
                   pathRefs.current[i] = el;
                 }}
                 d={d}
+                pathLength={1}
+                strokeDasharray="1 1"
+                strokeDashoffset={1}
+                visibility="hidden"
                 fill="none"
                 stroke="white"
                 strokeWidth={STROKE}
@@ -118,7 +129,7 @@ export function Preloader() {
         </defs>
         <path d={WORDMARK.contours.join("")} fill="var(--color-gold-light)" mask="url(#ws-ink)" />
         {/* Calligraphy nib; its tip sits at the origin so it follows the ink. */}
-        <g ref={nibRef} className="transition-opacity duration-200">
+        <g ref={nibRef} transform={`translate(${START_X} ${START_Y})`} className="transition-opacity duration-200">
           <g transform="rotate(-38)">
             <path
               d="M0 0 L-5 -22 Q-6 -34 0 -40 Q6 -34 5 -22 Z"

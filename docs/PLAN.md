@@ -21,11 +21,11 @@ Push to GitHub and have a Vercel preview link before the 31 Oct demo.
 ## Status (28 Oct)
 
 Done (frontend, mock data):
-- Preloader (pen writes the wordmark; plays on every load of the home page, and once per session when
-  landing elsewhere; not skippable by tapping, reduced-motion safe)
+- Preloader (pen writes the wordmark; plays once per visit on whichever page comes first, changed from
+  every home load on 30 Oct; sent unwritten from the server; not skippable by tapping, reduced-motion safe)
 - Navbar, footer, cart drawer (side panel on desktop, full sheet on phones, saved across refreshes)
 - Home: hero (scroll film plays once and rests open; "Shop now" wax seal that breathes; customer moment
-  card), Our items, Trusted by (client logos), customer moments stack, reviews section (placeholders)
+  card), Our items, Trusted by (client logos), customer moments stack, reviews section (the six from the old site, word for word)
 - Shop with occasion/recipient filters; product page with sticky buy bar on phones
 - About, Gallery (`/about/gallery`), Contact; "coming soon" pages for Checkout, Account, Corporate, FAQ, Policies
 - Floating wizard (Suggest a gift works; a "Click me" bubble appears at intervals until it's opened once
@@ -64,8 +64,15 @@ Done (frontend, mock data):
 - Phone polish (28 Oct, 375px, every page): no horizontal overflow anywhere; footer, logo, contact and
   small text links enlarged to 40px+ tap targets; shop sort menu at 16px so iPhones don't zoom; footer no
   longer hidden behind the product page's sticky buy bar; the wizard is hidden on checkout. Still to do on
-  a real phone: Android Chrome and iPhone Safari, slow 3G, and the reviews section, which still shows
-  placeholder cards until real reviews arrive.
+  a real phone: Android Chrome and iPhone Safari, slow 3G, and the reviews section with the six real reviews.
+- Phone fixes (30 Oct, from testing on an iPhone): dev server now lets phones on the Wi-Fi load scripts
+  (`allowedDevOrigins`; without it nothing was interactive, every tap reloaded the page and replayed the
+  intro); WhatsApp button in WhatsApp green; mascot and WhatsApp clear the sticky buy bar by CSS (iPhone
+  safe area included) and are hidden in the customizer; hero film loads during the intro; "Help me write it"
+  letters now run 238 to 281 words; structured data sent as one `@graph` (Safari threw on the bare array).
+  Checked end to end at 390px on the production build: intro, hero, navigation, all three customizers,
+  cart, checkout, every page and admin, with no browser errors. Test on a phone against `npm run build`
+  and `npx next start` (dev mode is much slower over Wi-Fi).
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -278,9 +285,10 @@ full checkout on a real phone in test mode, then one small live payment and refu
 7. Delivery fees and estimates for the 5 zones (checkout shows "We'll confirm the fee" until then); which
    zones take cake, flowers and roses (assumed Lagos Island and Mainland); crafting time (assumed 3 days); shortest notice for a preferred date; rush delivery in Lagos
 8. NFC: media types, size limits, how long memory pages stay online, whether buyers can change the message after delivery, which products can take the tag
-9. Names (with consent) for the customer moments; real reviews. The old site shows six reviews
-   (Korede O., Adeola A., Chinaza A., Daniel O., Jackson D., Blessing A.) that mention engraving, gold inlay
-   and gift boxes we don't sell: confirm whether they are real before using any of them
+9. Names (with consent) for the customer moments. The reviews section now carries the old site's six reviews
+   word for word (Korede O., Adeola A., Chinaza A., Daniel O., Jackson D., Blessing A.), as agreed, 28 Oct.
+   Some mention engraving, gold inlay and gift boxes we don't sell: confirm they are real and still accurate
+   before launch
 10. Photos for bouquet, magnifying glass, cake, real rose and NFC tag (left as drawn placeholders for the
     demo, 28 Oct)
 11. About text (Our story, What inspires us), FAQ answers, policy details, opening hours, business email.

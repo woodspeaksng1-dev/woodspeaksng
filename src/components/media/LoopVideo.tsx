@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { VideoSource } from "@/lib/media";
+import { INTRO_MS } from "../preloader/Preloader";
 
 /** True when the visitor asked for less motion or is saving mobile data. */
 export function prefersStill() {
@@ -14,7 +15,8 @@ export function prefersStill() {
 /**
  * A muted, looping clip that only plays while on screen. Visitors who prefer
  * reduced motion or have data saver on see the poster image instead.
- * `afterIntro` holds the first play until the preloader has finished.
+ * `afterIntro` holds the first play until the preloader has finished, and loads the whole clip
+ * meanwhile so it doesn't stall on mobile data when it starts.
  * `once` plays through a single time and rests on the last frame; still-preferring
  * visitors are shown that last frame too, so they see the finished state.
  */
@@ -53,7 +55,7 @@ export function LoopVideo({
       if (once && video.ended) return;
       return ready && visible ? video.play().catch(() => {}) : video.pause();
     };
-    const timer = ready ? undefined : window.setTimeout(() => ((ready = true), sync()), 1900);
+    const timer = ready ? undefined : window.setTimeout(() => ((ready = true), sync()), INTRO_MS);
     const io = new IntersectionObserver(([e]) => ((visible = e.isIntersecting), sync()), { threshold: 0.25 });
     io.observe(video);
     return () => {
@@ -70,7 +72,7 @@ export function LoopVideo({
       muted
       loop={!once}
       playsInline
-      preload="metadata"
+      preload={afterIntro ? "auto" : "metadata"}
       aria-label={label}
     >
       {sources.map((s) => (

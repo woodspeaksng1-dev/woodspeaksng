@@ -5,14 +5,14 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CONTACT } from "@/lib/contact";
 import { getProductBySlug } from "@/lib/catalog";
-import { ChatIcon, CloseIcon } from "../ui/icons";
+import { CloseIcon, WhatsAppIcon } from "../ui/icons";
 
-/** Shown on the shop and product pages only. Sits bottom-right, clear of buy buttons. */
+/** Shown on the shop and product pages only (not the customizer, where it would cover the text box). */
 export function WhatsAppButton() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const onShop = pathname === "/shop" || pathname.startsWith("/products/");
+  const onShop = pathname === "/shop" || (pathname.startsWith("/products/") && !pathname.endsWith("/personalise"));
   if (!onShop) return null;
 
   const product = pathname.startsWith("/products/")
@@ -40,8 +40,9 @@ export function WhatsAppButton() {
               href={CONTACT.whatsappUrl(message)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 flex h-11 items-center justify-center rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine"
+              className="mt-4 flex h-11 items-center justify-center gap-2 rounded-full bg-whatsapp font-semibold text-white transition-colors hover:bg-whatsapp-dark"
             >
+              <WhatsAppIcon width={20} height={20} />
               Open WhatsApp
             </a>
           </motion.div>
@@ -50,11 +51,11 @@ export function WhatsAppButton() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-oxblood text-vellum shadow-[0_8px_24px_-8px_rgb(42_23_18/0.5)] transition-colors hover:bg-wine"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-[0_8px_24px_-8px_rgb(42_23_18/0.5)] transition-colors hover:bg-whatsapp-dark"
         aria-label={open ? "Close WhatsApp message" : "Message us on WhatsApp"}
         aria-expanded={open}
       >
-        {open ? <CloseIcon /> : <ChatIcon width={26} height={26} />}
+        {open ? <CloseIcon /> : <WhatsAppIcon width={30} height={30} />}
       </button>
     </div>
   );

@@ -3,8 +3,9 @@
  * written (light spelling fixes are fine), with the customer's OK to show them.
  * Sources: order follow-up emails (backend stage), Instagram and WhatsApp messages.
  *
- * PLACEHOLDERS below mark the layout; they are not customer quotes and must be
- * replaced before launch.
+ * The six below are copied word for word from the client's current site (woodspeaks.ng,
+ * 28 Oct 2026). That site shows no star ratings, so none are given here. Some mention
+ * engraving and gold inlay: confirm with the client before launch (PLAN.md, question 9).
  */
 export interface Review {
   id: string;
@@ -12,27 +13,53 @@ export interface Review {
   /** First name and area, e.g. "Chioma, Ikeja". */
   who: string;
   productSlug?: string;
-  rating: 1 | 2 | 3 | 4 | 5;
+  /** Shown under the name when there's no product, e.g. "Corporate client". */
+  role?: string;
+  /** Only when the customer gave one; never filled in for them. */
+  rating?: 1 | 2 | 3 | 4 | 5;
   /** Matched to a paid order once reviews come from the order system. */
   verified?: boolean;
   placeholder?: boolean;
 }
 
-const slot = (id: string, productSlug: string, long = false): Review => ({
-  id,
-  quote: long
-    ? "A customer's review goes here, in their own words. Longer ones get the large card, so pick the one that tells the whole story: who it was for, how it arrived, what they said when they read it."
-    : "A customer's review goes here, in their own words.",
-  who: "Customer name, area",
-  productSlug,
-  rating: 5,
-  placeholder: true,
-});
-
 export const REVIEWS: Review[] = [
-  slot("r1", "love-scroll", true),
-  slot("r2", "20-reasons-i-love-you-puzzle"),
-  slot("r3", "locket"),
-  slot("r4", "pocket-watch"),
-  slot("r5", "love-scroll"),
+  {
+    id: "r1",
+    quote:
+      "I gifted the 20 Reasons Puzzle for Valentine's Day. Watching him read every single custom piece brought tears to his eyes. The wood smells incredible and the engraving is flawless.",
+    who: "Daniel O.",
+    productSlug: "20-reasons-i-love-you-puzzle",
+  },
+  {
+    id: "r2",
+    quote:
+      "The craftsmanship is unparalleled. I ordered a custom engraved piece for our anniversary, and the attention to detail left us absolutely speechless. Truly a gift that speaks.",
+    who: "Korede O.",
+  },
+  {
+    id: "r3",
+    quote:
+      "The locket is breathtaking. The vintage brass finish gives it such beautiful character, and the way they secured the photo inside shows they truly care about preserving memories.",
+    who: "Jackson D.",
+    productSlug: "locket",
+  },
+  {
+    id: "r4",
+    quote:
+      "We ordered 50 personalized corporate gift boxes. The quality of the wood and the precision of the engraving elevated our brand in the eyes of our clients. Outstanding service.",
+    who: "Adeola A.",
+    role: "Corporate client",
+  },
+  {
+    id: "r5",
+    quote:
+      "The unboxing experience alone is worth every penny. From the wax-sealed scrolls to the dark hieroglyphic lining, it felt like opening a piece of ancient history. Absolutely magical.",
+    who: "Blessing A.",
+  },
+  {
+    id: "r6",
+    quote:
+      "Pictures don't do it justice. The way the gold inlay catches the light against the dark wood grain is stunning. It's not just a gift; it's an heirloom.",
+    who: "Chinaza A.",
+  },
 ];

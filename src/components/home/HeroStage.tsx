@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { imageSrc, videoSources } from "@/lib/media";
 import { LoopVideo } from "../media/LoopVideo";
+import { INTRO_MS } from "../preloader/Preloader";
 import { HeroScroll } from "./HeroScroll";
 
 /**
@@ -22,7 +23,7 @@ export function HeroStage() {
   // Enter after the preloader on a first visit; straight away on repeat views.
   useEffect(() => {
     const id = requestAnimationFrame(() =>
-      setDelay(document.documentElement.dataset.intro === "seen" ? 0.1 : 1.9),
+      setDelay(document.documentElement.dataset.intro === "seen" ? 0.1 : INTRO_MS / 1000),
     );
     return () => cancelAnimationFrame(id);
   }, []);

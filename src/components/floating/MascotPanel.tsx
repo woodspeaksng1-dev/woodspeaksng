@@ -29,7 +29,7 @@ function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): P
 
 /**
  * The wizard mascot. Opens only when tapped (no auto pop-up); until it has been opened this session,
- * a small "Click me" bubble appears beside it at intervals. Hidden during checkout.
+ * a small "Click me" bubble appears beside it at intervals. Hidden during checkout and in the customizer.
  * "Suggest a gift" works now from catalog tags. "Write my message" lives in the
  * customizer, where its drafts drop straight into the text box (built next).
  */
@@ -94,8 +94,8 @@ export function MascotPanel() {
     setResults([]);
   };
 
-  // Nothing floats over the checkout form.
-  if (pathname.startsWith("/checkout")) return null;
+  // Nothing floats over the checkout form or the customizer (it has its own "Help me write it").
+  if (pathname.startsWith("/checkout") || pathname.endsWith("/personalise")) return null;
 
   return (
     <div className="fixed bottom-[calc(1rem+var(--sticky-bar,0px))] left-4 z-30 flex flex-col items-start gap-3 md:bottom-6 md:left-6">

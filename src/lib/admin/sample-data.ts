@@ -29,7 +29,7 @@ export interface AdminReview {
   quote: string;
   who: string;
   productSlug?: string;
-  rating: 1 | 2 | 3 | 4 | 5;
+  rating?: 1 | 2 | 3 | 4 | 5;
   approved: boolean;
 }
 

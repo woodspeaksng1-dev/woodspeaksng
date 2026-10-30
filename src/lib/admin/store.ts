@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { CRAFTING_DAYS, PRODUCTS, SHIPPING_ZONES, getProduct } from "../catalog";
 import type { Product, ShippingZone } from "../types";
 import { MOMENTS, type Moment } from "../gallery";
+import { REVIEWS } from "../reviews";
 import {
   SAMPLE_ENQUIRIES,
   SAMPLE_ORDERS,
@@ -108,7 +109,7 @@ export const useAdmin = create<AdminState>()((set, get) => {
     zones: SHIPPING_ZONES,
     craftingDays: CRAFTING_DAYS,
     moments: MOMENTS,
-    reviews: [],
+    reviews: REVIEWS.map(({ id, quote, who, productSlug, rating }) => ({ id, quote, who, productSlug, rating, approved: true })),
     reminders: SAMPLE_REMINDERS,
     enquiries: SAMPLE_ENQUIRIES,
     audit: [],

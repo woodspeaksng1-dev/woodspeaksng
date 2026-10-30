@@ -49,7 +49,7 @@ export function ReviewsManager() {
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-lg">&ldquo;{r.quote}&rdquo;</p>
                     <p className="mt-1 text-sm text-ink-soft">
-                      {r.who} · {r.rating} stars{r.productSlug && ` · ${getProductBySlug(r.productSlug)?.name}`}
+                      {r.who}{r.rating && ` · ${r.rating} stars`}{r.productSlug && ` · ${getProductBySlug(r.productSlug)?.name}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

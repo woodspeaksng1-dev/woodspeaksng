@@ -64,7 +64,7 @@ export function ScrollPreview({ text, placeholder }: { text: string; placeholder
     <figure className="mx-auto w-full max-w-md px-[4%]" aria-label="Preview of your scroll">
       <Rod />
       <div className="relative -my-2 bg-gradient-to-b from-paper-shade/60 via-parchment to-paper-shade/60 px-[9%] py-8 shadow-card">
-        <div className={`min-h-64 font-display leading-relaxed whitespace-pre-wrap text-ink italic ${size}`}>
+        <div className={`min-h-40 font-display md:min-h-64 leading-relaxed whitespace-pre-wrap text-ink italic ${size}`}>
           {shown ? (
             <>
               {shown}

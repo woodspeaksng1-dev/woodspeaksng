@@ -22,6 +22,8 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Lets a phone on the same Wi-Fi load dev scripts (http://<mac's LAN IP>:3000). Dev server only.
+  allowedDevOrigins: ["192.168.*.*", "172.*.*.*", "10.*.*.*"],
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],

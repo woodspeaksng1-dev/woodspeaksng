@@ -21,9 +21,9 @@ function ReviewCard({ review, featured = false }: { review: Review; featured?: b
         featured ? "bg-oxblood text-vellum" : "bg-vellum text-ink"
       }`}
     >
-      <Stars n={review.rating} />
+      {review.rating && <Stars n={review.rating} />}
       <blockquote
-        className={`mt-5 flex-1 font-display leading-snug ${featured ? "text-2xl md:text-[1.9rem]" : "text-lg"} ${
+        className={`${review.rating ? "mt-5" : ""} flex-1 font-display leading-snug ${featured ? "text-2xl md:text-[1.9rem]" : "text-lg"} ${
           review.placeholder ? "italic opacity-70" : ""
         }`}
       >
@@ -41,7 +41,7 @@ function ReviewCard({ review, featured = false }: { review: Review; featured?: b
         <span className="min-w-0 text-sm">
           <span className="block font-semibold">{review.who}</span>
           <span className={featured ? "text-vellum/70" : "text-ink-soft"}>
-            {product ? `Bought the ${product.name}` : "Customer"}
+            {product ? `Bought the ${product.name}` : (review.role ?? "Customer")}
             {review.verified && " · Verified order"}
           </span>
         </span>

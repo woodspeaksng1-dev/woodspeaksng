@@ -32,9 +32,8 @@ export const viewport: Viewport = {
   themeColor: "#4a1420",
 };
 
-// Runs before paint. The home page plays the intro on every load; other pages skip it once it has
-// played in this session.
-const introScript = `try{if(location.pathname!=='/'&&sessionStorage.getItem('ws-intro'))document.documentElement.dataset.intro='seen'}catch(e){}`;
+// Runs before paint. The intro plays once per visit; after that every page skips it.
+const introScript = `try{if(sessionStorage.getItem('ws-intro'))document.documentElement.dataset.intro='seen'}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

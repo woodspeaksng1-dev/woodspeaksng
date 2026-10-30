@@ -31,7 +31,13 @@ export function LetterEditor({
             <ol className="flex flex-col gap-3" aria-label="Draft messages">
               {options.map((o, i) => (
                 <li key={i} className="rounded-2xl border border-rule bg-vellum p-4">
-                  <p className="text-sm whitespace-pre-line text-ink">{o}</p>
+                  <p className="text-xs text-ink-soft">
+                    Option {i + 1} · {countWords(o)} words
+                  </p>
+                  {/* Letters run close to 300 words: a short scrolling box keeps all three in reach on phones. */}
+                  <p tabIndex={0} className="mt-2 max-h-48 overflow-y-auto pr-2 text-sm whitespace-pre-line text-ink">
+                    {o}
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
