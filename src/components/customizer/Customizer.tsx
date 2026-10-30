@@ -13,7 +13,7 @@ import { ScrollPreview } from "./ScrollPreview";
 import { ReasonsEditor, type ReasonsMode } from "./ReasonsEditor";
 import { PuzzlePreview } from "./PuzzlePreview";
 import { PhotoEditor, PhotoFrame, type ChosenPhoto, type PhotoFrameKind } from "./PhotoEditor";
-import { ProductImage } from "../product/ProductImage";
+import { STANDARD_REASONS } from "@/lib/drafts";
 
 interface Draft {
   letter: string;
@@ -75,6 +75,7 @@ export function Customizer({ slug }: { slug: string }) {
   const frame: PhotoFrameKind = slug === "locket" ? "locket" : "polaroid";
   const price = product.price + (p.kind === "reasons" && draft.reasonsMode === "custom" ? p.fee : 0);
   const isPhoto = p.kind === "photo";
+  const standardSet = p.kind === "reasons" && draft.reasonsMode === "standard";
 
   const customization = (): CartCustomization | string => {
     if (p.kind === "letter") {
@@ -97,12 +98,9 @@ export function Customizer({ slug }: { slug: string }) {
   const preview = (
     <>
       {p.kind === "letter" && <ScrollPreview text={draft.letter} placeholder="Your letter appears here as you write it." />}
-      {p.kind === "reasons" &&
-        (draft.reasonsMode === "custom" ? (
-          <PuzzlePreview reasons={draft.reasons} />
-        ) : (
-          <ProductImage product={product} className="mx-auto w-full max-w-md rounded-[1.6rem] shadow-card" />
-        ))}
+      {p.kind === "reasons" && (
+        <PuzzlePreview reasons={draft.reasonsMode === "custom" ? draft.reasons : [...STANDARD_REASONS]} />
+      )}
       {isPhoto && <PhotoFrame kind={frame} photo={photo} crop={crop} onCropChange={step === "write" ? setCrop : undefined} />}
     </>
   );
@@ -191,11 +189,13 @@ export function Customizer({ slug }: { slug: string }) {
             <p className="mt-4 text-lg text-ink-soft">
               {isPhoto
                 ? "This is how your photo will sit. We print it exactly as you've placed it."
-                : "This is exactly what we'll write. Read it through once more for spelling and names."}
+                : standardSet
+                  ? "These are the 20 reasons we print on your puzzle. Nothing to write, just check you're happy with them."
+                  : "This is exactly what we'll write. Read it through once more for spelling and names."}
             </p>
-            {p.kind === "reasons" && draft.reasonsMode === "custom" && (
+            {p.kind === "reasons" && (
               <ol className="mt-6 grid gap-x-6 gap-y-1 text-ink sm:grid-cols-2">
-                {draft.reasons.map((r, i) => (
+                {(standardSet ? STANDARD_REASONS : draft.reasons).map((r, i) => (
                   <li key={i}>
                     <span className="mr-2 font-display text-oxblood tabular-nums">{i + 1}</span>
                     {r}
@@ -211,10 +211,16 @@ export function Customizer({ slug }: { slug: string }) {
                 className="mt-1 h-5 w-5 shrink-0 accent-oxblood"
               />
               <span>
-                {isPhoto ? "I've checked the photo and how it's placed." : "I've checked the spelling."}
-                <span className="mt-1 block text-sm text-ink-soft">
-                  Personalised gifts are made just for you, so we can&rsquo;t refund mistakes in what you entered.
-                </span>
+                {isPhoto
+                  ? "I've checked the photo and how it's placed."
+                  : standardSet
+                    ? "I'm happy with these reasons."
+                    : "I've checked the spelling."}
+                {!standardSet && (
+                  <span className="mt-1 block text-sm text-ink-soft">
+                    Personalised gifts are made just for you, so we can&rsquo;t refund mistakes in what you entered.
+                  </span>
+                )}
               </span>
             </label>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

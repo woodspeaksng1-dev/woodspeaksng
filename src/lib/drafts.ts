@@ -216,6 +216,13 @@ const GENERAL_REASONS = [
   "You are simply irreplaceable",
 ];
 
+/**
+ * The printed set for "Our 20 reasons" (standard puzzle), shown in the customizer so buyers see what
+ * they get. PROVISIONAL: these are the wizard's partner reasons until the client sends the wording
+ * they actually print (PLAN.md, open questions). Replace them here, in one place.
+ */
+export const STANDARD_REASONS: readonly string[] = PARTNER_REASONS;
+
 /** Twenty short reasons for the puzzle, each within 5 words. */
 export function draftReasons({ who }: Pick<DraftRequest, "who">, count: number): string[] {
   countDraft();

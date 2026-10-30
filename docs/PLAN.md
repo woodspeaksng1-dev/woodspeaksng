@@ -297,3 +297,5 @@ full checkout on a real phone in test mode, then one small live payment and refu
     starts; the rider calls the recipient, and a second delivery attempt may carry a fee; data requests
     answered within 30 days. The privacy policy also needs a Nigerian data protection practitioner's review.
 12. Who on their team uses the admin panel, and how many staff accounts
+13. The exact 20 reasons printed on the standard puzzle. The customizer shows a provisional set
+    (`STANDARD_REASONS` in `src/lib/drafts.ts`) on the preview and check step until they send it.
