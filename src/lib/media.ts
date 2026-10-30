@@ -8,9 +8,10 @@ import { MEDIA_FILES } from "./media-manifest";
  */
 const files = new Set(MEDIA_FILES);
 const IMAGE_EXT = ["avif", "webp", "jpg", "jpeg", "png", "svg"];
+// MP4 (H.264) first: every browser plays it, and Safari stalls on some WebM (VP9) files.
 const VIDEO_EXT = [
-  ["webm", "video/webm"],
   ["mp4", "video/mp4"],
+  ["webm", "video/webm"],
 ] as const;
 
 export interface VideoSource {

@@ -18,7 +18,8 @@ export function prefersStill() {
  * `afterIntro` holds the first play until the preloader has finished, and loads the whole clip
  * meanwhile so it doesn't stall on mobile data when it starts.
  * `once` plays through a single time and rests on the last frame; still-preferring
- * visitors are shown that last frame too, so they see the finished state.
+ * visitors are shown that last frame too, so they see the finished state. So are visitors
+ * whose browser refuses to autoplay (Safari in Low Power Mode or with Auto-Play off).
  */
 export function LoopVideo({
   sources,
@@ -40,12 +41,16 @@ export function LoopVideo({
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
-    if (prefersStill()) {
-      if (!once) return;
-      // Show the finished state: seek to the end once the length is known.
+    // React leaves `muted` out of the server HTML; Safari only autoplays muted video.
+    video.muted = video.defaultMuted = true;
+    // Show the finished state: seek to the end once the length is known.
+    const showEnd = () => {
       const toEnd = () => (video.currentTime = Math.max(0, video.duration - 0.05));
       if (video.readyState >= 1) toEnd();
       else video.addEventListener("loadedmetadata", toEnd, { once: true });
+    };
+    if (prefersStill()) {
+      if (once) showEnd();
       return;
     }
     const firstVisit = document.documentElement.dataset.intro !== "seen";
@@ -53,7 +58,7 @@ export function LoopVideo({
     let visible = false;
     const sync = () => {
       if (once && video.ended) return;
-      return ready && visible ? video.play().catch(() => {}) : video.pause();
+      return ready && visible ? video.play().catch(() => once && showEnd()) : video.pause();
     };
     const timer = ready ? undefined : window.setTimeout(() => ((ready = true), sync()), INTRO_MS);
     const io = new IntersectionObserver(([e]) => ((visible = e.isIntersecting), sync()), { threshold: 0.25 });
