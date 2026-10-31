@@ -50,19 +50,27 @@ export const checkoutSchema = z
     deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a delivery date."),
     hidePrice: z.boolean(),
   })
-  .superRefine((v, ctx) => {
-    if (v.forSomeoneElse) {
-      if (v.recipientName.length < 2) ctx.addIssue({ code: "custom", path: ["recipientName"], message: "Enter their name." });
-      if (!NG_PHONE.test(cleanPhone(v.recipientPhone)))
-        ctx.addIssue({ code: "custom", path: ["recipientPhone"], message: "Enter their Nigerian mobile number." });
-    }
-    if (v.deliveryDate && v.deliveryDate < earliestDelivery())
-      ctx.addIssue({
-        code: "custom",
-        path: ["deliveryDate"],
-        message: `Each gift takes ${CRAFTING_DAYS} days to make. Choose a later date.`,
-      });
-  });
+  // Runs alongside the field checks (`when`), so every problem shows in one go instead of in rounds.
+  // In that mode it can see unvalidated input (the server reuses this schema), so it only reads strings.
+  .superRefine(
+    (v, ctx) => {
+      const str = (x: unknown) => (typeof x === "string" ? x.trim() : "");
+      if (v.forSomeoneElse === true) {
+        if (str(v.recipientName).length < 2)
+          ctx.addIssue({ code: "custom", path: ["recipientName"], message: "Enter their name." });
+        if (!NG_PHONE.test(cleanPhone(str(v.recipientPhone))))
+          ctx.addIssue({ code: "custom", path: ["recipientPhone"], message: "Enter their Nigerian mobile number." });
+      }
+      const date = str(v.deliveryDate);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date < earliestDelivery())
+        ctx.addIssue({
+          code: "custom",
+          path: ["deliveryDate"],
+          message: `Each gift takes ${CRAFTING_DAYS} days to make. Choose a later date.`,
+        });
+    },
+    { when: ({ value }) => typeof value === "object" && value !== null },
+  );
 
 export type CheckoutInput = z.input<typeof checkoutSchema>;
 export type CheckoutDetails = z.output<typeof checkoutSchema>;
