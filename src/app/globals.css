@@ -80,8 +80,8 @@
 
 /* Preloader: hidden on repeat views within a session (set by an inline script). */
 html[data-intro="seen"] .ws-preloader { display: none; }
-/* Failsafe: if the intro script never runs, the overlay still clears after 4 s. */
-.ws-preloader { animation: ws-failsafe 0.3s 4s forwards; }
+/* Failsafe: if the intro script never starts, the overlay still clears after 4 s. */
+.ws-preloader:not(.is-running) { animation: ws-failsafe 0.3s 4s forwards; }
 @keyframes ws-failsafe { to { opacity: 0; visibility: hidden; } }
 
 /* Fine paper grain for parchment surfaces. */

@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { imageSrc, videoSources } from "@/lib/media";
 import { LoopVideo } from "../media/LoopVideo";
-import { INTRO_MS } from "../preloader/Preloader";
+import { onIntroDone } from "../preloader/intro";
 import { HeroScroll } from "./HeroScroll";
 
 /**
@@ -20,13 +20,8 @@ export function HeroStage() {
   const reduce = useReducedMotion();
   const [delay, setDelay] = useState<number | null>(null);
 
-  // Enter after the preloader on a first visit; straight away on repeat views.
-  useEffect(() => {
-    const id = requestAnimationFrame(() =>
-      setDelay(document.documentElement.dataset.intro === "seen" ? 0.1 : INTRO_MS / 1000),
-    );
-    return () => cancelAnimationFrame(id);
-  }, []);
+  // Enter as the intro fades on a first visit; straight away on repeat views.
+  useEffect(() => onIntroDone(() => setDelay(0.1)), []);
   const go = delay !== null;
 
   return (

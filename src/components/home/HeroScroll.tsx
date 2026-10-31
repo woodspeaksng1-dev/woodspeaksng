@@ -2,6 +2,7 @@
 
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect } from "react";
+import { onIntroDone } from "../preloader/intro";
 
 /*
  * PLACEHOLDER ART. When the client's cut-out photos arrive, replace the drawn
@@ -29,17 +30,19 @@ export function HeroScroll() {
   const rollY = useTransform(progress, [0, 1], [PAPER_TOP + 4, PAPER_TOP + PAPER_FULL - 6]);
 
   useEffect(() => {
-    // Wait for the preloader on a first visit; start at once on repeat views.
+    // Wait for the intro on a first visit; start at once on repeat views.
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const seen = document.documentElement.dataset.intro === "seen";
-    const delay = seen ? 0.15 : 2.15;
     if (reduced) {
       progress.set(1);
       return;
     }
-    const a = animate(progress, 1, { delay, duration: 1.7, ease: [0.65, 0, 0.35, 1] });
+    let a: ReturnType<typeof animate> | undefined;
+    const stop = onIntroDone(() => {
+      a = animate(progress, 1, { delay: 0.15, duration: 1.7, ease: [0.65, 0, 0.35, 1] });
+    });
     return () => {
-      a.stop();
+      stop();
+      a?.stop();
     };
   }, [progress]);
 

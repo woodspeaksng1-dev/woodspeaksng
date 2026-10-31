@@ -73,6 +73,10 @@ Done (frontend, mock data):
   Checked end to end at 390px on the production build: intro, hero, navigation, all three customizers,
   cart, checkout, every page and admin, with no browser errors. Test on a phone against `npm run build`
   and `npx next start` (dev mode is much slower over Wi-Fi).
+- Demo deploy (31 Oct): code on the client's GitHub (woodspeaksng1-dev/woodspeaksng); site on Vercel at
+  https://woodspeaks.vercel.app (developer's account for the demo, deployed from the CLI; move the project
+  to the client's Vercel Pro team and connect the repo before launch). The intro now runs from the static
+  head script (`components/preloader/intro.ts`), so on slow phones the pen writes before the app loads.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:

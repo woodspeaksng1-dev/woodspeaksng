@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE } from "@/lib/site";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 import { organizationLd, websiteLd } from "@/lib/structured-data";
+import { introScript } from "@/components/preloader/intro";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -32,8 +33,8 @@ export const viewport: Viewport = {
   themeColor: "#4a1420",
 };
 
-// Runs before paint. The intro plays once per visit; after that every page skips it.
-const introScript = `try{if(sessionStorage.getItem('ws-intro'))document.documentElement.dataset.intro='seen'}catch(e){}`;
+// The intro script runs before paint: it skips the intro on repeat views in a visit, and otherwise
+// draws the pen as soon as the overlay arrives (see components/preloader/intro.ts).
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

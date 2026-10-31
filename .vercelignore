@@ -1,0 +1,6 @@
+# Local-only files kept out of Vercel uploads
+.claude
+.next
+node_modules
+.env*
+!.env.example

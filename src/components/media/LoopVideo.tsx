@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { VideoSource } from "@/lib/media";
-import { INTRO_MS } from "../preloader/Preloader";
+import { onIntroDone } from "../preloader/intro";
 
 /** True when the visitor asked for less motion or is saving mobile data. */
 export function prefersStill() {
@@ -53,19 +53,18 @@ export function LoopVideo({
       if (once) showEnd();
       return;
     }
-    const firstVisit = document.documentElement.dataset.intro !== "seen";
-    let ready = !(afterIntro && firstVisit);
+    let ready = !afterIntro;
     let visible = false;
     const sync = () => {
       if (once && video.ended) return;
       return ready && visible ? video.play().catch(() => once && showEnd()) : video.pause();
     };
-    const timer = ready ? undefined : window.setTimeout(() => ((ready = true), sync()), INTRO_MS);
+    const stopWaiting = afterIntro ? onIntroDone(() => ((ready = true), sync())) : () => {};
     const io = new IntersectionObserver(([e]) => ((visible = e.isIntersecting), sync()), { threshold: 0.25 });
     io.observe(video);
     return () => {
       io.disconnect();
-      window.clearTimeout(timer);
+      stopWaiting();
     };
   }, [afterIntro, once]);
 
