@@ -115,7 +115,7 @@ export function ShopGrid({ personalisedOnly }: { personalisedOnly: boolean }) {
   );
 }
 
-/** Reads ?personalised=1 (used by the wizard's "Write my message" link). Wrap in <Suspense>. */
+/** Reads ?personalised=1 (used by Mudi's "Write my message" link). Wrap in <Suspense>. */
 export function ShopGridFromParams() {
   const params = useSearchParams();
   return <ShopGrid personalisedOnly={params.get("personalised") === "1"} />;

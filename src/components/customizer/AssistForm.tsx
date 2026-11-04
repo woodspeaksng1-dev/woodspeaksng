@@ -13,8 +13,9 @@ const TONE_NOT_ROMANTIC = Object.fromEntries(
 ) as Record<DraftTone, string>;
 
 /**
- * The wizard's questions for "Help me write it": who, occasion and tone (letters only).
- * Calls `onSubmit` with the answers; the caller drafts.
+ * Mudi's questions for "Help me write it": who, occasion and tone (letters only).
+ * Calls `onSubmit` with the answers; the caller drafts. Always reminds the buyer to proofread
+ * and personalise the draft, since we print exactly what they send.
  */
 export function AssistForm({
   withTone,
@@ -32,6 +33,7 @@ export function AssistForm({
 
   return (
     <div className="rounded-2xl border border-rule bg-vellum p-5">
+      <p className="font-display text-lg text-oxblood">Mudi will draft it for you</p>
       <Chips
         label="Who is it for?"
         options={DRAFT_WHO}
@@ -61,6 +63,11 @@ export function AssistForm({
       >
         {submitLabel}
       </button>
+      <p className="mt-4 rounded-xl bg-parchment/70 p-3 text-sm text-ink">
+        <strong className="font-semibold">Proofread and personalise what Mudi writes.</strong> It&rsquo;s a starting
+        point: add names, your own memories and the little details only you know, and check every word. We print
+        exactly what you send.
+      </p>
     </div>
   );
 }

@@ -295,7 +295,7 @@ export const CLOSINGS: Record<DraftWho, readonly string[]> = {
   ],
 };
 
-/** Reasons for the "Write your own" puzzle; the wizard picks 20 at random. */
+/** Reasons for the "Write your own" puzzle; Mudi picks 20 at random. */
 export const REASONS: Record<DraftWho, readonly string[]> = {
   partner: [
     "Your laugh fills every room",

@@ -1,6 +1,6 @@
 # Woodspeaks — full build plan
 
-The scope, behaviour and order of work for the whole site. `CLAUDE.md` holds the rules (stack, brand,
+The scope, behaviour and order of work for the whole site. `docs/GUIDE.md` holds the rules (stack, brand,
 security, SEO); this file holds **what to build**. Read both before starting a feature, and update the
 "Status" section when a feature is done.
 
@@ -28,7 +28,7 @@ Done (frontend, mock data):
   card), Our items, Trusted by (client logos), customer moments stack, reviews section (the six from the old site, word for word)
 - Shop with occasion/recipient filters; product page with sticky buy bar on phones
 - About, Gallery (`/about/gallery`), Contact; "coming soon" pages for Checkout, Account, Corporate, FAQ, Policies
-- Floating wizard (Suggest a gift works; a "Click me" bubble appears at intervals until it's opened once
+- Floating mascot, Mudi (Suggest a gift works; a "Click me" bubble appears at intervals until it's opened once
   per session) and WhatsApp button
 - Customizer (`/products/<slug>/personalise`): letter with live scroll preview and pen, 20 reasons
   (standard or write-your-own, +fee), locket/polaroid photo with zoom, drag and a low-resolution warning;
@@ -63,7 +63,7 @@ Done (frontend, mock data):
   it touches real data.
 - Phone polish (28 Oct, 375px, every page): no horizontal overflow anywhere; footer, logo, contact and
   small text links enlarged to 40px+ tap targets; shop sort menu at 16px so iPhones don't zoom; footer no
-  longer hidden behind the product page's sticky buy bar; the wizard is hidden on checkout. Still to do on
+  longer hidden behind the product page's sticky buy bar; Mudi is hidden on checkout. Still to do on
   a real phone: Android Chrome and iPhone Safari, slow 3G, and the reviews section with the six real reviews.
 - Phone fixes (30 Oct, from testing on an iPhone): dev server now lets phones on the Wi-Fi load scripts
   (`allowedDevOrigins`; without it nothing was interactive, every tap reloaded the page and replayed the
@@ -77,6 +77,11 @@ Done (frontend, mock data):
   https://woodspeaks.vercel.app (developer's account for the demo, deployed from the CLI; move the project
   to the client's Vercel Pro team and connect the repo before launch). The intro now runs from the static
   head script (`components/preloader/intro.ts`), so on slow phones the pen writes before the app loads.
+- Client changes (4 Nov): mascot named Mudi; Mudi's drafts come with a note to proofread and personalise;
+  puzzle preview cards are hearts like the real pieces; the scroll preview uses the real rod and curled foot
+  cut from the hero film (`customizer/scroll-top|bottom`) with a matching paper sheet (`.scroll-sheet`) that
+  grows with the letter; official WhatsApp 0707 088 5263 and Instagram @woodspeaks_nigeria. Project rules
+  moved to `docs/GUIDE.md`.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -114,15 +119,15 @@ preview and a spelling check:
 2. Choose **Write it myself** (manual) or **Help me write it** (assisted). Customers can switch modes
    without losing what they typed; in assisted mode the text box stays editable.
    - Manual: type the text; the word limit shows live.
-   - Assisted: the wizard asks who it's for, the occasion and the tone (plus an optional note, up to
-     150 characters), then shows 3 options, each with a **Use this** button that drops it into the text
-     box and the preview. No copy and paste.
+   - Assisted: Mudi asks who it's for, the occasion and the tone, then shows 3 options, each with a
+     **Use this** button that drops it into the text box and the preview. No copy and paste. A note asks
+     the buyer to proofread and personalise the draft (we print exactly what they send).
 3. Live 2D preview using the real product images (`public/media/customizer/*`):
    - Scroll: a calligraphy pen writes the letter onto the parchment as they type (the signature moment
      of the site; keep everything else quiet). With reduced motion, the finished text shows at once.
    - Puzzle: the reasons appear on the puzzle cards; 20 numbered fields, 5 words each, a counter of how
      many are filled; can't add to cart with empty cards in write-your-own mode. In assisted mode the
-     wizard drafts all 20 and the customer edits any of them.
+     Mudi drafts all 20 and the customer edits any of them.
    - Locket and polaroid: photo upload with a simple crop tool and a warning when the image is too small
      to print sharply. Same private storage as NFC uploads (backend).
 4. Final check: full preview plus a required tick, "I've checked the spelling" (custom items can't be
@@ -131,7 +136,7 @@ preview and a spelling check:
    payment redirect. Personalised items are always their own cart line.
 
 Validate all customer text with `src/lib/validation.ts` (Zod) on the client for feedback and again on the
-server at checkout. The assisted path drafts from the writing library (see Wizard mascot).
+server at checkout. The assisted path drafts from the writing library (see Mudi, the mascot).
 
 ## NFC memory message (included in scope at no extra cost)
 
@@ -155,7 +160,7 @@ Safeguards:
 - Each memory page has a long random link, is `noindex`, and shows no names or order details in the URL
 - An Acceptable Use policy; staff approve every upload; retention period agreed with the client
 
-## Wizard mascot
+## Mudi, the mascot
 
 A guided helper with buttons, not an open chatbot. Floating bottom-left; never opens on its own.
 - **Suggest a gift** (done): who it's for + occasion → 3 random products tagged with both, falling back

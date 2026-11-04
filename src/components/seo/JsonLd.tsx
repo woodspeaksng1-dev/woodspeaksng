@@ -1,7 +1,7 @@
 /**
  * Structured data for search engines (schema.org JSON-LD). Rendered on the server
  * from our own data only. `<` is escaped so text can never close the script tag.
- * This is the one other place `dangerouslySetInnerHTML` is allowed (see CLAUDE.md).
+ * This is the one other place `dangerouslySetInnerHTML` is allowed (see docs/GUIDE.md).
  * Several items go out as one `@graph` object: a bare array breaks scripts (Safari's
  * among them) that read `@context` off the top level.
  */

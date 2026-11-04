@@ -6,7 +6,7 @@ import { draftLetters } from "@/lib/drafts";
 import { AssistForm } from "./AssistForm";
 import { ModeToggle, type WriteMode } from "./ModeToggle";
 
-/** The letter for the scroll: typed by hand, or picked from the wizard's three drafts and edited. */
+/** The letter for the scroll: typed by hand, or picked from Mudi's three drafts and edited. */
 export function LetterEditor({
   text,
   onChange,

@@ -8,7 +8,7 @@ import { ModeToggle, type WriteMode } from "./ModeToggle";
 
 export type ReasonsMode = "standard" | "custom";
 
-/** "20 Reasons": our printed reasons, or the customer's own (typed, or drafted by the wizard and edited). */
+/** "20 Reasons": our printed reasons, or the customer's own (typed, or drafted by Mudi and edited). */
 export function ReasonsEditor({
   mode,
   onModeChange,

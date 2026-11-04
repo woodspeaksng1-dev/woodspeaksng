@@ -1,5 +1,3 @@
-@AGENTS.md
-
 # Woodspeaks — project guide
 
 E-commerce rebuild for Woodspeaks Limited (woodspeaks.ng), a Lagos gifting brand: personalised scrolls,
@@ -14,7 +12,8 @@ run lint, types and build, then commit. When a feature is done, update the Statu
 Payments, auth and Firestore rules get line-by-line review and failure-case tests.
 
 ## Stack
-- Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4
+- Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4. Next 16 changed many
+  APIs and conventions: check the guides in `node_modules/next/dist/docs/` before using one.
 - Motion (`motion/react`) for animation, Zustand for the cart, Zod for validation
 - Backend stage (from Nov 1): Firebase (Firestore, Auth email links, Storage), Paystack, Resend, Vercel
 - Fonts are self-hosted from `src/app/fonts/` via `next/font/local` (no Google requests)
@@ -38,7 +37,7 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 - Colours are provisional (burgundy/cream/gold) until the client sends hex codes; change them in one place.
 - Headings: Playfair Display. Body: Manrope. Pinyon Script appears only in the preloader wordmark paths.
 - Copy: sentence case, plain and warm, in the client's voice. Buttons say exactly what happens.
-- Banned patterns (they read as AI-generated): gradient blobs, glassmorphism, all-caps eyebrow labels over
+- Banned patterns (they read as generic templates): gradient blobs, glassmorphism, all-caps eyebrow labels over
   headings, "→" on buttons, emoji as icons, identical fade-up on every section, one word in a headline styled
   differently, stock images, AI images of products that don't exist (renders must start from the client's real product
   photos and match what the customer receives), invented testimonials, customer moments or brand logos.
@@ -59,7 +58,7 @@ slot name and components fall back to drawn placeholders when a file is missing.
 
 Still waiting on the client: wordmark (Wordmark, preloader), reviews (`src/lib/reviews.ts`), names for
 customer moments (`src/lib/gallery.ts`), photos for bouquet, magnifying glass, cake, real rose and NFC tag,
-contact details (lib/contact.ts), crafting time, delivery fees (SHIPPING_ZONES), occasion/recipient tags.
+business email and address (lib/contact.ts), crafting time, delivery fees (SHIPPING_ZONES), occasion/recipient tags.
 
 ## SEO
 - Site identity lives in `src/lib/site.ts` (set `NEXT_PUBLIC_SITE_URL` if the domain changes).

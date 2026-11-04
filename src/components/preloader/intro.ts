@@ -39,7 +39,7 @@ export function onIntroDone(done: () => void): () => void {
   };
 }
 
-// Static, our own code only (allowed by CLAUDE.md as "the static intro script"). Plays once per tab
+// Static, our own code only (allowed by docs/GUIDE.md as "the static intro script"). Plays once per tab
 // session; reduced-motion visitors see the finished wordmark briefly. Pages without the overlay
 // (admin) are left alone.
 export const introScript = `(function(){

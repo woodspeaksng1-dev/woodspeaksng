@@ -21,4 +21,4 @@ npx tsc --noEmit
 npm run build
 ```
 
-See `CLAUDE.md` for conventions, brand rules, security rules and the list of placeholders waiting on the client.
+See `docs/GUIDE.md` for conventions, brand rules, security rules and the list of placeholders waiting on the client.

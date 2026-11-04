@@ -18,6 +18,11 @@
   --color-ink-soft: #6b5446;     /* secondary text */
   --color-rule: #d8c8aa;         /* hairlines on parchment */
   --color-paper-shade: #d9c59f;  /* scroll paper edges and rolls */
+  /* The real scroll's aged paper, sampled from the hero film (customizer preview). */
+  --color-scroll-paper: #d8b98a;
+  --color-scroll-paper-mid: #c99e6c;
+  --color-scroll-paper-dark: #b0845c;
+  --color-scroll-edge: #6e4626;
   --color-wood: #7a4f2e;         /* scroll rods (placeholder art) */
   --color-wood-dark: #4a2d18;
   --color-rose: #8c1728;         /* rose placeholder art */
@@ -88,6 +93,17 @@ html[data-intro="seen"] .ws-preloader { display: none; }
 .paper-grain {
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Customizer scroll: the sheet between the photographed rod and curl. Shaded toward the edges like
+   the real paper, with grain and a few faint age marks. Lines up with customizer/scroll-*.webp. */
+.scroll-sheet {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 40% 18% at 22% 30%, color-mix(in oklab, var(--color-scroll-paper-dark) 35%, transparent), transparent),
+    radial-gradient(ellipse 30% 14% at 78% 68%, color-mix(in oklab, var(--color-scroll-paper-dark) 30%, transparent), transparent),
+    linear-gradient(90deg, var(--color-scroll-paper-dark), var(--color-scroll-paper-mid) 9%, var(--color-scroll-paper) 55%, var(--color-scroll-paper-mid) 92%, var(--color-scroll-paper-dark));
+  box-shadow: inset 2px 0 0 var(--color-scroll-edge), inset -2px 0 0 var(--color-scroll-edge);
 }
 
 @keyframes marquee {

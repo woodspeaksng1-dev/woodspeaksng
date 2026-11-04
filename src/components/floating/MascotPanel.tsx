@@ -11,7 +11,7 @@ import { CloseIcon, WizardHatIcon } from "../ui/icons";
 import { Chips } from "../ui/Chips";
 import { imageSrc } from "@/lib/media";
 
-const wizard = imageSrc("mascot/wizard");
+const mudi = imageSrc("mascot/mudi");
 
 type View = "home" | "suggest" | "results";
 
@@ -28,7 +28,7 @@ function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): P
 }
 
 /**
- * The wizard mascot. Opens only when tapped (no auto pop-up); until it has been opened this session,
+ * Mudi, the mascot. Opens only when tapped (no auto pop-up); until it has been opened this session,
  * a small "Click me" bubble appears beside it at intervals. Hidden during checkout and in the customizer.
  * "Suggest a gift" works now from catalog tags. "Help me write it" lives in the
  * customizer, where its drafts drop straight into the text box.
@@ -105,7 +105,7 @@ export function MascotPanel() {
             ref={panelRef}
             tabIndex={-1}
             role="dialog"
-            aria-label="Woodspeaks gift wizard"
+            aria-label="Mudi, the Woodspeaks gift helper"
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -115,11 +115,11 @@ export function MascotPanel() {
             {view === "home" && (
               <>
                 <div className="flex items-center gap-3">
-                  {wizard && (
+                  {mudi && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={wizard} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover object-[50%_25%] ring-1 ring-rule" />
+                    <img src={mudi} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover object-[50%_25%] ring-1 ring-rule" />
                   )}
-                  <p className="font-display text-xl leading-snug text-oxblood">Hello, I&rsquo;m the Woodspeaks wizard.</p>
+                  <p className="font-display text-xl leading-snug text-oxblood">Hello, I&rsquo;m Mudi.</p>
                 </div>
                 <p className="mt-2 text-ink">
                   I can suggest a gift, or help you write the perfect message when you personalise one.
@@ -203,14 +203,14 @@ export function MascotPanel() {
           type="button"
           onClick={toggle}
           className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-oxblood-deep text-gold-light shadow-[0_8px_24px_-8px_rgb(42_23_18/0.5)] ring-2 ring-gold-light/60 transition-transform hover:-translate-y-0.5"
-          aria-label={open ? "Close the gift wizard" : "Open the gift wizard"}
+          aria-label={open ? "Close Mudi" : "Ask Mudi for help"}
           aria-expanded={open}
         >
           {open ? (
             <CloseIcon />
-          ) : wizard ? (
+          ) : mudi ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={wizard} alt="" className="h-full w-full scale-[1.35] object-cover object-[50%_22%]" />
+            <img src={mudi} alt="" className="h-full w-full scale-[1.35] object-cover object-[50%_22%]" />
           ) : (
             <WizardHatIcon width={30} height={30} />
           )}
