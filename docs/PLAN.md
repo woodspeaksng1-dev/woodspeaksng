@@ -12,7 +12,7 @@ with the client up to 28 Oct 2026. Where this file and older notes disagree, thi
 | Date | Milestone |
 | --- | --- |
 | Sat 31 Oct | Frontend demo to the client and **written feature lock**. Anything asked for after this is Phase 2 and priced separately. |
-| Sun 1 – Sat 7 Nov | Backend: Firebase, Gemini, Paystack, emails, accounts, admin, mailing |
+| Sun 1 – Sat 7 Nov | Backend: Firebase, Paystack, emails, accounts, admin, mailing |
 | Sun 8 – Tue 10 Nov | End-to-end testing, client walkthrough, client enters products, DNS move, live keys |
 | Wed 11 Nov | Launch, handover notes, balance invoice |
 
@@ -32,7 +32,7 @@ Done (frontend, mock data):
   per session) and WhatsApp button
 - Customizer (`/products/<slug>/personalise`): letter with live scroll preview and pen, 20 reasons
   (standard or write-your-own, +fee), locket/polaroid photo with zoom, drag and a low-resolution warning;
-  manual or assisted (mock drafts, 6 per visit) with "Use this"; final check with a required spelling
+  manual or assisted (drafts from the writing library) with "Use this"; final check with a required spelling
   tick; text drafts survive a refresh. Photos stay in the browser until the backend upload exists.
 - Love scroll card photo taken from the old site (`products/love-scroll.webp`); the closed-scroll
   cut-out moved to `customizer/scroll-closed.webp`
@@ -131,7 +131,7 @@ preview and a spelling check:
    payment redirect. Personalised items are always their own cart line.
 
 Validate all customer text with `src/lib/validation.ts` (Zod) on the client for feedback and again on the
-server at checkout. Until the Gemini route exists, the assisted path uses mock drafts.
+server at checkout. The assisted path drafts from the writing library (see Wizard mascot).
 
 ## NFC memory message (included in scope at no extra cost)
 
@@ -160,10 +160,14 @@ Safeguards:
 A guided helper with buttons, not an open chatbot. Floating bottom-left; never opens on its own.
 - **Suggest a gift** (done): who it's for + occasion → 3 random products tagged with both, falling back
   to featured products. No AI call.
-- **Write my message**: who, occasion, tone, optional 150-character note → Gemini returns 3 options
-  within the product's limit → **Use this** inserts one into the customizer.
-- Limits: 5–8 generations per visit with a friendly note at the limit; no names, emails or addresses
-  sent to the AI; results are always editable.
+- **Help me write it** (done, in the customizer): who, occasion, tone → 3 letters → **Use this** inserts
+  one, always editable. No AI (the client chose a curated library over Gemini, 4 Nov):
+  `src/lib/draft-library.ts` holds 8 versions of every letter part per occasion, tone and recipient,
+  mixed at random, so the same answers give new letters each time (over 200,000 mixes per set of
+  answers, 230 to 300 words each, never over the scroll's limit). Romantic is offered for partners only;
+  weddings and anniversaries read differently to a partner than to anyone else. The puzzle draws 20 of
+  60 reasons per recipient. Loaded only when a customer asks, in the browser; no server, no limit.
+  The client should read the library once before launch.
 
 ## Checkout and after purchase
 
@@ -232,7 +236,6 @@ Phase 2 (after launch, priced separately): sales analytics, discount codes, staf
 | Database | Cloud Firestore, read and written from API routes and server actions with the Firebase Admin SDK |
 | Sign-in | Firebase Auth email links; admin access via a custom claim |
 | Files | Firebase Storage (product images, customer photos, NFC uploads) |
-| AI | Gemini via the Google Gen AI SDK, JSON response mode |
 | Payments | Paystack, the client's existing account (**confirm**: the old site's footer mentions Kora) |
 | Email | Resend: order alerts, status emails, broadcasts, reminders |
 | Scheduled jobs | Vercel Cron: daily reminder emails, unpaid-order nudges, daily Paystack vs orders reconciliation |
@@ -247,8 +250,7 @@ zones; everything else goes through the server.
 
 Backend order of work:
 1. Firebase project, collections, security rules, seed products; catalog reads from Firestore
-2. Gemini route (input cleaning, 150-char cap, schema-validated output of 3 messages ≤ 250 chars each,
-   per-IP and per-session limits plus a daily global cap); the wizard goes live
+2. ~~Gemini route~~ dropped 4 Nov: the client chose a curated writing library (done)
 3. Paystack initialize with server-side totals in kobo; pending order
 4. Webhook: HMAC SHA512 of the raw body in constant time, verify the transaction with Paystack (amount,
    NGN, reference), fulfil each reference once, reply 200 fast
@@ -259,7 +261,7 @@ Backend order of work:
 
 Tests that must exist before launch: cart totals (add-ons, every zone, puzzle fee); personalisation
 validation edge cases; webhook (valid signature, bad signature, wrong amount, repeated delivery);
-Firestore rules (anonymous, customer, admin); AI route (schema, rate limit, empty and hostile input); one
+Firestore rules (anonymous, customer, admin); one
 full checkout on a real phone in test mode, then one small live payment and refund.
 
 ## Launch checklist
@@ -272,10 +274,10 @@ full checkout on a real phone in test mode, then one small live payment and refu
 - Google Business Profile for Woodspeaks in Lagos
 - Error tracking (Sentry), uptime monitor, Firestore backups, funnel analytics (view, customize, add to
   cart, checkout, paid); cookie banner only if tracking cookies are used
-- Privacy policy naming Paystack, Firebase, Gemini, Vercel and the email provider (NDPA 2023 / GAID);
+- Privacy policy naming Paystack, Firebase, Vercel and the email provider (NDPA 2023 / GAID);
   the client confirms obligations with a Nigerian data protection practitioner
 - Core Web Vitals "good" on a mid-range Android (LCP < 2.5 s, INP < 200 ms, CLS < 0.1)
-- Every account (domain, Vercel, Firebase, Paystack, Gemini, Resend) in the client's name; keys rotated
+- Every account (domain, Vercel, Firebase, Paystack, Resend) in the client's name; keys rotated
   after launch; handover pack (accounts list, admin guide, running costs, support terms)
 
 ## Still to confirm with the client

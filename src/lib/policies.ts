@@ -95,7 +95,7 @@ export const POLICIES = {
       {
         heading: "Who helps us",
         body: [
-          "Paystack processes payments; we never see or store your card details. Google Firebase stores orders and uploads. Google Gemini drafts message suggestions when you ask for help writing; we don't send it names, emails or addresses. Vercel hosts the website. Resend sends our emails.",
+          "Paystack processes payments; we never see or store your card details. Google Firebase stores orders and uploads. Vercel hosts the website. Resend sends our emails.",
           "We don't sell your personal data.",
         ],
       },

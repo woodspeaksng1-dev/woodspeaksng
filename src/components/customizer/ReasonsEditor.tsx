@@ -58,7 +58,7 @@ export function ReasonsEditor({
             <AssistForm
               withTone={false}
               submitLabel="Draft all 20 reasons"
-              onSubmit={(req) => onChange(draftReasons(req, reasons.length).map((r) => clampWords(r, maxWordsEach)))}
+              onSubmit={async (req) => onChange((await draftReasons(req, reasons.length)).map((r) => clampWords(r, maxWordsEach)))}
             />
           )}
           <fieldset>

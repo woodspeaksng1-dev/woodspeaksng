@@ -30,8 +30,8 @@ function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): P
 /**
  * The wizard mascot. Opens only when tapped (no auto pop-up); until it has been opened this session,
  * a small "Click me" bubble appears beside it at intervals. Hidden during checkout and in the customizer.
- * "Suggest a gift" works now from catalog tags. "Write my message" lives in the
- * customizer, where its drafts drop straight into the text box (built next).
+ * "Suggest a gift" works now from catalog tags. "Help me write it" lives in the
+ * customizer, where its drafts drop straight into the text box.
  */
 export function MascotPanel() {
   const pathname = usePathname();

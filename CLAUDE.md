@@ -16,7 +16,7 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 ## Stack
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4
 - Motion (`motion/react`) for animation, Zustand for the cart, Zod for validation
-- Backend stage (from Nov 1): Firebase (Firestore, Auth email links, Storage), Paystack, Gemini, Resend, Vercel
+- Backend stage (from Nov 1): Firebase (Firestore, Auth email links, Storage), Paystack, Resend, Vercel
 - Fonts are self-hosted from `src/app/fonts/` via `next/font/local` (no Google requests)
 
 ## Commands

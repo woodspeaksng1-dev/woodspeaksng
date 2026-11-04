@@ -26,7 +26,7 @@ export function LetterEditor({
 
       {mode === "assisted" && (
         <>
-          <AssistForm withTone submitLabel="Write three options" onSubmit={(req) => setOptions(draftLetters(req))} />
+          <AssistForm withTone submitLabel="Write three options" onSubmit={async (req) => setOptions(await draftLetters(req))} />
           {options.length > 0 && (
             <ol className="flex flex-col gap-3" aria-label="Draft messages">
               {options.map((o, i) => (
