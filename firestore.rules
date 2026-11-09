@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Browsers never read or write Firestore directly. The site uses Firebase in the browser only to sign
+// people in; every read and write goes through our server (Admin SDK, which these rules don't apply
+// to), where each route checks its input and who is asking. So the rules deny everything.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

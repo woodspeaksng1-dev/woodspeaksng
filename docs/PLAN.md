@@ -249,11 +249,16 @@ Firestore collections: `products`, `shippingZones`, `orders` (line items copied 
 customer, address, zone, total in kobo, status, Paystack reference), `paystackEvents` (one doc per
 reference, created in a transaction so a repeated webhook can't fulfil twice), `customers` (email, name,
 addresses, marketing opt-in), `reminders`, `rateLimits`, plus `reviews`, `moments`, `enquiries`,
-`auditLog`. Security rules: default deny; browsers may read only products and shipping
-zones; everything else goes through the server.
+`auditLog`. Security rules deny every browser read and write (anonymous, customer and staff alike):
+the browser uses Firebase only to sign in, and all data goes through our server (Admin SDK), which checks
+input and who is asking. Rules live in `firestore.rules`, tested by `npm run test:rules`.
 
 Backend order of work:
-1. Firebase project, collections, security rules, seed products; catalog reads from Firestore
+1. Firebase project, collections, security rules, seed products; catalog reads from Firestore.
+   Done 9 Nov: project `woodspeaks-f6ede` (Firestore in europe-west2, Spark plan for now; email-link and
+   Google sign-in on), deny-all rules published with 24 passing tests, 11 products, 5 zones and shop
+   settings seeded, server connection in `src/lib/server/firebase.ts`. Still to do: the site reads the
+   catalog from Firestore instead of `catalog.ts`.
 2. ~~Gemini route~~ dropped 4 Nov: the client chose a curated writing library (done)
 3. Paystack initialize with server-side totals in kobo; pending order
 4. Webhook: HMAC SHA512 of the raw body in constant time, verify the transaction with Paystack (amount,

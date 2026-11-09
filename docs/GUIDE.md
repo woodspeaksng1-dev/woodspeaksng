@@ -15,13 +15,19 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4. Next 16 changed many
   APIs and conventions: check the guides in `node_modules/next/dist/docs/` before using one.
 - Motion (`motion/react`) for animation, Zustand for the cart, Zod for validation
-- Backend stage (from Nov 1): Firebase (Firestore, Auth email links, Storage), Paystack, Resend, Vercel
+- Backend stage (from Nov 1): Firebase (Firestore, Auth email links and Google, Storage), Paystack, Resend, Vercel.
+  Firebase Admin lives in `src/lib/server/` (marked `server-only`); browsers never touch Firestore.
 - Fonts are self-hosted from `src/app/fonts/` via `next/font/local` (no Google requests)
 
 ## Commands
 - `npm run dev` — local dev server
 - `npm run lint` · `npx tsc --noEmit` · `npm run build` — run all three before committing
 - `node scripts/generate-wordmark.mjs` — regenerates the preloader wordmark paths
+- `npm test` — unit tests (Vitest) · `npm run test:rules` — Firestore rules on the emulator (needs Java 21:
+  `JAVA_HOME`, or a Temurin JDK under `~/.local/share/jdk`; see `scripts/with-java.mjs`)
+- `npm run emulators` — local Firestore, Auth and Storage emulators (demo project, no real data)
+- `node scripts/seed-catalog.mjs` — loads the starting catalog into Firestore (creates only what's missing)
+- `node scripts/deploy-rules.mjs` — publishes `firestore.rules` to the live project with the service account
 
 ## Layout
 - `src/app/(site)/` shop routes (navbar, footer, cart, floating helpers via `SiteChrome`): home, shop,
