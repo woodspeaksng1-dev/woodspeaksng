@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { OCCASION_LABELS, PRODUCTS, RECIPIENT_LABELS } from "@/lib/catalog";
+import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
+import { useCatalog } from "@/components/catalog/CatalogProvider";
 import type { Occasion, Recipient } from "@/lib/types";
 import { ProductCard } from "@/components/product/ProductCard";
 
@@ -44,9 +45,10 @@ export function ShopGrid({ personalisedOnly }: { personalisedOnly: boolean }) {
   const [recipient, setRecipient] = useState<Recipient | null>(null);
   const [onlyPersonalised, setOnlyPersonalised] = useState(personalisedOnly);
   const [sort, setSort] = useState<Sort>("featured");
+  const catalog = useCatalog();
 
   const products = useMemo(() => {
-    const list = PRODUCTS.filter(
+    const list = catalog.products.filter(
       (p) =>
         (!occasion || p.occasions.includes(occasion)) &&
         (!recipient || p.recipients.includes(recipient)) &&
@@ -55,7 +57,7 @@ export function ShopGrid({ personalisedOnly }: { personalisedOnly: boolean }) {
     if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") return [...list].sort((a, b) => b.price - a.price);
     return [...list].sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
-  }, [occasion, recipient, onlyPersonalised, sort]);
+  }, [catalog.products, occasion, recipient, onlyPersonalised, sort]);
 
   return (
     <>

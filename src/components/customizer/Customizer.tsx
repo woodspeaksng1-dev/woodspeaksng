@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getProductBySlug } from "@/lib/catalog";
 import { useCart } from "@/lib/cart-store";
 import { formatNaira } from "@/lib/format";
-import type { CartCustomization, PhotoCrop } from "@/lib/types";
+import type { CartCustomization, PhotoCrop, Product } from "@/lib/types";
 import { letterSchema, reasonsSchema, videoLinkSchema } from "@/lib/validation";
 import { LetterEditor } from "./LetterEditor";
 import { ScrollPreview } from "./ScrollPreview";
@@ -50,8 +49,8 @@ function loadDraft(slug: string, count: number): Draft {
  * the page is open (uploads to private storage arrive with the backend).
  * Rendered on the client only (it reads the saved draft on first render).
  */
-export function Customizer({ slug }: { slug: string }) {
-  const product = getProductBySlug(slug)!;
+export function Customizer({ product }: { product: Product }) {
+  const slug = product.slug;
   const p = product.personalization;
   const router = useRouter();
   const add = useCart((s) => s.add);

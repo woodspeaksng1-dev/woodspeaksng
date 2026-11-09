@@ -26,11 +26,14 @@ function app(): App {
 
 let firestore: Firestore | null = null;
 
-/** Firestore, over REST: faster cold starts on serverless than the default gRPC connection. */
+/**
+ * Firestore. Live, it goes over REST (faster cold starts on serverless than gRPC); the emulator only
+ * works over gRPC without credentials, so tests and local runs use that.
+ */
 export function db(): Firestore {
   if (!firestore) {
     firestore = getFirestore(app());
-    firestore.settings({ preferRest: true, ignoreUndefinedProperties: true });
+    firestore.settings({ preferRest: !process.env.FIRESTORE_EMULATOR_HOST, ignoreUndefinedProperties: true });
   }
   return firestore;
 }

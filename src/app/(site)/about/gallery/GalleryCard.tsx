@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { getProductBySlug } from "@/lib/catalog";
+import { findProductBySlug } from "@/lib/catalog";
+import { useCatalog } from "@/components/catalog/CatalogProvider";
 import type { Moment } from "@/lib/gallery";
 import { MomentMedia } from "@/components/media/MomentMedia";
 
@@ -14,7 +15,8 @@ const ASPECT: Record<Moment["shape"], string> = {
 
 export function GalleryCard({ moment, tone }: { moment: Moment; tone: number }) {
   const [hover, setHover] = useState(false);
-  const product = moment.productSlug ? getProductBySlug(moment.productSlug) : undefined;
+  const catalog = useCatalog();
+  const product = moment.productSlug ? findProductBySlug(catalog, moment.productSlug) : undefined;
   return (
     <figure
       className="group rounded-[1.5rem] bg-vellum p-1.5 shadow-card sm:p-2"

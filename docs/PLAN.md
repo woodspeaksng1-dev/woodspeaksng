@@ -257,8 +257,14 @@ Backend order of work:
 1. Firebase project, collections, security rules, seed products; catalog reads from Firestore.
    Done 9 Nov: project `woodspeaks-f6ede` (Firestore in europe-west2, Spark plan for now; email-link and
    Google sign-in on), deny-all rules published with 24 passing tests, 11 products, 5 zones and shop
-   settings seeded, server connection in `src/lib/server/firebase.ts`. Still to do: the site reads the
-   catalog from Firestore instead of `catalog.ts`.
+   settings seeded, server connection in `src/lib/server/firebase.ts`. The shop now reads the catalog
+   from Firestore (`src/lib/server/catalog.ts`: cached an hour under the `catalog` tag, every document
+   schema-checked, 8 s timeout, falls back to the starting catalog for a minute if Firestore is down);
+   browser components get it from `CatalogProvider`. Hidden products leave the shop and 404. Admin demo
+   still uses the seed data until step 6.
+   Order pricing done 9 Nov (`src/lib/order-pricing.ts`, 34 tests): browser sends IDs, quantities and
+   personalisation only; prices, puzzle fee and delivery come from the catalog the server reads itself
+   (`readCatalog()`, uncached and strict); every line is checked against its product.
 2. ~~Gemini route~~ dropped 4 Nov: the client chose a curated writing library (done)
 3. Paystack initialize with server-side totals in kobo; pending order
 4. Webhook: HMAC SHA512 of the raw body in constant time, verify the transaction with Paystack (amount,

@@ -3,8 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { CartCustomization, CartItem } from "./types";
-import { getProduct } from "./catalog";
+import type { CartCustomization, CartItem, Product } from "./types";
+import { unitPrice } from "./pricing";
 
 interface CartState {
   items: CartItem[];
@@ -73,23 +73,15 @@ export const useCart = create<CartState>()(
   ),
 );
 
-/** Display-only subtotal. Checkout totals are computed on the server. */
-export function lineTotal(item: CartItem) {
-  const product = getProduct(item.productId);
-  if (!product) return 0;
-  let unit = product.price;
-  if (
-    item.customization.kind === "reasons" &&
-    item.customization.mode === "custom" &&
-    product.personalization.kind === "reasons"
-  ) {
-    unit += product.personalization.fee;
-  }
-  return unit * item.quantity;
+/** Display-only line total, from the live catalog (`useCatalog().products`). The server prices the order. */
+export function lineTotal(item: CartItem, products: Product[]) {
+  const product = products.find((p) => p.id === item.productId);
+  return product ? unitPrice(product, item.customization) * item.quantity : 0;
 }
 
 export const cartCount = (items: CartItem[]) => items.reduce((n, i) => n + i.quantity, 0);
-export const cartSubtotal = (items: CartItem[]) => items.reduce((n, i) => n + lineTotal(i), 0);
+export const cartSubtotal = (items: CartItem[], products: Product[]) =>
+  items.reduce((n, i) => n + lineTotal(i, products), 0);
 
 /** True once the saved cart has been restored, so pages don't flash "your cart is empty". */
 export function useCartHydrated() {

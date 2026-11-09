@@ -1,5 +1,3 @@
-import { CRAFTING_DAYS } from "./catalog";
-
 /*
  * Policy pages. DRAFTS written from docs/PLAN.md (28 Oct 2026) for Woodspeaks to review.
  * The privacy policy must be checked by a Nigerian data protection practitioner (NDPA 2023 / GAID)
@@ -29,7 +27,7 @@ export const POLICIES = {
       {
         heading: "How long it takes",
         body: [
-          `Every gift is made by hand after you order, which takes about ${CRAFTING_DAYS} days. At checkout you choose a preferred delivery date from the earliest date we can make it.`,
+          "Every gift is made by hand after you order. The product page and checkout show how many days that takes, and at checkout you choose a preferred delivery date from the earliest date we can make it.",
           "We do our best to deliver on the date you choose. If something outside our control causes a delay, such as weather or road closures, we'll contact you straight away.",
         ],
       },

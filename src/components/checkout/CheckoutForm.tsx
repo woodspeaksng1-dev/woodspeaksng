@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { cartSubtotal, lineTotal, useCart, useCartHydrated } from "@/lib/cart-store";
-import { CRAFTING_DAYS, SHIPPING_ZONES, getProduct, getZone } from "@/lib/catalog";
+import { findProduct, findZone } from "@/lib/catalog";
+import { useCatalog } from "../catalog/CatalogProvider";
 import { checkoutSchema, earliestDelivery, type CheckoutInput } from "@/lib/checkout";
 import { demoOrderNumber, saveDemoOrder } from "@/lib/demo-order";
 import { formatNaira } from "@/lib/format";
@@ -51,6 +52,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
 export function CheckoutForm() {
   const hydrated = useCartHydrated();
   const items = useCart((s) => s.items);
+  const catalog = useCatalog();
   const clear = useCart((s) => s.clear);
   const router = useRouter();
   const [form, setForm] = useState<CheckoutInput>(EMPTY);
@@ -84,24 +86,24 @@ export function CheckoutForm() {
     setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
-  const zone = getZone(form.zoneId);
+  const zone = findZone(catalog, form.zoneId);
   const perishables = items
-    .map((i) => getProduct(i.productId))
+    .map((i) => findProduct(catalog, i.productId))
     .filter((p) => p?.perishable)
     .map((p) => p!.name);
-  const subtotal = cartSubtotal(items);
+  const subtotal = cartSubtotal(items, catalog.products);
   const fee = zone?.fee ?? null;
   const lines = items.map((i) => ({
     key: i.lineId,
-    name: getProduct(i.productId)?.name ?? "Item",
+    name: findProduct(catalog, i.productId)?.name ?? "Item",
     quantity: i.quantity,
-    total: lineTotal(i),
+    total: lineTotal(i, catalog.products),
     customization: i.customization,
   }));
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const result = checkoutSchema.safeParse(form);
+    const result = checkoutSchema(catalog).safeParse(form);
     const next: Errors = {};
     if (!result.success)
       for (const issue of result.error.issues) {
@@ -212,7 +214,7 @@ export function CheckoutForm() {
                 <option value="" disabled>
                   Choose an area
                 </option>
-                {SHIPPING_ZONES.map((z) => (
+                {catalog.zones.map((z) => (
                   <option key={z.id} value={z.id}>
                     {z.name}
                     {z.fee != null ? ` (${formatNaira(z.fee)})` : ""}
@@ -246,14 +248,14 @@ export function CheckoutForm() {
           </TextField>
           <TextField
             label="Preferred delivery date"
-            hint={`Each gift takes ${CRAFTING_DAYS} days to make by hand.`}
+            hint={`Each gift takes ${catalog.craftingDays} days to make by hand.`}
             error={errors.deliveryDate}
           >
             {(p) => (
               <input
                 {...p}
                 type="date"
-                min={earliestDelivery()}
+                min={earliestDelivery(catalog.craftingDays)}
                 value={form.deliveryDate}
                 onChange={(e) => set("deliveryDate", e.target.value)}
                 className={inputClass}

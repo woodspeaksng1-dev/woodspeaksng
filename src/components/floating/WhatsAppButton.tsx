@@ -4,19 +4,21 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CONTACT } from "@/lib/contact";
-import { getProductBySlug } from "@/lib/catalog";
+import { findProductBySlug } from "@/lib/catalog";
+import { useCatalog } from "../catalog/CatalogProvider";
 import { CloseIcon, WhatsAppIcon } from "../ui/icons";
 
 /** Shown on the shop and product pages only (not the customizer, where it would cover the text box). */
 export function WhatsAppButton() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const catalog = useCatalog();
 
   const onShop = pathname === "/shop" || (pathname.startsWith("/products/") && !pathname.endsWith("/personalise"));
   if (!onShop) return null;
 
   const product = pathname.startsWith("/products/")
-    ? getProductBySlug(pathname.split("/")[2] ?? "")
+    ? findProductBySlug(catalog, pathname.split("/")[2] ?? "")
     : undefined;
   const message = product
     ? `Hello Woodspeaks, I have a question about the ${product.name}: https://woodspeaks.ng${pathname}`

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import { notFound } from "next/navigation";
-import { PRODUCTS, getProductBySlug } from "@/lib/catalog";
+import { findProductBySlug } from "@/lib/catalog";
+import { getStorefront } from "@/lib/server/catalog";
 import { formatNaira } from "@/lib/format";
 import { ProductImage } from "@/components/product/ProductImage";
 import { AddToCart } from "./AddToCart";
@@ -9,13 +10,13 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbLd, productLd } from "@/lib/structured-data";
 import { imageSrc } from "@/lib/media";
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getStorefront()).products.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/products/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = findProductBySlug(await getStorefront(), slug);
   if (!product) return {};
   const path = `/products/${product.slug}`;
   const share = imageSrc(`og/${product.slug}`);
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
 
 export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = findProductBySlug(await getStorefront(), slug);
   if (!product) notFound();
 
   const p = product.personalization;

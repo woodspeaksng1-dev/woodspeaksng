@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { OCCASION_LABELS, PRODUCTS, RECIPIENT_LABELS } from "@/lib/catalog";
+import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
+import { useCatalog } from "../catalog/CatalogProvider";
 import { formatNaira } from "@/lib/format";
 import type { Occasion, Product, Recipient } from "@/lib/types";
 import { CloseIcon, WizardHatIcon } from "../ui/icons";
@@ -20,8 +21,8 @@ const NUDGE_SHOW_MS = 4000;
 const NUDGE_EVERY_MS = 20000;
 const NUDGE_KEY = "ws-wizard-opened";
 
-function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): Product[] {
-  const sellable = PRODUCTS.filter((p) => !p.addOn);
+function pickSuggestions(products: Product[], recipient: Recipient, occasion: Occasion, count = 3): Product[] {
+  const sellable = products.filter((p) => !p.addOn);
   const matches = sellable.filter((p) => p.recipients.includes(recipient) && p.occasions.includes(occasion));
   const pool = matches.length >= count ? matches : [...matches, ...sellable.filter((p) => p.featured && !matches.includes(p))];
   return [...pool].sort(() => Math.random() - 0.5).slice(0, count);
@@ -35,6 +36,7 @@ function pickSuggestions(recipient: Recipient, occasion: Occasion, count = 3): P
  */
 export function MascotPanel() {
   const pathname = usePathname();
+  const { products } = useCatalog();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("home");
   const [recipient, setRecipient] = useState<Recipient | null>(null);
@@ -153,7 +155,7 @@ export function MascotPanel() {
                   disabled={!recipient || !occasion}
                   onClick={() => {
                     if (!recipient || !occasion) return;
-                    setResults(pickSuggestions(recipient, occasion));
+                    setResults(pickSuggestions(products, recipient, occasion));
                     setView("results");
                   }}
                   className="mt-6 h-11 w-full rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine disabled:cursor-not-allowed disabled:opacity-40"
@@ -183,7 +185,7 @@ export function MascotPanel() {
                 <div className="mt-4 flex gap-4 text-sm">
                   <button
                     type="button"
-                    onClick={() => recipient && occasion && setResults(pickSuggestions(recipient, occasion))}
+                    onClick={() => recipient && occasion && setResults(pickSuggestions(products, recipient, occasion))}
                     className="text-oxblood underline underline-offset-2"
                   >
                     Show three more

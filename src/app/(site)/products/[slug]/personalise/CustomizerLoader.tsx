@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { Product } from "@/lib/types";
 
 // Client only: the customizer restores the saved draft from sessionStorage on its first render.
 const Customizer = dynamic(() => import("@/components/customizer/Customizer").then((m) => m.Customizer), {
@@ -8,6 +9,6 @@ const Customizer = dynamic(() => import("@/components/customizer/Customizer").th
   loading: () => <p className="py-24 text-center text-ink-soft">Opening the customizer…</p>,
 });
 
-export function CustomizerLoader({ slug }: { slug: string }) {
-  return <Customizer slug={slug} />;
+export function CustomizerLoader({ product }: { product: Product }) {
+  return <Customizer product={product} />;
 }

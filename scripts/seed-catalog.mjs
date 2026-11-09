@@ -19,7 +19,8 @@ if (process.env.FIRESTORE_EMULATOR_HOST) {
   app = initializeApp({ credential: cert({ projectId: sa.project_id, clientEmail: sa.client_email, privateKey: sa.private_key }) });
 }
 const db = getFirestore(app);
-db.settings({ preferRest: true, ignoreUndefinedProperties: true });
+// REST is quicker live, but the emulator needs gRPC.
+db.settings({ preferRest: !process.env.FIRESTORE_EMULATOR_HOST, ignoreUndefinedProperties: true });
 
 const docs = [
   ...PRODUCTS.map((p, i) => [`products/${p.id}`, { ...p, hidden: false, sortOrder: i }]),

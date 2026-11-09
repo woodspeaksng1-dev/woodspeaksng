@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cartSubtotal, lineTotal, useCart } from "@/lib/cart-store";
-import { getProduct } from "@/lib/catalog";
+import { findProduct } from "@/lib/catalog";
+import { useCatalog } from "../catalog/CatalogProvider";
 import { formatNaira } from "@/lib/format";
 import type { CartItem } from "@/lib/types";
 import { CloseIcon, MinusIcon, PlusIcon } from "../ui/icons";
@@ -22,7 +23,8 @@ function customizationSummary(item: CartItem) {
 export function CartDrawer() {
   const { items, isOpen, close, remove, setQuantity } = useCart();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const subtotal = cartSubtotal(items);
+  const catalog = useCatalog();
+  const subtotal = cartSubtotal(items, catalog.products);
 
   // Restore the saved cart after the first render (avoids a server/client mismatch).
   useEffect(() => {
@@ -98,7 +100,7 @@ export function CartDrawer() {
               <>
                 <ul className="flex-1 divide-y divide-rule overflow-y-auto px-5">
                   {items.map((item) => {
-                    const product = getProduct(item.productId);
+                    const product = findProduct(catalog, item.productId);
                     if (!product) return null;
                     const summary = customizationSummary(item);
                     return (
@@ -113,7 +115,7 @@ export function CartDrawer() {
                             >
                               {product.name}
                             </Link>
-                            <span className="shrink-0 tabular-nums">{formatNaira(lineTotal(item))}</span>
+                            <span className="shrink-0 tabular-nums">{formatNaira(lineTotal(item, catalog.products))}</span>
                           </div>
                           {summary && (
                             <p className="truncate text-sm text-ink-soft">

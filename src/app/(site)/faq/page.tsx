@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { pageMeta } from "@/lib/seo";
-import { CRAFTING_DAYS, PRODUCTS } from "@/lib/catalog";
+import { getStorefront } from "@/lib/server/catalog";
+import type { Catalog } from "@/lib/types";
 import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
 
@@ -13,16 +14,16 @@ export const metadata: Metadata = pageMeta({
   path: "/faq",
 });
 
-const scroll = PRODUCTS.find((p) => p.personalization.kind === "letter");
-const puzzle = PRODUCTS.find((p) => p.personalization.kind === "reasons");
-const letterWords = scroll?.personalization.kind === "letter" ? scroll.personalization.maxWords : 300;
-const reasons = puzzle?.personalization.kind === "reasons" ? puzzle.personalization : null;
-
 const link = "text-oxblood underline decoration-gold/60 underline-offset-4 hover:decoration-oxblood";
 
-// Answers follow docs/PLAN.md. Values marked TO CONFIRM there (crafting time, perishable zones,
-// payment provider) come from shared constants so they change in one place.
-const GROUPS: { title: string; items: { q: string; a: ReactNode }[] }[] = [
+// Answers follow docs/PLAN.md. Limits, prices and making time come from the live catalog, so they match
+// what staff set in admin.
+function faqGroups(catalog: Catalog): { title: string; items: { q: string; a: ReactNode }[] }[] {
+  const scroll = catalog.products.find((p) => p.personalization.kind === "letter");
+  const puzzle = catalog.products.find((p) => p.personalization.kind === "reasons");
+  const letterWords = scroll?.personalization.kind === "letter" ? scroll.personalization.maxWords : 300;
+  const reasons = puzzle?.personalization.kind === "reasons" ? puzzle.personalization : null;
+  return [
   {
     title: "Delivery",
     items: [
@@ -32,7 +33,7 @@ const GROUPS: { title: string; items: { q: string; a: ReactNode }[] }[] = [
       },
       {
         q: "How long will my order take?",
-        a: `Every gift is made by hand, which takes about ${CRAFTING_DAYS} days. At checkout you choose the date you'd like it delivered, from the earliest date we can make it.`,
+        a: `Every gift is made by hand, which takes about ${catalog.craftingDays} days. At checkout you choose the date you'd like it delivered, from the earliest date we can make it.`,
       },
       {
         q: "How much is delivery?",
@@ -105,9 +106,11 @@ const GROUPS: { title: string; items: { q: string; a: ReactNode }[] }[] = [
       },
     ],
   },
-];
+  ];
+}
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const groups = faqGroups(await getStorefront());
   return (
     <div className="mx-auto max-w-3xl px-4 pt-8 pb-28 sm:px-6">
       <h1 className="text-5xl text-oxblood md:text-6xl">Questions and answers</h1>
@@ -119,7 +122,7 @@ export default function FaqPage() {
         .
       </p>
 
-      {GROUPS.map((g, i) => (
+      {groups.map((g, i) => (
         <section key={g.title} className="mt-14" aria-labelledby={`faq-${i}`}>
           <h2 id={`faq-${i}`} className="text-3xl text-oxblood">
             {g.title}

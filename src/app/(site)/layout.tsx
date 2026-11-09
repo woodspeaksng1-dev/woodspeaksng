@@ -1,5 +1,5 @@
-import { SiteChrome } from "@/components/layout/SiteChrome";
+import { ShopFrame } from "@/components/layout/ShopFrame";
 
 export default function SiteLayout({ children }: LayoutProps<"/">) {
-  return <SiteChrome>{children}</SiteChrome>;
+  return <ShopFrame>{children}</ShopFrame>;
 }

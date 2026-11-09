@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { SiteChrome } from "@/components/layout/SiteChrome";
+import { ShopFrame } from "@/components/layout/ShopFrame";
 
 export default function NotFound() {
   return (
-    <SiteChrome>
+    <ShopFrame>
       <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-32 text-center">
         <h1 className="text-5xl text-oxblood">This page has gone quiet</h1>
         <p className="mt-4 text-lg text-ink-soft">The link may be old, or the page may have moved.</p>
@@ -14,6 +14,6 @@ export default function NotFound() {
           Browse the shop
         </Link>
       </div>
-    </SiteChrome>
+    </ShopFrame>
   );
 }

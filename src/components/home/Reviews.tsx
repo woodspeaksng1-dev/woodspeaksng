@@ -1,4 +1,6 @@
-import { getProductBySlug } from "@/lib/catalog";
+import { findProductBySlug } from "@/lib/catalog";
+import { getStorefront } from "@/lib/server/catalog";
+import type { Product } from "@/lib/types";
 import { REVIEWS, type Review } from "@/lib/reviews";
 import { StarIcon } from "../ui/icons";
 
@@ -12,8 +14,7 @@ function Stars({ n }: { n: number }) {
   );
 }
 
-function ReviewCard({ review, featured = false }: { review: Review; featured?: boolean }) {
-  const product = review.productSlug ? getProductBySlug(review.productSlug) : undefined;
+function ReviewCard({ review, product, featured = false }: { review: Review; product?: Product; featured?: boolean }) {
   const initial = review.placeholder ? "" : review.who.charAt(0);
   return (
     <figure
@@ -51,7 +52,9 @@ function ReviewCard({ review, featured = false }: { review: Review; featured?: b
 }
 
 /** "What they say about us". Phones: a swipeable row. Desktop: one large review and a grid. */
-export function Reviews() {
+export async function Reviews() {
+  const catalog = await getStorefront();
+  const productOf = (r: Review) => (r.productSlug ? findProductBySlug(catalog, r.productSlug) : undefined);
   const [first, ...rest] = REVIEWS;
   if (!first) return null;
   return (
@@ -66,11 +69,11 @@ export function Reviews() {
 
         <ul className="-mx-4 mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0">
           <li className="w-[84%] shrink-0 snap-center sm:w-[60%] lg:row-span-2 lg:w-auto">
-            <ReviewCard review={first} featured />
+            <ReviewCard review={first} product={productOf(first)} featured />
           </li>
           {rest.map((r) => (
             <li key={r.id} className="w-[84%] shrink-0 snap-center sm:w-[60%] lg:w-auto">
-              <ReviewCard review={r} />
+              <ReviewCard review={r} product={productOf(r)} />
             </li>
           ))}
         </ul>

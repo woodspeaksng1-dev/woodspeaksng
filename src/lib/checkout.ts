@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { CRAFTING_DAYS, SHIPPING_ZONES } from "./catalog";
+import type { Catalog } from "./types";
 
 /**
- * Checkout details. Shared by the checkout form (live feedback) and, later, the server
- * route that creates the order and prices it. Prices never come from this form.
+ * Checkout details. Shared by the checkout form (live feedback) and the server route that creates
+ * the order and prices it. Prices never come from this form. Built from the live catalog's delivery
+ * zones and making time (`checkoutSchema(catalog)`).
  */
 
 /** Nigerian mobile numbers: 080…, 0701…, +234 80…, with or without spaces and dashes. */
@@ -27,50 +28,57 @@ export function isoDate(d: Date) {
 }
 
 /** The earliest date we can deliver an order placed today. */
-export function earliestDelivery(today = new Date()) {
+export function earliestDelivery(craftingDays: number, today = new Date()) {
   const d = new Date(today);
-  d.setDate(d.getDate() + CRAFTING_DAYS);
+  d.setDate(d.getDate() + craftingDays);
   return isoDate(d);
 }
 
-const zoneIds = SHIPPING_ZONES.map((zone) => zone.id) as [string, ...string[]];
-
-export const checkoutSchema = z
-  .object({
-    name: name("your name"),
-    email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address.")),
-    phone,
-    marketingOptIn: z.boolean(),
-    forSomeoneElse: z.boolean(),
-    recipientName: z.string().trim().max(80),
-    recipientPhone: z.string().trim(),
-    zoneId: z.enum(zoneIds, "Choose a delivery area."),
-    address: z.string().trim().min(8, "Enter the full delivery address.").max(240),
-    landmark: z.string().trim().max(120),
-    deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a delivery date."),
-    hidePrice: z.boolean(),
-  })
-  // Runs alongside the field checks (`when`), so every problem shows in one go instead of in rounds.
-  // In that mode it can see unvalidated input (the server reuses this schema), so it only reads strings.
-  .superRefine(
-    (v, ctx) => {
-      const str = (x: unknown) => (typeof x === "string" ? x.trim() : "");
-      if (v.forSomeoneElse === true) {
-        if (str(v.recipientName).length < 2)
-          ctx.addIssue({ code: "custom", path: ["recipientName"], message: "Enter their name." });
-        if (!NG_PHONE.test(cleanPhone(str(v.recipientPhone))))
-          ctx.addIssue({ code: "custom", path: ["recipientPhone"], message: "Enter their Nigerian mobile number." });
-      }
-      const date = str(v.deliveryDate);
-      if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date < earliestDelivery())
-        ctx.addIssue({
-          code: "custom",
-          path: ["deliveryDate"],
-          message: `Each gift takes ${CRAFTING_DAYS} days to make. Choose a later date.`,
-        });
-    },
-    { when: ({ value }) => typeof value === "object" && value !== null },
+export const checkoutSchema = ({ zones, craftingDays }: Pick<Catalog, "zones" | "craftingDays">) => {
+  const zoneIds = new Set(zones.map((zone) => zone.id));
+  return (
+    z
+      .object({
+        name: name("your name"),
+        email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address.")),
+        phone,
+        marketingOptIn: z.boolean(),
+        forSomeoneElse: z.boolean(),
+        recipientName: z.string().trim().max(80),
+        recipientPhone: z.string().trim(),
+        zoneId: z.string().refine((id) => zoneIds.has(id), "Choose a delivery area."),
+        address: z.string().trim().min(8, "Enter the full delivery address.").max(240),
+        landmark: z.string().trim().max(120),
+        deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a delivery date."),
+        hidePrice: z.boolean(),
+      })
+      // Runs alongside the field checks (`when`), so every problem shows in one go instead of in rounds.
+      // In that mode it can see unvalidated input (the server reuses this schema), so it only reads strings.
+      .superRefine(
+        (v, ctx) => {
+          const str = (x: unknown) => (typeof x === "string" ? x.trim() : "");
+          if (v.forSomeoneElse === true) {
+            if (str(v.recipientName).length < 2)
+              ctx.addIssue({ code: "custom", path: ["recipientName"], message: "Enter their name." });
+            if (!NG_PHONE.test(cleanPhone(str(v.recipientPhone))))
+              ctx.addIssue({
+                code: "custom",
+                path: ["recipientPhone"],
+                message: "Enter their Nigerian mobile number.",
+              });
+          }
+          const date = str(v.deliveryDate);
+          if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date < earliestDelivery(craftingDays))
+            ctx.addIssue({
+              code: "custom",
+              path: ["deliveryDate"],
+              message: `Each gift takes ${craftingDays} days to make. Choose a later date.`,
+            });
+        },
+        { when: ({ value }) => typeof value === "object" && value !== null },
+      )
   );
+};
 
-export type CheckoutInput = z.input<typeof checkoutSchema>;
-export type CheckoutDetails = z.output<typeof checkoutSchema>;
+export type CheckoutInput = z.input<ReturnType<typeof checkoutSchema>>;
+export type CheckoutDetails = z.output<ReturnType<typeof checkoutSchema>>;

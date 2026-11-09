@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { featuredProducts } from "@/lib/catalog";
+import { featured } from "@/lib/catalog";
+import { getStorefront } from "@/lib/server/catalog";
 import { ProductCard } from "../product/ProductCard";
 
-export function OurItems() {
-  const products = featuredProducts();
+export async function OurItems() {
+  const products = featured(await getStorefront());
   return (
     <section className="mx-auto max-w-7xl px-4 pt-12 pb-20 sm:px-6 md:py-28 lg:px-10" aria-labelledby="our-items">
       <div className="flex flex-wrap items-end justify-between gap-4">

@@ -40,6 +40,8 @@ export interface Product {
   featured?: boolean;
   /** Can be bought on its own and also attached to another product. */
   addOn?: boolean;
+  /** Hidden by staff: off the shop and refused at checkout, kept for past orders. */
+  hidden?: boolean;
   /** Placeholder until the client's photography arrives. */
   image?: string;
 }
@@ -76,4 +78,12 @@ export interface ShippingZone {
   estimate: string | null;
   /** Cake, flowers and roses can only go to these zones (fresh on the day). */
   perishables: boolean;
+}
+
+/** What the shop sells right now: products, delivery zones and making time. Read from Firestore. */
+export interface Catalog {
+  products: Product[];
+  zones: ShippingZone[];
+  /** Days to make an order before it can be delivered. */
+  craftingDays: number;
 }
