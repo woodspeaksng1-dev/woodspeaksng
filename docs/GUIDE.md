@@ -56,7 +56,7 @@ slot name and components fall back to drawn placeholders when a file is missing.
 - Videos: `LoopVideo` (hero) and `HoverVideo` (cards: hover on mouse screens, in view on touch); both keep the
   poster for reduced motion and data saver.
 
-Still waiting on the client: logo (site icon, wax stamp), standard puzzle reasons (`STANDARD_REASONS`),
+Still waiting on the client: a vector (SVG) of the bamboo mark if they have one, standard puzzle reasons (`STANDARD_REASONS`),
 business email and address (lib/contact.ts), crafting time, dispatch provider (delivery fees), photos for
 bouquet, magnifying glass, cake, real rose and NFC tag (they upload these from admin).
 
@@ -68,7 +68,8 @@ bouquet, magnifying glass, cake, real rose and NFC tag (they upload these from a
   product pages. Never add ratings or reviews to it until real reviews exist.
 - `app/sitemap.ts` lists indexable pages only. Checkout, account, the customizer and draft policies stay
   `noindex` and out of the sitemap.
-- Icons: `app/icon.png`, `app/apple-icon.png`, `app/favicon.ico` (from the seal).
+- Icons: `app/icon.png`, `app/apple-icon.png`, `app/favicon.ico`: the client's gold bamboo mark (`public/media/brand/mark.png`,
+  cut from their old site's favicon) on oxblood-deep.
 
 ## Security rules (non-negotiable)
 - Never compute or trust prices in the browser. The cart stores product IDs and choices; the server prices orders.

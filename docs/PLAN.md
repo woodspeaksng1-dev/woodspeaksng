@@ -297,7 +297,8 @@ Answered 6 to 9 Nov (recorded here; done in code where noted):
 - AI drafts: replaced by the curated writing library (done 4 Nov).
 
 Still open:
-1. Logo files (SVG or large PNG): site icon, and the wax stamp in the scroll preview
+1. Logo: their bamboo mark is taken from the old site's favicon (1024px, now the site icons and the wax
+   stamp in the scroll preview). Confirm it's their current logo, and send an SVG if they have one
 2. Paystack or Kora (old site footer says Kora), then their keys
 3. Crafting time per order, and the shortest notice for a delivery date
 4. The exact 20 reasons printed on the standard puzzle (6 words max). The customizer shows a provisional
