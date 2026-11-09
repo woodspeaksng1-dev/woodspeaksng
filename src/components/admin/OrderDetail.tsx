@@ -30,6 +30,12 @@ function Personalisation({ line }: { line: AdminOrder["lines"][number] }) {
         {c.crop && ` · zoom ${c.crop.zoom.toFixed(2)}, offset ${Math.round(c.crop.x)}%, ${Math.round(c.crop.y)}%`}
       </p>
     );
+  if (c.kind === "video")
+    return (
+      <p className="mt-1 break-all text-ink-soft">
+        {c.source === "file" ? `Video: ${c.fileName} (${c.sizeMb} MB)` : `Video link: ${c.url}`}
+      </p>
+    );
   return null;
 }
 
@@ -60,8 +66,7 @@ export function OrderDetail({ number }: { number: string }) {
 
   const next = STATUS_FLOW[STATUS_FLOW.indexOf(order.status) + 1];
   const block = next ? statusBlock(order, next) : null;
-  // The real link is a long random id; no names or order details in the URL.
-  const memoryLink = `https://www.woodspeaks.ng/m/${order.number.slice(3).toLowerCase()}x9f2k7q4w8`;
+  const nfcVideo = order.lines.map((l) => l.customization).find((c) => c.kind === "video");
 
   return (
     <div>
@@ -114,37 +119,32 @@ export function OrderDetail({ number }: { number: string }) {
       {order.nfc && (
         <Card className="mt-4 print:hidden">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl text-oxblood">NFC memory message</h2>
+            <h2 className="text-2xl text-oxblood">NFC tag video</h2>
             <Badge tone="gold">{NFC_LABEL[order.nfc.status]}</Badge>
           </div>
-          {order.nfc.status === "awaiting" && (
-            <p className="mt-3 text-ink-soft">The customer hasn&rsquo;t uploaded yet. They can do it from the link in their confirmation email.</p>
-          )}
-          {order.nfc.fileName && (
+          {nfcVideo?.kind === "video" && nfcVideo.source === "file" && (
             <p className="mt-3">
-              Upload: <span className="font-semibold">{order.nfc.fileName}</span>
-              {order.nfc.note && <span className="block text-ink-soft">Note: &ldquo;{order.nfc.note}&rdquo;</span>}
+              File: <span className="font-semibold">{nfcVideo.fileName}</span> ({nfcVideo.sizeMb} MB)
+              <span className="mt-1 block text-sm text-ink-soft">The download button arrives with the backend.</span>
             </p>
           )}
-          <div className="mt-4 flex flex-wrap gap-3">
-            {order.nfc.status === "uploaded" && (
-              <button type="button" onClick={() => setNfc(order.number, "approved")} className={adminButton}>
-                Approve upload
-              </button>
-            )}
-            {order.nfc.status === "approved" && (
-              <>
-                <button type="button" onClick={() => navigator.clipboard?.writeText(memoryLink)} className={adminButtonQuiet}>
-                  Copy link for the tag
-                </button>
-                <button type="button" onClick={() => setNfc(order.number, "written")} className={adminButton}>
-                  Mark tag as written
-                </button>
-              </>
-            )}
-          </div>
-          {(order.nfc.status === "approved" || order.nfc.status === "written") && (
-            <p className="mt-3 text-sm break-all text-ink-soft">{memoryLink}</p>
+          {nfcVideo?.kind === "video" && nfcVideo.source === "link" && (
+            <p className="mt-3 break-all">
+              Link:{" "}
+              {/* Customer input: only ever a web link (checked when entered, and again here). */}
+              {/^https?:\/\//i.test(nfcVideo.url) ? (
+                <a href={nfcVideo.url} target="_blank" rel="noopener noreferrer nofollow" className="text-oxblood underline">
+                  {nfcVideo.url}
+                </a>
+              ) : (
+                nfcVideo.url
+              )}
+            </p>
+          )}
+          {order.nfc.status === "to-write" && (
+            <button type="button" onClick={() => setNfc(order.number, "written")} className={`mt-4 ${adminButton}`}>
+              Mark tag as written
+            </button>
           )}
         </Card>
       )}

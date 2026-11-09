@@ -20,6 +20,10 @@ function Personalisation({ c }: { c: CartCustomization }) {
     );
   if (c.kind === "photo")
     return <p className="mt-1 truncate text-sm text-ink-soft">Photo: {c.photoNames[0] ?? "still needed"}</p>;
+  if (c.kind === "video")
+    return (
+      <p className="mt-1 truncate text-sm text-ink-soft">{c.source === "file" ? `Video: ${c.fileName}` : `Video link: ${c.url}`}</p>
+    );
   return null;
 }
 

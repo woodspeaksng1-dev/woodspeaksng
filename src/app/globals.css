@@ -6,6 +6,16 @@
  * asset list, 22 Oct 2026). Swap the hex values here when the brand kit
  * arrives; never use raw hex values in components.
  */
+/* Antique brass of the real locket, from the product photo. `static` keeps every variable in the CSS:
+   the locket drawing reads them with var() inside SVG, where Tailwind can't see them as classes. */
+@theme static {
+  --color-brass-shadow: #2a1d10;
+  --color-brass-dark: #5a4528;
+  --color-brass: #8c7448;
+  --color-brass-light: #bfa979;
+  --color-brass-shine: #e6dcbc;
+}
+
 @theme {
   --color-oxblood: #4a1420;      /* primary burgundy: bands, buttons, wax */
   --color-oxblood-deep: #2c0b12; /* preloader, footer */

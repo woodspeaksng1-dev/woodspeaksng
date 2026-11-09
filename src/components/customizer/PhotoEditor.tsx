@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import type { PhotoCrop } from "@/lib/types";
+import { LocketFrame } from "./LocketFrame";
 
 export interface ChosenPhoto {
   url: string;
@@ -37,8 +38,8 @@ export function PhotoFrame({
 
   const opening = (
     <div
-      className={`relative aspect-square touch-none overflow-hidden bg-paper-shade/50 select-none ${
-        kind === "locket" ? "rounded-full" : ""
+      className={`relative aspect-square touch-none overflow-hidden select-none ${
+        kind === "locket" ? "h-full w-full rounded-full bg-brass-dark" : "bg-paper-shade/50"
       } ${onCropChange && photo ? "cursor-grab active:cursor-grabbing" : ""}`}
       onPointerDown={(e) => {
         if (!onCropChange || !photo) return;
@@ -67,7 +68,11 @@ export function PhotoFrame({
           style={{ transform: `translate(${crop.x}%, ${crop.y}%) scale(${crop.zoom})` }}
         />
       ) : (
-        <span className="absolute inset-0 flex items-center justify-center px-6 text-center font-display text-ink/45 italic">
+        <span
+          className={`absolute inset-0 flex items-center justify-center px-6 text-center font-display italic ${
+            kind === "locket" ? "text-brass-light" : "text-ink/45"
+          }`}
+        >
           Your photo
         </span>
       )}
@@ -75,11 +80,7 @@ export function PhotoFrame({
   );
 
   if (kind === "locket") {
-    return (
-      <figure aria-label="Preview of your locket" className="mx-auto w-full max-w-xs rounded-full bg-gradient-to-b from-gold-light to-gold p-[7%] shadow-card">
-        <div className="rounded-full bg-wood-dark p-[3%]">{opening}</div>
-      </figure>
-    );
+    return <LocketFrame>{opening}</LocketFrame>;
   }
   return (
     <figure aria-label="Preview of your polaroid" className="mx-auto w-full max-w-xs bg-vellum p-[6%] pb-[22%] shadow-card">

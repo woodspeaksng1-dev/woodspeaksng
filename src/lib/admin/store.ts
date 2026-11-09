@@ -29,10 +29,8 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   delivered: "Delivered",
 };
 export const NFC_LABEL: Record<NfcStatus, string> = {
-  awaiting: "Waiting for upload",
-  uploaded: "Upload to review",
-  approved: "Approved, tag to write",
-  written: "Tag written",
+  "to-write": "NFC tag to write",
+  written: "NFC tag written",
 };
 export const HOME_FEATURED_MAX = 6;
 
@@ -78,7 +76,7 @@ interface AdminState {
 export function statusBlock(order: AdminOrder, next: OrderStatus): string | null {
   if (STATUS_FLOW.indexOf(next) < STATUS_FLOW.indexOf(order.status)) return "Orders move forward only.";
   if (order.nfc && STATUS_FLOW.indexOf(next) >= STATUS_FLOW.indexOf("dispatched") && order.nfc.status !== "written")
-    return "Approve the memory upload and write the NFC tag before dispatching.";
+    return "Put the video on the NFC tag and mark it written before dispatching.";
   return null;
 }
 

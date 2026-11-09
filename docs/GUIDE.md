@@ -4,7 +4,7 @@ E-commerce rebuild for Woodspeaks Limited (woodspeaks.ng), a Lagos gifting brand
 keepsakes, flowers and treats. Sole aim is conversion. Mobile-first: most buyers are on phones over mobile data.
 
 **Read `docs/PLAN.md` before building any feature.** It holds the full scope (customizer, checkout, NFC,
-wizard, admin panel, backend, launch checklist), the current status, the order of work and the open
+Mudi, admin panel, backend, launch checklist), the current status, the order of work and the open
 questions for the client. This file holds the rules; PLAN.md holds what to build.
 
 Working method: one feature per session. Plan it, build it, run it, check it on a phone-sized screen,
@@ -56,9 +56,9 @@ slot name and components fall back to drawn placeholders when a file is missing.
 - Videos: `LoopVideo` (hero) and `HoverVideo` (cards: hover on mouse screens, in view on touch); both keep the
   poster for reduced motion and data saver.
 
-Still waiting on the client: wordmark (Wordmark, preloader), reviews (`src/lib/reviews.ts`), names for
-customer moments (`src/lib/gallery.ts`), photos for bouquet, magnifying glass, cake, real rose and NFC tag,
-business email and address (lib/contact.ts), crafting time, delivery fees (SHIPPING_ZONES), occasion/recipient tags.
+Still waiting on the client: logo (site icon, wax stamp), standard puzzle reasons (`STANDARD_REASONS`),
+business email and address (lib/contact.ts), crafting time, dispatch provider (delivery fees), photos for
+bouquet, magnifying glass, cake, real rose and NFC tag (they upload these from admin).
 
 ## SEO
 - Site identity lives in `src/lib/site.ts` (set `NEXT_PUBLIC_SITE_URL` if the domain changes).
@@ -82,6 +82,6 @@ business email and address (lib/contact.ts), crafting time, delivery fees (SHIPP
 
 ## Personalisation rules (from the client's current site; confirm with the catalog sheet)
 - Love scroll: letter up to 300 words, personalised wax stamp
-- 20 Reasons puzzle: standard ₦20,000, write-your-own +₦15,000, 20 reasons × 5 words
-- Locket, polaroid: photo upload
-- NFC tag (₦7,000 add-on): video, voice note or photos on a private memory page
+- 20 Reasons puzzle: standard ₦20,000, write-your-own +₦15,000, 20 reasons × 6 words
+- Locket, polaroid: one photo each
+- NFC tag (₦7,000 add-on): a video file (up to 100 MB) or a link; staff put it on the tag

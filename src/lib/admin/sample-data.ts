@@ -6,7 +6,7 @@ import type { CartCustomization } from "../types";
  */
 
 export type OrderStatus = "paid" | "crafting" | "dispatched" | "delivered";
-export type NfcStatus = "awaiting" | "uploaded" | "approved" | "written";
+export type NfcStatus = "to-write" | "written";
 
 export interface AdminOrder {
   number: string;
@@ -20,8 +20,8 @@ export interface AdminOrder {
   hidePrice: boolean;
   lines: { productId: string; quantity: number; customization: CartCustomization }[];
   status: OrderStatus;
-  /** Present when the order includes an NFC memory tag. */
-  nfc?: { status: NfcStatus; fileName?: string; note?: string };
+  /** Present when the order includes an NFC tag. The buyer's video (file or link) is on the tag's line. */
+  nfc?: { status: NfcStatus };
 }
 
 export interface AdminReview {
@@ -71,10 +71,10 @@ export const SAMPLE_ORDERS: AdminOrder[] = [
           text: "Another year together, and I would choose it all again.\n\nIf I wrote down every reason I love you, I would run out of parchment long before I ran out of reasons.\n\nForever yours.",
         },
       },
-      { productId: "nfc-tag", quantity: 1, customization: { kind: "none" } },
+      { productId: "nfc-tag", quantity: 1, customization: { kind: "video", source: "file", fileName: "our-song.mp4", sizeMb: 48.2 } },
     ],
     status: "paid",
-    nfc: { status: "uploaded", fileName: "our-song.m4a", note: "Play this when you open it." },
+    nfc: { status: "to-write" },
   },
   {
     number: "WS-3HN8XA",
@@ -136,10 +136,14 @@ export const SAMPLE_ORDERS: AdminOrder[] = [
     hidePrice: false,
     lines: [
       { productId: "scroll", quantity: 1, customization: { kind: "letter", text: "Happy birthday. Today is your day, and I wanted you to have something you can keep." } },
-      { productId: "nfc-tag", quantity: 1, customization: { kind: "none" } },
+      {
+        productId: "nfc-tag",
+        quantity: 1,
+        customization: { kind: "video", source: "link", url: "https://www.youtube.com/watch?v=sample-video" },
+      },
     ],
     status: "paid",
-    nfc: { status: "awaiting" },
+    nfc: { status: "to-write" },
   },
 ];
 

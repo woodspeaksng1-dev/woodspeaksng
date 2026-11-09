@@ -115,13 +115,13 @@ function SampleAccount({ email, onSignOut }: { email: string; onSignOut: () => v
         </Panel>
 
         <div className="md:col-span-2">
-          <Panel title="Memory messages">
+          <Panel title="NFC tag videos">
             <p className="text-ink-soft">
-              When you add an NFC memory tag to a gift, you upload the video, voice note or photos here, and can replace
-              them until we start making your gift.
+              When you add an NFC tag to a gift, you add your video, or a link to it, as you personalise the tag. We put
+              it on the tag before we send your gift.
             </p>
             <Link href="/products/nfc-memory-tag" className={`mt-4 inline-block ${quiet}`}>
-              About the NFC memory tag
+              About the NFC tag
             </Link>
           </Panel>
         </div>

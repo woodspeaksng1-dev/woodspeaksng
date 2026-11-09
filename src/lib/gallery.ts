@@ -4,8 +4,8 @@
  * OK before it goes live (NDPA). Media lives at public/media/gallery/<id>.*
  * (an image, and optionally a video of the same name that plays on hover).
  *
- * Captions describe the photo only. Add `who` (first name and area) once the
- * client confirms each customer is happy to be named.
+ * Captions describe the photo only. The customers have given permission; the
+ * client prefers no names (9 Nov), so `who` stays empty.
  */
 export interface Moment {
   id: string;

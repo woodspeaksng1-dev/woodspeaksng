@@ -15,6 +15,7 @@ function customizationSummary(item: CartItem) {
   if (c.kind === "letter") return `“${c.text.slice(0, 60)}${c.text.length > 60 ? "…" : ""}”`;
   if (c.kind === "reasons") return c.mode === "custom" ? "Your own 20 reasons" : "Our 20 reasons";
   if (c.kind === "photo") return c.photoNames.length ? "Photo added" : "Photo still needed";
+  if (c.kind === "video") return c.source === "file" ? `Video: ${c.fileName}` : "Video link added";
   return null;
 }
 

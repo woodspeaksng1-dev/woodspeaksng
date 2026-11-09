@@ -169,6 +169,13 @@ export function ProductEditor({ slug }: { slug: string }) {
                   )}
                 </TextField>
               )}
+              {pz.kind === "video" && (
+                <TextField label="Largest video (MB)">
+                  {(p) => (
+                    <input {...p} inputMode="numeric" value={pz.maxMb} onChange={(e) => setLimit({ maxMb: num(e.target.value) || 0 })} className={inputClass} />
+                  )}
+                </TextField>
+              )}
             </Card>
           )}
 

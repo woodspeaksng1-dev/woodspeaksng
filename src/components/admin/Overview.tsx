@@ -8,15 +8,14 @@ import { AdminHeader, Card } from "./AdminShell";
 export function Overview() {
   const { orders, enquiries, reminders } = useAdmin();
   const count = (s: keyof typeof STATUS_LABEL) => orders.filter((o) => o.status === s).length;
-  const nfcToReview = orders.filter((o) => o.nfc?.status === "uploaded").length;
-  const nfcToWrite = orders.filter((o) => o.nfc?.status === "approved").length;
+  const nfcToWrite = orders.filter((o) => o.nfc?.status === "to-write").length;
   const nextReminder = [...reminders].sort((a, b) => a.date.localeCompare(b.date))[0];
 
   const tiles = [
     { label: "New, to start", value: count("paid"), href: "/admin/orders" },
     { label: "Being crafted", value: count("crafting"), href: "/admin/orders" },
     { label: "Out for delivery", value: count("dispatched"), href: "/admin/orders" },
-    { label: "Memory uploads to review", value: nfcToReview + nfcToWrite, href: "/admin/orders" },
+    { label: "NFC tags to write", value: nfcToWrite, href: "/admin/orders" },
   ];
 
   return (

@@ -9,7 +9,7 @@ import type { Occasion } from "./types";
  * about who it's for, a wish for what comes next, and a closing line. Any mix must fit the scroll's
  * 300 words, so each part has a word budget: opening 40, body 102, two about paragraphs of 52, wish 48, closing 6.
  * Tone bodies are written to suit anyone (romantic is offered for partners only).
- * Puzzle reasons are 5 words at most.
+ * Puzzle reasons are 5 words at most (the puzzle allows 6).
  */
 
 /** Weddings and anniversaries read differently to a partner ("ours") than to anyone else ("yours"). */

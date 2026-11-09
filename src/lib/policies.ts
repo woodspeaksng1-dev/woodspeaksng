@@ -102,7 +102,7 @@ export const POLICIES = {
       {
         heading: "How long we keep it",
         body: [
-          "We keep order records for as long as the law requires for accounts and tax. Photos, videos and voice notes for NFC memory pages are kept for the period agreed when you order, then deleted.",
+          "We keep order records for as long as the law requires for accounts and tax. Photos and videos you upload for a gift or an NFC tag are kept only as long as we need them to make and deliver it, then deleted.",
         ],
       },
       {
@@ -144,13 +144,13 @@ export const POLICIES = {
   },
   "acceptable-use": {
     title: "Acceptable use",
-    summary: "Rules for photos, videos and voice notes you upload.",
+    summary: "Rules for the photos and videos you upload.",
     draft: true,
     sections: [
       {
         heading: "What you can upload",
         body: [
-          "Photos, videos and voice notes for your gift or NFC memory page that you made, or have permission to use, and that the people in them would be happy to have shared with the recipient.",
+          "Photos and videos for your gift or NFC tag that you made, or have permission to use, and that the people in them would be happy to have shared with the recipient.",
         ],
       },
       {

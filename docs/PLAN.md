@@ -51,10 +51,10 @@ Done (frontend, mock data):
 - Corporate (`/corporate`, indexed): what we offer, the brand logos and an enquiry form (Zod, honeypot).
   Until email sending exists, a valid enquiry opens WhatsApp with the details filled in (`EMAIL_LIVE`).
 - Account (`/account`), DEMO: email-link sign-in form (sends nothing), then a labelled sample account with
-  order tracking (Paid, Crafting, Dispatched, Delivered), saved addresses, reminders and memory messages
+  order tracking (Paid, Crafting, Dispatched, Delivered), saved addresses, reminders and NFC tag videos
 - Admin panel (`/admin`), DEMO with SAMPLE data (`src/lib/admin/sample-data.ts`) in an in-memory store
   (`src/lib/admin/store.ts`; resets on reload): overview, orders (filter, detail with full personalisation,
-  move status forward, print order sheet, NFC approve, copy link, mark written; an NFC order can't be
+  move status forward, print order sheet, NFC video or link with mark tag written; an NFC order can't be
   dispatched until its tag is written), products (edit details, price, tags, limits, SEO, featured, hidden),
   homepage (6 featured, moment order, logos), reviews (add with consent, approve), delivery (zone fees,
   estimates, perishables, crafting time), customers, emails (preview, test first, confirm before sending),
@@ -82,6 +82,11 @@ Done (frontend, mock data):
   cut from the hero film (`customizer/scroll-top|bottom`) with a matching paper sheet (`.scroll-sheet`) that
   grows with the letter; official WhatsApp 0707 088 5263 and Instagram @woodspeaks_nigeria. Project rules
   moved to `docs/GUIDE.md`.
+- Client changes (9 Nov): locket preview redrawn as the real antique-brass locket (beaded rim, bezel,
+  glass, hinged lid with gear engraving like the cover, chain; `LocketFrame.tsx`, brass tokens in a static
+  `@theme` block because the SVG reads them with var()); NFC tag simplified to a video file (100 MB) or a
+  link, with its own Personalise page and a simpler admin step; puzzle reasons up to 6 words; client answers
+  recorded under "Still to confirm".
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -101,10 +106,10 @@ wooden boxes: the client has stopped selling them. Products on the old site but 
 | Product | What's personalised | Limit | Live preview |
 | --- | --- | --- | --- |
 | Handcrafted Love Scroll (₦15,590) | Handwritten letter on aged parchment, sealed with a personalised wax stamp | Up to 300 words | A pen writes the letter onto the parchment as they type |
-| 20 Reasons I Love You Puzzle | Standard reasons (₦20,000) or write your own 20 (**+₦15,000**, so ₦35,000) | 5 words per reason | Cards fill in as they type |
-| Locket | Customer's photo set inside | 1 photo | Photo shown inside the open locket |
-| Polaroid | Customer's photo printed | Photo count to confirm | Photo shown in a polaroid frame |
-| NFC Memory Tag (₦7,000 add-on) | Video, voice note or photos on a private memory page | See NFC section | Memory page preview |
+| 20 Reasons I Love You Puzzle | Standard reasons (₦20,000) or write your own 20 (**+₦15,000**, so ₦35,000) | 6 words per reason | Heart cards fill in as they type |
+| Locket | Customer's photo set inside | 1 photo | Photo shown inside the open antique-brass locket |
+| Polaroid | Customer's photo printed | 1 photo per polaroid | Photo shown in a polaroid frame |
+| NFC Memory Tag (₦7,000 add-on) | A video file or a link to one; staff put it on the tag | Up to 100 MB | The video plays, or the link shows |
 | Others (pocket watch, journal, bouquet, cake, rose, magnifying glass) | Nothing yet | — | — |
 
 Limits are counted in **words**, and the counter stops input at the limit. The client's catalog sheet
@@ -125,11 +130,11 @@ preview and a spelling check:
 3. Live 2D preview using the real product images (`public/media/customizer/*`):
    - Scroll: a calligraphy pen writes the letter onto the parchment as they type (the signature moment
      of the site; keep everything else quiet). With reduced motion, the finished text shows at once.
-   - Puzzle: the reasons appear on the puzzle cards; 20 numbered fields, 5 words each, a counter of how
+   - Puzzle: the reasons appear on the puzzle cards; 20 numbered fields, 6 words each, a counter of how
      many are filled; can't add to cart with empty cards in write-your-own mode. In assisted mode the
      Mudi drafts all 20 and the customer edits any of them.
    - Locket and polaroid: photo upload with a simple crop tool and a warning when the image is too small
-     to print sharply. Same private storage as NFC uploads (backend).
+     to print sharply. Same private storage as NFC videos (backend).
 4. Final check: full preview plus a required tick, "I've checked the spelling" (custom items can't be
    refunded for customer spelling errors).
 5. **Add to cart.** The customization is saved with the cart line, so it survives refreshes and the
@@ -138,27 +143,21 @@ preview and a spelling check:
 Validate all customer text with `src/lib/validation.ts` (Zod) on the client for feedback and again on the
 server at checkout. The assisted path drafts from the writing library (see Mudi, the mascot).
 
-## NFC memory message (included in scope at no extra cost)
+## NFC tag video (simplified 9 Nov, client's call)
 
-For the buyer:
-1. Add the NFC tag on the product page or in the cart.
-2. Upload now, or later from a private link in the confirmation email, up to a cut-off before dispatch.
-3. Preview the memory page exactly as the recipient will see it, with an optional short written note.
-4. Replace the upload any time before the cut-off.
+The client sorts the tag side themselves; the site only collects the video. No memory page, no approval
+step, no QR code.
 
-For the recipient: tapping the tag opens a branded memory page that plays the message. A QR code on the
-note card opens the same page for phones without NFC.
+For the buyer: the NFC tag has its own Personalise page. They upload a video (MP4 or MOV, up to 100 MB)
+or paste a link to one (YouTube, Google Drive, Instagram…, anyone with the link must be able to watch).
+The preview plays the video or shows the link; the check step asks them to confirm it.
 
-For staff: each NFC order shows its upload in the admin panel; staff approve it, write the page link to
-the tag with an NFC writing app, and mark it done. An order with an NFC tag can't be marked dispatched
-until its upload is approved and the tag is written.
+For staff: the order shows the file (download, backend) or the link; staff put it on the tag with their
+NFC writing app and mark the tag written. An order with an NFC tag can't be marked dispatched until then.
 
-Safeguards:
-- File types: video (MP4, MOV), audio (M4A, MP3), photos (JPG, PNG; iPhone HEIC converted)
-- Size: proposed up to 2 minutes of video or 10 photos (final limits from the client)
-- Resumable uploads with a progress bar; videos compressed for phones
-- Each memory page has a long random link, is `noindex`, and shows no names or order details in the URL
-- An Acceptable Use policy; staff approve every upload; retention period agreed with the client
+Safeguards: video files only, 100 MB cap checked in the browser and again by the upload rules; links must
+be `http(s)` (checked on entry and before admin renders them); files stored privately, deleted after
+delivery (policy wording updated).
 
 ## Mudi, the mascot
 
@@ -204,7 +203,7 @@ Harcourt/Ibadan; other states. Crafting time is 2–3 days (to confirm); product
 
 | Page | Content |
 | --- | --- |
-| Account | Email-link sign-in; order history and tracking; saved addresses; reminders (edit or delete); NFC uploads |
+| Account | Email-link sign-in; order history and tracking; saved addresses; reminders (edit or delete) |
 | Corporate gifting | What they offer businesses, the brand logos, and a bulk enquiry form (company, quantity, budget, date needed) with a honeypot spam field; enquiries go to the team by email |
 | Contact | Contact form with a spam check, WhatsApp link, email, phone, address and opening hours |
 | FAQ | Delivery times and areas, crafting time, personalisation limits, payment options, refunds on custom items |
@@ -221,7 +220,7 @@ Staff run the shop without a developer.
 
 | Area | What staff can do |
 | --- | --- |
-| Orders | See new and past orders; view personalisation text, buyer, recipient and delivery details; move status Paid → Crafting → Dispatched → Delivered (each emails the customer); print an order sheet for the workshop; for NFC orders, review and approve the upload and copy the link to write onto the tag |
+| Orders | See new and past orders; view personalisation text, buyer, recipient and delivery details; move status Paid → Crafting → Dispatched → Delivered (each emails the customer); print an order sheet for the workshop; for NFC orders, download the video or open the link, and mark the tag written |
 | Products | Add and edit: photos, price, description, dimensions, included items, add-ons, occasion and recipient tags, personalisation limits, SEO title and image alt text; mark featured (the home page shows 6); hide or show |
 | Homepage | Choose the featured products; upload and order customer moments; manage brand logos |
 | Reviews | Add and approve real customer reviews (they feed "What they say about us") |
@@ -240,7 +239,7 @@ Phase 2 (after launch, priced separately): sales analytics, discount codes, staf
 | --- | --- |
 | Database | Cloud Firestore, read and written from API routes and server actions with the Firebase Admin SDK |
 | Sign-in | Firebase Auth email links; admin access via a custom claim |
-| Files | Firebase Storage (product images, customer photos, NFC uploads) |
+| Files | Firebase Storage (product images, customer photos, NFC videos). Needs the Blaze plan; until the client adds a card, built and tested on the local emulator |
 | Payments | Paystack, the client's existing account (**confirm**: the old site's footer mentions Kora) |
 | Email | Resend: order alerts, status emails, broadcasts, reminders |
 | Scheduled jobs | Vercel Cron: daily reminder emails, unpaid-order nudges, daily Paystack vs orders reconciliation |
@@ -250,7 +249,7 @@ Firestore collections: `products`, `shippingZones`, `orders` (line items copied 
 customer, address, zone, total in kobo, status, Paystack reference), `paystackEvents` (one doc per
 reference, created in a transaction so a repeated webhook can't fulfil twice), `customers` (email, name,
 addresses, marketing opt-in), `reminders`, `rateLimits`, plus `reviews`, `moments`, `enquiries`,
-`nfcUploads`, `auditLog`. Security rules: default deny; browsers may read only products and shipping
+`auditLog`. Security rules: default deny; browsers may read only products and shipping
 zones; everything else goes through the server.
 
 Backend order of work:
@@ -262,7 +261,7 @@ Backend order of work:
 5. Order emails; email-link sign-in, order history, saved addresses
 6. Admin panel on real data
 7. Mailing: opt-in list (double opt-in), template broadcasts, reminder dates, daily job, unpaid nudge
-8. NFC uploads (resumable, private) and the memory page
+8. Uploads: customer photos and NFC videos (resumable, private, 100 MB cap in Storage rules)
 
 Tests that must exist before launch: cart totals (add-ons, every zone, puzzle fee); personalisation
 validation edge cases; webhook (valid signature, bad signature, wrong amount, repeated delivery);
@@ -287,26 +286,30 @@ full checkout on a real phone in test mode, then one small live payment and refu
 
 ## Still to confirm with the client
 
-1. Brand kit: logo SVGs, colour hex codes, fonts (colours in `globals.css` are provisional)
-2. Paystack or Kora (old site footer says Kora)
-3. Puzzle price: old site shows +₦10,000 for write-your-own; the asset list says +₦15,000 (we follow the asset list)
-4. What goes on the scroll's personalised wax stamp (initials, a symbol?)
-5. How many photos the polaroid takes
-6. Whether any product takes an engraving, and if so the font and limits
-7. Delivery fees and estimates for the 5 zones (checkout shows "We'll confirm the fee" until then); which
-   zones take cake, flowers and roses (assumed Lagos Island and Mainland); crafting time (assumed 3 days); shortest notice for a preferred date; rush delivery in Lagos
-8. NFC: media types, size limits, how long memory pages stay online, whether buyers can change the message after delivery, which products can take the tag
-9. Names (with consent) for the customer moments. The reviews section now carries the old site's six reviews
-   word for word (Korede O., Adeola A., Chinaza A., Daniel O., Jackson D., Blessing A.), as agreed, 28 Oct.
-   Some mention engraving, gold inlay and gift boxes we don't sell: confirm they are real and still accurate
-   before launch
-10. Photos for bouquet, magnifying glass, cake, real rose and NFC tag (left as drawn placeholders for the
-    demo, 28 Oct)
-11. About text (Our story, What inspires us), FAQ answers, policy details, opening hours, business email.
-    The draft policies include details we assumed and the client must confirm or change: damage or
-    mistakes reported within 48 hours with a photo; cancellation with a full refund only before crafting
-    starts; the rider calls the recipient, and a second delivery attempt may carry a fee; data requests
-    answered within 30 days. The privacy policy also needs a Nigerian data protection practitioner's review.
-12. Who on their team uses the admin panel, and how many staff accounts
-13. The exact 20 reasons printed on the standard puzzle. The customizer shows a provisional set
-    (`STANDARD_REASONS` in `src/lib/drafts.ts`) on the preview and check step until they send it.
+Answered 6 to 9 Nov (recorded here; done in code where noted):
+- Colours and fonts approved as they are. Puzzle write-your-own fee ₦15,000. Polaroid takes 1 photo.
+- Reasons: up to 6 words each (done). Wax stamp carries their branding (their logo).
+- Preloader approved. About, FAQ and policy pages approved in principle.
+- Reviews: keep the six from the old site as they are. Customer moments: permission given, no names shown.
+- Delivery: priced by a dispatch company's API instead of fixed zone fees (provider to come).
+- NFC: video file up to 100 MB or a link; no memory page; the client handles the tag (done, see above).
+- Product photos (bouquet, magnifying glass, cake, rose, NFC tag): the client uploads them from admin.
+- AI drafts: replaced by the curated writing library (done 4 Nov).
+
+Still open:
+1. Logo files (SVG or large PNG): site icon, and the wax stamp in the scroll preview
+2. Paystack or Kora (old site footer says Kora), then their keys
+3. Crafting time per order, and the shortest notice for a delivery date
+4. The exact 20 reasons printed on the standard puzzle (6 words max). The customizer shows a provisional
+   set (`STANDARD_REASONS` in `src/lib/drafts.ts`) until they send it
+5. Dispatch company, API access to their account, which areas take cake and flowers, fallback if the
+   quote fails at checkout
+6. How many admin logins, and for whom
+7. Did Woodspeaks start in 2024? (About page)
+8. Whether their business email is hosted on Hostinger (decides Resend or Hostinger mail)
+9. The Firebase Blaze plan (a card on file, budget alert at about $10) before uploads go live
+10. Read and approve Mudi's writing library
+11. Whether any product takes an engraving (some old reviews mention engraving and gold inlay)
+12. The privacy policy needs a Nigerian data protection practitioner's review; the draft policies hold
+    assumptions to confirm (48-hour damage reports, refunds only before crafting, second delivery attempt fee,
+    data requests within 30 days)

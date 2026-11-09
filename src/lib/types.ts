@@ -14,12 +14,14 @@ export type Category = "scrolls" | "keepsakes" | "flowers-treats" | "add-on";
  * - letter: free text written onto the item (e.g. the love scroll)
  * - reasons: a fixed number of short lines (e.g. "20 Reasons I Love You")
  * - photo: customer uploads a photo (locket, polaroid)
+ * - video: customer adds a video, as a file or a link (NFC tag); staff put it on the tag
  */
 export type Personalization =
   | { kind: "none" }
   | { kind: "letter"; maxWords: number }
   | { kind: "reasons"; count: number; maxWordsEach: number; fee: number }
-  | { kind: "photo"; maxPhotos: number };
+  | { kind: "photo"; maxPhotos: number }
+  | { kind: "video"; maxMb: number };
 
 export interface Product {
   id: string;
@@ -46,7 +48,9 @@ export type CartCustomization =
   | { kind: "none" }
   | { kind: "letter"; text: string }
   | { kind: "reasons"; mode: "standard" | "custom"; reasons: string[] }
-  | { kind: "photo"; photoNames: string[]; crop?: PhotoCrop };
+  | { kind: "photo"; photoNames: string[]; crop?: PhotoCrop }
+  | { kind: "video"; source: "file"; fileName: string; sizeMb: number }
+  | { kind: "video"; source: "link"; url: string };
 
 /** How the photo sits in its frame: zoom (1 = fills the frame) and offset in % of the frame. */
 export interface PhotoCrop {

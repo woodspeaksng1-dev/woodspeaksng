@@ -75,6 +75,12 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
               <dd>Upload a photo and we set it in place</dd>
             </>
           )}
+          {p.kind === "video" && (
+            <>
+              <dt className="text-ink-soft">Your video</dt>
+              <dd>Upload a video up to {p.maxMb} MB, or paste a link to one</dd>
+            </>
+          )}
           <dt className="text-ink-soft">Crafting time</dt>
           <dd>To be confirmed</dd>
           <dt className="text-ink-soft">Delivery</dt>

@@ -30,7 +30,7 @@ export const PRODUCTS: Product[] = [
       "Piece by piece, they uncover the reasons their heart belongs with you. Choose our reasons, or write all twenty yourself.",
     occasions: ["anniversary", "birthday", "just-because"],
     recipients: ["for-her", "for-him", "couples"],
-    personalization: { kind: "reasons", count: 20, maxWordsEach: 5, fee: 15000 },
+    personalization: { kind: "reasons", count: 20, maxWordsEach: 6, fee: 15000 },
     featured: true,
   },
   {
@@ -135,11 +135,10 @@ export const PRODUCTS: Product[] = [
     name: "NFC Memory Tag",
     price: 7000,
     category: "add-on",
-    description:
-      "Add a video, voice note or photos. They tap their phone on the tag and your message plays.",
+    description: "Add a video message. They tap their phone on the tag and your video plays.",
     occasions: ["anniversary", "birthday", "wedding", "just-because"],
     recipients: ["for-her", "for-him", "couples"],
-    personalization: { kind: "none" },
+    personalization: { kind: "video", maxMb: 100 },
     addOn: true,
   },
 ];

@@ -92,7 +92,7 @@ const PROVISIONAL_STANDARD = [
  */
 export const STANDARD_REASONS: readonly string[] = PROVISIONAL_STANDARD;
 
-/** Short reasons for the puzzle, each within 5 words, drawn at random from the library. */
+/** Short reasons for the puzzle (all 5 words or fewer, inside the 6-word limit), drawn at random from the library. */
 export async function draftReasons({ who }: Pick<DraftRequest, "who">, count: number): Promise<string[]> {
   const lib = await import("./draft-library");
   return shuffled(lib.REASONS[who]).slice(0, count);

@@ -17,6 +17,14 @@ export const letterSchema = (maxWords: number) =>
     .refine((t) => SAFE_TEXT.test(t), "Remove unsupported characters such as < or >.")
     .refine((t) => countWords(t) <= maxWords, `Keep it to ${maxWords} words or fewer.`);
 
+/** A link to the buyer's video (YouTube, Google Drive, Instagram…). Web links only: never `javascript:` or `data:`. */
+export const videoLinkSchema = z
+  .string()
+  .trim()
+  .min(1, "Paste the link to your video.")
+  .max(500, "That link is too long. Copy the share link instead.")
+  .pipe(z.url({ protocol: /^https?$/, error: "Paste a full web link, starting with https://" }));
+
 export const reasonsSchema = (count: number, maxWordsEach: number) =>
   z
     .array(
