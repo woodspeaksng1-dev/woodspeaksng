@@ -87,6 +87,9 @@ Done (frontend, mock data):
   `@theme` block because the SVG reads them with var()); NFC tag simplified to a video file (100 MB) or a
   link, with its own Personalise page and a simpler admin step; puzzle reasons up to 6 words; client answers
   recorded under "Still to confirm".
+- Scroll preview (9 Nov): a rod at both ends like the real scroll (bottom rod built from the top one,
+  border flipped); letter text smaller as it grows and the preview wider on desktop, so 300 words stays
+  a sensible length (about 770 px on desktop, 850 px on phones).
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:

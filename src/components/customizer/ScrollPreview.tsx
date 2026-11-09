@@ -9,11 +9,12 @@ const JUMP = 12;
 const MS_PER_CHAR = 14;
 const MAX_WRITE_MS = 2600;
 
-// The rod and the curled foot are cut from the last frame of the hero film (opaque, on the parchment
+// A rod at each end, like the real scroll: the top one is cut from the last frame of the hero film, the
+// bottom one is the same rod with its border flipped to face the sheet (opaque, on the parchment
 // colour like the film: recut them if `--color-parchment` changes). The sheet between them is CSS
 // (`.scroll-sheet`) so it grows with the letter; its side margins line up with the photo's paper edges.
 const TOP = imageSrc("customizer/scroll-top");
-const FOOT = imageSrc("customizer/scroll-bottom");
+const BOTTOM = imageSrc("customizer/scroll-bottom");
 
 function Rod() {
   return (
@@ -65,10 +66,18 @@ export function ScrollPreview({ text, placeholder }: { text: string; placeholder
 
   const shown = writing && writing.target === text ? text.slice(0, writing.shown) : text;
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const size = words > 200 ? "text-[0.8rem]" : words > 110 ? "text-sm" : words > 50 ? "text-base" : "text-lg";
+  // Smaller as the letter grows, so a full 300 words keeps the scroll a sensible length.
+  const size =
+    words > 200
+      ? "text-[0.68rem] leading-snug"
+      : words > 110
+        ? "text-xs leading-normal"
+        : words > 50
+          ? "text-sm leading-relaxed"
+          : "text-base leading-relaxed";
 
   const letter = (
-    <div className={`min-h-40 font-display md:min-h-64 leading-relaxed whitespace-pre-wrap text-ink italic ${size}`}>
+    <div className={`min-h-40 font-display md:min-h-64 whitespace-pre-wrap text-ink italic ${size}`}>
       {shown ? (
         <>
           {shown}
@@ -80,9 +89,9 @@ export function ScrollPreview({ text, placeholder }: { text: string; placeholder
     </div>
   );
 
-  if (TOP && FOOT)
+  if (TOP && BOTTOM)
     return (
-      <figure className="mx-auto w-full max-w-md" aria-label="Preview of your scroll">
+      <figure className="mx-auto w-full max-w-md md:max-w-lg" aria-label="Preview of your scroll">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={TOP}
@@ -105,11 +114,11 @@ export function ScrollPreview({ text, placeholder }: { text: string; placeholder
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={FOOT}
+          src={BOTTOM}
           alt=""
           width={726}
-          height={75}
-          className="relative z-10 -mt-[3%] block w-full [mask-image:linear-gradient(to_bottom,transparent,black_30%)]"
+          height={130}
+          className="relative z-10 -mt-[2.2%] block w-full [mask-image:linear-gradient(to_bottom,transparent,black_12%)]"
         />
         <figcaption className="sr-only">{text || placeholder}</figcaption>
       </figure>
