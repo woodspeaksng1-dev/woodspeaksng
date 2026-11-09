@@ -14,8 +14,6 @@ const MAX_WRITE_MS = 2600;
 // (`.scroll-sheet`) so it grows with the letter; its side margins line up with the photo's paper edges.
 const TOP = imageSrc("customizer/scroll-top");
 const FOOT = imageSrc("customizer/scroll-bottom");
-// Their bamboo mark, pressed into the wax like the stamp on the real scrolls.
-const MARK = imageSrc("brand/mark");
 
 function Rod() {
   return (
@@ -95,18 +93,13 @@ export function ScrollPreview({ text, placeholder }: { text: string; placeholder
         />
         <div className="scroll-sheet relative mt-[-2.2%] mr-[13.8%] ml-[13.5%] px-[9%] pt-[6%] pb-[4%]">
           {letter}
-          {/* Wax stamp with the Woodspeaks mark (the client's stamps carry their branding). */}
+          {/* Wax stamp with a "W", like the stamp on the real scrolls. */}
           <span
             aria-hidden
             className="mt-5 ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-oxblood shadow-[inset_0_-3px_6px_rgb(0_0_0/0.35),0_3px_4px_rgb(42_23_18/0.3)]"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full ring-1 ring-wine">
-              {MARK && (
-                <span
-                  className="h-7 w-7 bg-wine drop-shadow-[0_-1px_0_rgb(0_0_0/0.35)]"
-                  style={{ mask: `url(${MARK}) center / contain no-repeat`, WebkitMask: `url(${MARK}) center / contain no-repeat` }}
-                />
-              )}
+              <span className="font-display text-2xl leading-none text-wine [text-shadow:0_-1px_0_rgb(0_0_0/0.4)]">W</span>
             </span>
           </span>
         </div>

@@ -288,7 +288,7 @@ full checkout on a real phone in test mode, then one small live payment and refu
 
 Answered 6 to 9 Nov (recorded here; done in code where noted):
 - Colours and fonts approved as they are. Puzzle write-your-own fee ₦15,000. Polaroid takes 1 photo.
-- Reasons: up to 6 words each (done). Wax stamp carries their branding (their logo).
+- Reasons: up to 6 words each (done). Wax stamp carries a "W" (done in the scroll preview).
 - Preloader approved. About, FAQ and policy pages approved in principle.
 - Reviews: keep the six from the old site as they are. Customer moments: permission given, no names shown.
 - Delivery: priced by a dispatch company's API instead of fixed zone fees (provider to come).
@@ -297,8 +297,8 @@ Answered 6 to 9 Nov (recorded here; done in code where noted):
 - AI drafts: replaced by the curated writing library (done 4 Nov).
 
 Still open:
-1. Logo: their bamboo mark is taken from the old site's favicon (1024px, now the site icons and the wax
-   stamp in the scroll preview). Confirm it's their current logo, and send an SVG if they have one
+1. Logo: their bamboo mark is taken from the old site's favicon (1024px) and used for the site icons only.
+   The wax stamp carries a "W" (done in the scroll preview). Confirm the mark is current; an SVG if they have one
 2. Paystack or Kora (old site footer says Kora), then their keys
 3. Crafting time per order, and the shortest notice for a delivery date
 4. The exact 20 reasons printed on the standard puzzle (6 words max). The customizer shows a provisional
