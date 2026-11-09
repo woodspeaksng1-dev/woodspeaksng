@@ -1,41 +1,42 @@
 import "server-only";
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { getFirestore, initializeFirestore, type Firestore } from "firebase-admin/firestore";
 
 /*
  * Firebase Admin, server only. It reads and writes Firestore on behalf of our API routes and server
  * actions (Firestore rules don't apply to it, so every caller checks its input and who is asking).
  * Credentials come from FIREBASE_SERVICE_ACCOUNT_JSON (.env.local, Vercel). With FIRESTORE_EMULATOR_HOST
  * set (tests, local emulator) it talks to the emulator and needs no credentials.
+ *
+ * Next bundles server code into several chunks that share one firebase-admin, so the app and Firestore
+ * are set up once, when the app is first created; later callers just get them.
  */
 
 function app(): App {
   const existing = getApps()[0];
   if (existing) return existing;
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  if (process.env.FIRESTORE_EMULATOR_HOST) return initializeApp({ projectId });
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set.");
-  const sa = JSON.parse(raw) as { project_id: string; client_email: string; private_key: string };
-  return initializeApp({
-    credential: cert({ projectId: sa.project_id, clientEmail: sa.client_email, privateKey: sa.private_key }),
-    projectId: sa.project_id,
-  });
-}
 
-let firestore: Firestore | null = null;
-
-/**
- * Firestore. Live, it goes over REST (faster cold starts on serverless than gRPC); the emulator only
- * works over gRPC without credentials, so tests and local runs use that.
- */
-export function db(): Firestore {
-  if (!firestore) {
-    firestore = getFirestore(app());
-    firestore.settings({ preferRest: !process.env.FIRESTORE_EMULATOR_HOST, ignoreUndefinedProperties: true });
+  const emulator = !!process.env.FIRESTORE_EMULATOR_HOST;
+  let created: App;
+  if (emulator) {
+    // The emulator's project comes from GCLOUD_PROJECT (set by `firebase emulators:*`), not NEXT_PUBLIC_…,
+    // which the build bakes in as the live project.
+    created = initializeApp({ projectId: process.env.GCLOUD_PROJECT || "demo-woodspeaks" });
+  } else {
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set.");
+    const sa = JSON.parse(raw) as { project_id: string; client_email: string; private_key: string };
+    created = initializeApp({
+      credential: cert({ projectId: sa.project_id, clientEmail: sa.client_email, privateKey: sa.private_key }),
+      projectId: sa.project_id,
+    });
   }
-  return firestore;
+  // Live, Firestore goes over REST (faster cold starts on serverless than gRPC); the emulator needs gRPC.
+  initializeFirestore(created, { preferRest: !emulator });
+  return created;
 }
+
+export const db = (): Firestore => getFirestore(app());
 
 export const adminAuth = () => getAuth(app());

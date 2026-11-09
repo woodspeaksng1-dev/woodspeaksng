@@ -1,21 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { cartSubtotal, lineTotal, useCart, useCartHydrated } from "@/lib/cart-store";
 import { findProduct, findZone } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { checkoutSchema, earliestDelivery, type CheckoutInput } from "@/lib/checkout";
-import { demoOrderNumber, saveDemoOrder } from "@/lib/demo-order";
 import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
 import { OrderLines } from "./OrderLines";
 import { Check, TextField, inputClass } from "../ui/FormField";
 
 /** Paystack is connected in the backend stage. Until then "Pay" places a demo order. */
-const PAYMENTS_LIVE = false;
-
 type Field = keyof CheckoutInput;
 type Errors = Partial<Record<Field, string>>;
 
@@ -47,18 +43,18 @@ function Section({ n, title, children }: { n: number; title: string; children: R
 }
 
 /**
- * One-page guest checkout. Totals here are for display; the server prices the order
- * from product IDs and the zone when payment is connected.
+ * One-page guest checkout. Totals here are for display only: on "Pay" the form sends the cart (product
+ * IDs, quantities, personalisation) and the details to /api/checkout, which prices the order itself and
+ * returns a Paystack payment page. The cart is emptied only once the payment is confirmed.
  */
 export function CheckoutForm() {
   const hydrated = useCartHydrated();
   const items = useCart((s) => s.items);
   const catalog = useCatalog();
-  const clear = useCart((s) => s.clear);
-  const router = useRouter();
   const [form, setForm] = useState<CheckoutInput>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [placing, setPlacing] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   // After a failed submit, move to the first problem so phone users see what to fix.
@@ -102,8 +98,9 @@ export function CheckoutForm() {
     customization: i.customization,
   }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
     const result = checkoutSchema(catalog).safeParse(form);
     const next: Errors = {};
     if (!result.success)
@@ -121,17 +118,33 @@ export function CheckoutForm() {
     }
 
     setPlacing(true);
-    saveDemoOrder({
-      number: demoOrderNumber(),
-      placedAt: new Date().toISOString(),
-      details: result.data,
-      zoneName: zone!.name,
-      lines,
-      subtotal,
-      deliveryFee: fee,
-    });
-    clear();
-    router.push("/checkout/confirmation");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          details: form,
+          lines: items.map(({ productId, quantity, customization }) => ({ productId, quantity, customization })),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        authorizationUrl?: string;
+        message?: string;
+        fieldErrors?: Errors;
+      };
+      if (res.ok && data.authorizationUrl) {
+        window.location.assign(data.authorizationUrl); // Paystack's payment page; it sends them back here after
+        return;
+      }
+      if (data.fieldErrors) {
+        setErrors(data.fieldErrors);
+        setAttempt((n) => n + 1);
+      }
+      setServerError(data.message ?? "We couldn't start your payment. Try again in a minute.");
+    } catch {
+      setServerError("We couldn't reach our shop. Check your connection and try again.");
+    }
+    setPlacing(false);
   };
 
   return (
@@ -309,13 +322,14 @@ export function CheckoutForm() {
             disabled={placing}
             className="mt-6 h-12 w-full rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine disabled:opacity-60"
           >
-            {PAYMENTS_LIVE ? "Pay with Paystack" : "Place order (demo)"}
+            {placing ? "Opening Paystack…" : fee != null ? `Pay ${formatNaira(subtotal + fee)}` : "Pay with Paystack"}
           </button>
-          <p className="mt-3 text-center text-sm text-ink-soft">
-            {PAYMENTS_LIVE
-              ? "Card, bank transfer or USSD, through Paystack."
-              : "Payments aren't connected yet, so no money is taken."}
-          </p>
+          {serverError && (
+            <p role="alert" className="mt-3 text-center text-sm text-oxblood">
+              {serverError}
+            </p>
+          )}
+          <p className="mt-3 text-center text-sm text-ink-soft">Card, bank transfer or USSD, securely through Paystack.</p>
         </div>
       </aside>
     </form>

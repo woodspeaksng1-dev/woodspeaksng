@@ -269,6 +269,17 @@ Backend order of work:
 3. Paystack initialize with server-side totals in kobo; pending order
 4. Webhook: HMAC SHA512 of the raw body in constant time, verify the transaction with Paystack (amount,
    NGN, reference), fulfil each reference once, reply 200 fast
+   Steps 3 and 4 done 9 Nov: `POST /api/checkout` (details checked, cart priced from `readCatalog()`,
+   pending order `orders/{WS-…}` with a random 10-character reference, Paystack payment page; 10 attempts
+   per IP per 10 minutes), `POST /api/paystack/webhook` (signature, verify with Paystack, exact kobo and
+   NGN, Firestore transaction marks paid once, `paystackEvents/{reference}` guard, emails after the reply),
+   `/checkout/confirmation?reference=` runs the same check so the buyer sees "paid" even before the
+   webhook, and empties the cart. Order emails (buyer confirmation, team alert) go through Resend with
+   every customer value escaped. Tests: 61 unit, 40 on the emulator (rules, checkout, paid-once with five
+   simultaneous confirmations, wrong amount, failed payment, forged signature, repeated webhook, rate
+   limit). Server region pinned to London (`vercel.json`, lhr1) next to Firestore.
+   To go live: deploy, set the webhook URL in Paystack, add a Firestore TTL policy on
+   `rateLimits.expiresAt`, then one real test payment on a phone.
 5. Order emails; email-link sign-in, order history, saved addresses
 6. Admin panel on real data
 7. Mailing: opt-in list (double opt-in), template broadcasts, reminder dates, daily job, unpaid nudge

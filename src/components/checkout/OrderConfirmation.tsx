@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
-import { loadDemoOrder, type DemoOrder } from "@/lib/demo-order";
+import { useEffect, useState } from "react";
+import { useCart } from "@/lib/cart-store";
 import { formatNaira } from "@/lib/format";
+import type { OrderSummary } from "@/lib/orders";
 import { OrderLines } from "./OrderLines";
 
 const longDate = (iso: string, yearsLater = 0) => {
@@ -13,58 +14,35 @@ const longDate = (iso: string, yearsLater = 0) => {
   );
 };
 
-// Read once per page load; the stored order doesn't change while this page is open.
-let cached: DemoOrder | null | undefined;
-const readOrder = () => (cached === undefined ? (cached = loadDemoOrder()) : cached);
-
 /**
- * Order confirmation. DEMO: shows the order kept in this tab. When payments are live this
- * shows the status the server reports; only the verified Paystack webhook marks an order paid.
+ * A paid order, as the server confirmed it with Paystack. Empties the cart, since it's been bought.
+ * Shows no phone numbers or street address: the link is in the confirmation email and can be shared.
  */
-export function OrderConfirmation() {
-  const order = useSyncExternalStore(
-    () => () => {},
-    readOrder,
-    () => undefined,
-  );
+export function OrderConfirmation({ summary: order }: { summary: OrderSummary }) {
   const [reminder, setReminder] = useState(false);
-
-  if (order === undefined) return <p className="py-24 text-center text-ink-soft">Loading your order…</p>;
-
-  if (!order)
-    return (
-      <div className="py-16 text-center">
-        <h1 className="text-4xl text-oxblood">We couldn&rsquo;t find a recent order</h1>
-        <p className="mt-4 text-lg text-ink-soft">If you&rsquo;ve just paid, check your email for the confirmation.</p>
-        <Link href="/shop" className="mt-8 inline-block text-oxblood underline underline-offset-4">
-          Back to the shop
-        </Link>
-      </div>
-    );
-
-  const { details } = order;
-  const firstName = details.name.split(" ")[0];
+  useEffect(() => useCart.getState().clear(), []);
 
   return (
     <article>
       <p className="text-sm text-ink-soft">Order {order.number}</p>
-      <h1 className="mt-2 text-4xl text-oxblood md:text-5xl">Thank you, {firstName}</h1>
+      <h1 className="mt-2 text-4xl text-oxblood md:text-5xl">Thank you, {order.firstName}</h1>
       <p className="mt-4 text-lg text-ink">
-        We&rsquo;ve started on your order. A confirmation is on its way to <strong>{details.email}</strong>.
+        We&rsquo;ve received your payment and started on your order. A confirmation is on its way to{" "}
+        <strong>{order.email}</strong>.
       </p>
 
       <dl className="mt-10 grid gap-x-8 gap-y-4 rounded-[1.6rem] bg-vellum p-6 shadow-card sm:grid-cols-2">
         <div>
           <dt className="text-sm text-ink-soft">Expected delivery</dt>
-          <dd className="font-display text-xl">{longDate(details.deliveryDate)}</dd>
+          <dd className="font-display text-xl">{longDate(order.deliveryDate)}</dd>
         </div>
         <div>
           <dt className="text-sm text-ink-soft">Delivering to</dt>
           <dd>
-            {details.forSomeoneElse ? details.recipientName : details.name}, {order.zoneName}
+            {order.deliverTo}, {order.zoneName}
           </dd>
         </div>
-        {details.hidePrice && (
+        {order.hidePrice && (
           <div className="sm:col-span-2">
             <dt className="sr-only">Gift option</dt>
             <dd className="text-ink-soft">The price won&rsquo;t be in the package.</dd>
@@ -82,11 +60,15 @@ export function OrderConfirmation() {
         <dl className="flex flex-col gap-2 border-t border-rule pt-4">
           <div className="flex justify-between">
             <dt>Subtotal</dt>
-            <dd className="tabular-nums">{formatNaira(order.subtotal)}</dd>
+            <dd className="tabular-nums">{formatNaira(order.itemsTotal)}</dd>
           </div>
           <div className="flex justify-between">
             <dt>Delivery</dt>
-            <dd className="text-ink-soft">{order.deliveryFee != null ? formatNaira(order.deliveryFee) : "We'll confirm the fee"}</dd>
+            <dd className="tabular-nums">{formatNaira(order.deliveryFee)}</dd>
+          </div>
+          <div className="flex justify-between border-t border-rule pt-3 font-display text-xl">
+            <dt>Total paid</dt>
+            <dd className="tabular-nums">{formatNaira(order.total)}</dd>
           </div>
         </dl>
       </section>
@@ -97,7 +79,7 @@ export function OrderConfirmation() {
         </h2>
         {reminder ? (
           <p className="mt-3 text-ink" role="status">
-            Done. We&rsquo;ll email you a week before {longDate(details.deliveryDate, 1)}.
+            Done. We&rsquo;ll email you a week before {longDate(order.deliveryDate, 1)}.
           </p>
         ) : (
           <>

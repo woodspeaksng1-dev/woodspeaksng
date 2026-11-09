@@ -12,7 +12,7 @@ const force = process.argv.includes("--force");
 
 let app;
 if (process.env.FIRESTORE_EMULATOR_HOST) {
-  app = initializeApp({ projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID });
+  app = initializeApp({ projectId: process.env.GCLOUD_PROJECT || "demo-woodspeaks" });
 } else {
   const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON ?? "null");
   if (!sa) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set.");
