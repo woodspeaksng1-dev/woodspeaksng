@@ -1,6 +1,5 @@
 import "server-only";
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
 import { getFirestore, initializeFirestore, type Firestore } from "firebase-admin/firestore";
 
 /*
@@ -39,4 +38,5 @@ function app(): App {
 
 export const db = (): Firestore => getFirestore(app());
 
-export const adminAuth = () => getAuth(app());
+/** Admin Auth, loaded only when used (sign-in, staff claims): it pulls in a large token library. */
+export const adminAuth = async () => (await import("firebase-admin/auth")).getAuth(app());
