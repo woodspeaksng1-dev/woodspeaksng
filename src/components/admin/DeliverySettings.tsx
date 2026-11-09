@@ -22,7 +22,7 @@ function ZoneForm({ zone }: { zone: ShippingZone }) {
         const n = fee.trim() === "" ? null : Number(fee);
         if (n != null && (!Number.isInteger(n) || n < 0)) return setMsg("Enter the fee in whole naira, or leave it empty.");
         updateZone(zone.id, { fee: n, estimate: estimate.trim() || null, perishables });
-        setMsg(n == null ? "Saved. Checkout will show “We'll confirm the fee” for this area." : `Saved. Checkout will charge ${formatNaira(n)}.`);
+        setMsg(n == null ? "Saved. Checkout won't charge delivery for this area until a fee is set." : `Saved. Checkout will charge ${formatNaira(n)}.`);
       }}
       className="flex flex-col gap-4 py-5 first:pt-0"
     >

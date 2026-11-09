@@ -144,15 +144,49 @@ export const PRODUCTS: Product[] = [
 ];
 
 /**
- * Delivery fees and estimates are pending from the client. Which zones take perishables
- * is an assumption (Lagos Island and Mainland only) TO CONFIRM.
+ * Delivery areas and fees from the client (9 Nov 2026): 38 Lagos locations, flat fee each, in naira.
+ * Names tidied for display; A to Z so buyers find theirs. Every area is assumed to take cake, flowers
+ * and roses (TO CONFIRM with the client). Staff change fees in admin; this seeds Firestore.
  */
 export const SHIPPING_ZONES: ShippingZone[] = [
-  { id: "lagos-island", name: "Lagos Island, Lekki, Ajah", fee: null, estimate: null, perishables: true },
-  { id: "lagos-mainland", name: "Lagos Mainland", fee: null, estimate: null, perishables: true },
-  { id: "lagos-outskirts", name: "Lagos outskirts (Ikorodu, Epe, Badagry)", fee: null, estimate: null, perishables: false },
-  { id: "interstate-major", name: "Abuja, Port Harcourt, Ibadan", fee: null, estimate: null, perishables: false },
-  { id: "nationwide", name: "Other states", fee: null, estimate: null, perishables: false },
+  { id: "abule-egba", name: "Abule Egba", fee: 7000, estimate: null, perishables: true },
+  { id: "agbado", name: "Agbado", fee: 8000, estimate: null, perishables: true },
+  { id: "ago-palace", name: "Ago Palace", fee: 3000, estimate: null, perishables: true },
+  { id: "agric-ikorodu", name: "Agric, Ikorodu", fee: 8000, estimate: null, perishables: true },
+  { id: "ajah-addo-road", name: "Ajah, Addo Road", fee: 10000, estimate: null, perishables: true },
+  { id: "ajao-estate", name: "Ajao Estate", fee: 4500, estimate: null, perishables: true },
+  { id: "ajasa-command", name: "Ajasa Command", fee: 7000, estimate: null, perishables: true },
+  { id: "alapere-ketu", name: "Alapere, Ketu", fee: 5000, estimate: null, perishables: true },
+  { id: "egbeda", name: "Egbeda", fee: 6000, estimate: null, perishables: true },
+  { id: "ejigbo", name: "Ejigbo", fee: 5000, estimate: null, perishables: true },
+  { id: "gbagada", name: "Gbagada", fee: 5000, estimate: null, perishables: true },
+  { id: "igbogbo-ikorodu", name: "Igbogbo, Ikorodu", fee: 8000, estimate: null, perishables: true },
+  { id: "ikeja", name: "Ikeja", fee: 5000, estimate: null, perishables: true },
+  { id: "ikorodu-garage", name: "Ikorodu Garage", fee: 8000, estimate: null, perishables: true },
+  { id: "ikosi-ketu", name: "Ikosi, Ketu", fee: 5000, estimate: null, perishables: true },
+  { id: "ikotun", name: "Ikotun", fee: 6000, estimate: null, perishables: true },
+  { id: "isawo-road-ikorodu", name: "Isawo Road, Ikorodu", fee: 8000, estimate: null, perishables: true },
+  { id: "isolo", name: "Isolo", fee: 5000, estimate: null, perishables: true },
+  { id: "itamaga-ikorodu", name: "Itamaga, Ikorodu", fee: 9000, estimate: null, perishables: true },
+  { id: "iyana-ipaja", name: "Iyana Ipaja", fee: 7000, estimate: null, perishables: true },
+  { id: "iyana-oworonshoki", name: "Iyana Oworonshoki", fee: 5000, estimate: null, perishables: true },
+  { id: "lekki-phase-1", name: "Lekki Phase 1", fee: 6000, estimate: null, perishables: true },
+  { id: "magodo-ketu", name: "Magodo, Ketu", fee: 5000, estimate: null, perishables: true },
+  { id: "maryland", name: "Maryland", fee: 5000, estimate: null, perishables: true },
+  { id: "meiran", name: "Meiran", fee: 7000, estimate: null, perishables: true },
+  { id: "mile-12", name: "Mile 12", fee: 6000, estimate: null, perishables: true },
+  { id: "mile-2", name: "Mile 2", fee: 2500, estimate: null, perishables: true },
+  { id: "ogba", name: "Ogba", fee: 6000, estimate: null, perishables: true },
+  { id: "ogudu-ojota", name: "Ogudu, Ojota", fee: 5000, estimate: null, perishables: true },
+  { id: "ojo", name: "Ojo", fee: 5000, estimate: null, perishables: true },
+  { id: "ojodu-berger", name: "Ojodu Berger", fee: 6000, estimate: null, perishables: true },
+  { id: "opic-estate", name: "OPIC Estate", fee: 7000, estimate: null, perishables: true },
+  { id: "orchid", name: "Orchid", fee: 8000, estimate: null, perishables: true },
+  { id: "osapa-london", name: "Osapa London", fee: 7000, estimate: null, perishables: true },
+  { id: "oshodi", name: "Oshodi", fee: 3500, estimate: null, perishables: true },
+  { id: "sangotedo", name: "Sangotedo", fee: 10000, estimate: null, perishables: true },
+  { id: "victoria-island", name: "Victoria Island", fee: 5000, estimate: null, perishables: true },
+  { id: "yaba", name: "Yaba", fee: 5000, estimate: null, perishables: true },
 ];
 
 export const getZone = (id: string) => SHIPPING_ZONES.find((z) => z.id === id);

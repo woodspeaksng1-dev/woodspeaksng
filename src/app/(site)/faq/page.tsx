@@ -29,7 +29,7 @@ function faqGroups(catalog: Catalog): { title: string; items: { q: string; a: Re
     items: [
       {
         q: "Where do you deliver?",
-        a: "Across Lagos, to Abuja, Port Harcourt and Ibadan, and to other states in Nigeria. Cake, flowers and fresh roses go within Lagos Island and Mainland only, so they arrive fresh.",
+        a: `To ${catalog.zones.length} areas across Lagos, from Victoria Island and Lekki to Ikeja, Ikorodu and Ojo. Checkout lists every area with its delivery fee. If yours isn't there, message us and we'll see what we can do.`,
       },
       {
         q: "How long will my order take?",

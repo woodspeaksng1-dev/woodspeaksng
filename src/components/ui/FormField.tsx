@@ -14,7 +14,7 @@ export function TextField({
   children,
 }: {
   label: string;
-  hint?: string;
+  hint?: ReactNode;
   error?: string;
   children: (props: { id: string; "aria-invalid": boolean; "aria-describedby"?: string }) => ReactNode;
 }) {

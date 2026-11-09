@@ -63,7 +63,7 @@ slot name and components fall back to drawn placeholders when a file is missing.
   poster for reduced motion and data saver.
 
 Still waiting on the client: a vector (SVG) of the bamboo mark if they have one, standard puzzle reasons (`STANDARD_REASONS`),
-business email and address (lib/contact.ts), crafting time, dispatch provider (delivery fees), photos for
+business email and address (lib/contact.ts), crafting time, which delivery areas take cake and flowers, photos for
 bouquet, magnifying glass, cake, real rose and NFC tag (they upload these from admin).
 
 ## SEO

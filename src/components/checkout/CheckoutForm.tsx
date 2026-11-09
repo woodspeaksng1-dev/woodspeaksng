@@ -8,6 +8,7 @@ import { findProduct, findZone } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { checkoutSchema, earliestDelivery, type CheckoutInput } from "@/lib/checkout";
 import { demoOrderNumber, saveDemoOrder } from "@/lib/demo-order";
+import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
 import { OrderLines } from "./OrderLines";
 import { Check, TextField, inputClass } from "../ui/FormField";
@@ -111,7 +112,7 @@ export function CheckoutForm() {
         next[key] ??= issue.message;
       }
     if (zone && !zone.perishables && perishables.length)
-      next.zoneId ??= `We can only deliver the ${perishables.join(" and ").toLowerCase()} within Lagos Island and Mainland, so ${perishables.length > 1 ? "they arrive" : "it arrives"} fresh.`;
+      next.zoneId ??= `We can't get the ${perishables.join(" and ").toLowerCase()} to this area fresh. Choose another area, or remove ${perishables.length > 1 ? "them" : "it"}.`;
 
     if (Object.keys(next).length || !result.success) {
       setErrors(next);
@@ -206,7 +207,15 @@ export function CheckoutForm() {
         <Section n={3} title="Delivery">
           <TextField
             label="Delivery area"
-            hint={perishables.length ? "Cake, flowers and roses go to Lagos Island and Mainland only." : undefined}
+            hint={
+              <>
+                We deliver to these areas of Lagos. Not on the list?{" "}
+                <a href={CONTACT.whatsappUrl("Hello Woodspeaks, do you deliver to my area?")} className="text-oxblood underline underline-offset-2" rel="noopener">
+                  Ask us on WhatsApp
+                </a>
+                .
+              </>
+            }
             error={errors.zoneId}
           >
             {(p) => (

@@ -302,7 +302,8 @@ Answered 6 to 9 Nov (recorded here; done in code where noted):
 - Reasons: up to 6 words each (done). Wax stamp carries a "W" (done in the scroll preview).
 - Preloader approved. About, FAQ and policy pages approved in principle.
 - Reviews: keep the six from the old site as they are. Customer moments: permission given, no names shown.
-- Delivery: priced by a dispatch company's API instead of fixed zone fees (provider to come).
+- Delivery: 38 Lagos locations with a flat fee each (sent 9 Nov; done: in Firestore, checkout and tests).
+  No dispatch API needed for launch.
 - NFC: video file up to 100 MB or a link; no memory page; the client handles the tag (done, see above).
 - Product photos (bouquet, magnifying glass, cake, rose, NFC tag): the client uploads them from admin.
 - AI drafts: replaced by the curated writing library (done 4 Nov).
@@ -314,8 +315,8 @@ Still open:
 3. Crafting time per order, and the shortest notice for a delivery date
 4. The exact 20 reasons printed on the standard puzzle (6 words max). The customizer shows a provisional
    set (`STANDARD_REASONS` in `src/lib/drafts.ts`) until they send it
-5. Dispatch company, API access to their account, which areas take cake and flowers, fallback if the
-   quote fails at checkout
+5. Which of the 38 areas can take cake, flowers and roses (all assumed yes for now), and delivery
+   estimates per area if they want them shown
 6. How many admin logins, and for whom
 7. Did Woodspeaks start in 2024? (About page)
 8. Whether their business email is hosted on Hostinger (decides Resend or Hostinger mail)

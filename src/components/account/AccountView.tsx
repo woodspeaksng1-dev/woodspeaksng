@@ -83,7 +83,7 @@ function SampleAccount({ email, onSignOut }: { email: string; onSignOut: () => v
 
         <Panel title="Saved addresses">
           <p className="text-ink">12 Example Street, Lekki Phase 1</p>
-          <p className="text-sm text-ink-soft">Lagos Island, Lekki, Ajah · Near the roundabout</p>
+          <p className="text-sm text-ink-soft">Lekki Phase 1 · Near the roundabout</p>
           <div className="mt-4 flex gap-5">
             <button type="button" className={quiet}>
               Edit

@@ -20,8 +20,8 @@ export const POLICIES = {
       {
         heading: "Where we deliver",
         body: [
-          "We deliver across Lagos, to Abuja, Port Harcourt and Ibadan, and to other states in Nigeria.",
-          "Cake, flowers and fresh roses are delivered within Lagos Island and Lagos Mainland only, so they arrive fresh.",
+          "We deliver to areas across Lagos. Checkout lists every area we cover, with its delivery fee, which is added to your order total.",
+          "If your area isn't listed, message us before you order and we'll tell you whether we can reach it.",
         ],
       },
       {

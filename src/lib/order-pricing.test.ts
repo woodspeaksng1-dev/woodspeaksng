@@ -3,16 +3,19 @@ import { SEED_CATALOG } from "./catalog";
 import { priceOrder, toKobo, MAX_LINES, type PricingResult } from "./order-pricing";
 import type { Catalog } from "./types";
 
-// The starting catalog with delivery fees set, plus one hidden product.
+// The starting catalog (the client's 38 Lagos areas), plus a hidden product, an area that can't take
+// fresh items and an area without a fee.
 const catalog: Catalog = {
   ...SEED_CATALOG,
   products: SEED_CATALOG.products.map((p) => (p.id === "journal" ? { ...p, hidden: true } : p)),
-  zones: SEED_CATALOG.zones.map((z) => ({ ...z, fee: z.id === "nationwide" ? null : 3000 })),
+  zones: SEED_CATALOG.zones.map((z) =>
+    z.id === "ojo" ? { ...z, perishables: false } : z.id === "agbado" ? { ...z, fee: null } : z,
+  ),
 };
 
-const LAGOS = "lagos-island"; // takes fresh items, fee ₦3,000
-const OUTSKIRTS = "lagos-outskirts"; // no fresh items
-const NO_FEE = "nationwide"; // fee not set yet
+const LAGOS = "lekki-phase-1"; // takes fresh items, fee ₦6,000
+const OUTSKIRTS = "ojo"; // made unable to take fresh items for these tests
+const NO_FEE = "agbado"; // fee removed for these tests
 
 const twentyReasons = Array.from({ length: 20 }, (_, i) => `Reason number ${i + 1}`);
 
@@ -30,8 +33,8 @@ describe("prices come from the catalog, never the browser", () => {
     const order = ok(priceOrder(catalog, { zoneId: LAGOS, lines: [{ productId: "pocket-watch", quantity: 2, customization: { kind: "none" } }] }));
     expect(order.lines[0]).toMatchObject({ name: "Pocket Watch", unitPrice: 15000, quantity: 2, lineTotal: 30000 });
     expect(order.itemsTotal).toBe(30000);
-    expect(order.deliveryFee).toBe(3000);
-    expect(order.total).toBe(33000);
+    expect(order.deliveryFee).toBe(6000);
+    expect(order.total).toBe(36000);
   });
 
   it("ignores any price or total the browser sends", () => {
@@ -42,7 +45,7 @@ describe("prices come from the catalog, never the browser", () => {
         lines: [{ productId: "pocket-watch", quantity: 1, customization: { kind: "none" }, price: 1, unitPrice: 1, lineTotal: 1 }],
       }),
     );
-    expect(order.total).toBe(18000);
+    expect(order.total).toBe(21000);
     expect(order.lines[0]).not.toHaveProperty("price");
   });
 
@@ -65,7 +68,7 @@ describe("prices come from the catalog, never the browser", () => {
       }),
     );
     expect(order.itemsTotal).toBe(15590 + 7000 + 3 * 10000);
-    expect(order.total).toBe(order.itemsTotal + 3000);
+    expect(order.total).toBe(order.itemsTotal + 6000);
   });
 
   it("leaves delivery out of the total while an area's fee isn't set", () => {
@@ -129,6 +132,18 @@ describe("checks personalisation against the product", () => {
     for (const url of ["javascript:alert(1)", "data:text/html,hi", "ftp://x.com/v.mp4", "not a link"])
       expect(priceOrder(catalog, line("nfc-tag", { kind: "video", source: "link", url })).ok).toBe(false);
   });
+});
+
+describe("the client's delivery fees", () => {
+  const fee = (zoneId: string) => ok(priceOrder(SEED_CATALOG, { zoneId, lines: [{ productId: "rose", quantity: 1, customization: { kind: "none" } }] })).deliveryFee;
+  it("has all 38 areas, each with a fee", () => {
+    expect(SEED_CATALOG.zones).toHaveLength(38);
+    expect(SEED_CATALOG.zones.every((z) => Number.isInteger(z.fee) && z.fee! > 0)).toBe(true);
+  });
+  it.each([["mile-2", 2500], ["ago-palace", 3000], ["oshodi", 3500], ["ajao-estate", 4500], ["ikeja", 5000], ["lekki-phase-1", 6000], ["osapa-london", 7000], ["orchid", 8000], ["itamaga-ikorodu", 9000], ["sangotedo", 10000]])(
+    "%s costs ₦%i",
+    (zoneId, naira) => expect(fee(zoneId)).toBe(naira),
+  );
 });
 
 describe("toKobo", () => {
