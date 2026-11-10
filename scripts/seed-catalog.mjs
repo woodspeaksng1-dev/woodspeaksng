@@ -1,4 +1,5 @@
-// Loads the starting catalog (src/lib/catalog.ts) into Firestore: products, delivery zones, shop settings.
+// Loads the starting catalog (src/lib/catalog.ts) into Firestore: products, delivery zones, shop settings,
+// and the six reviews from the old site (src/lib/reviews.ts).
 // Only creates documents that don't exist yet, so it never overwrites what staff changed in admin.
 // Pass --force to overwrite anyway. Uses .env.local; set FIRESTORE_EMULATOR_HOST to seed the emulator.
 // Usage: node scripts/seed-catalog.mjs [--force]
@@ -6,6 +7,7 @@ import nextEnv from "@next/env";
 import { cert, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { CRAFTING_DAYS, PRODUCTS, SHIPPING_ZONES } from "../src/lib/catalog.ts";
+import { SEED_REVIEWS } from "../src/lib/reviews.ts";
 
 nextEnv.loadEnvConfig(process.cwd(), false, { info() {}, error: console.error });
 const force = process.argv.includes("--force");
@@ -26,6 +28,7 @@ const docs = [
   ...PRODUCTS.map((p, i) => [`products/${p.id}`, { ...p, hidden: false, sortOrder: i }]),
   ...SHIPPING_ZONES.map((z, i) => [`shippingZones/${z.id}`, { ...z, sortOrder: i }]),
   ["settings/shop", { craftingDays: CRAFTING_DAYS }],
+  ...SEED_REVIEWS.map((r) => [`reviews/${r.id}`, { ...r, createdAt: new Date().toISOString(), createdBy: "seed" }]),
 ];
 
 let created = 0, skipped = 0;

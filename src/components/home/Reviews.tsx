@@ -1,7 +1,8 @@
-import { findProductBySlug } from "@/lib/catalog";
+import { findProduct } from "@/lib/catalog";
 import { getStorefront } from "@/lib/server/catalog";
+import { getPublicReviews } from "@/lib/server/reviews";
 import type { Product } from "@/lib/types";
-import { REVIEWS, type Review } from "@/lib/reviews";
+import type { Review } from "@/lib/reviews";
 import { StarIcon } from "../ui/icons";
 
 function Stars({ n }: { n: number }) {
@@ -14,8 +15,8 @@ function Stars({ n }: { n: number }) {
   );
 }
 
-function ReviewCard({ review, product, featured = false }: { review: Review; product?: Product; featured?: boolean }) {
-  const initial = review.placeholder ? "" : review.who.charAt(0);
+export function ReviewCard({ review, product, featured = false }: { review: Review; product?: Product; featured?: boolean }) {
+  const initial = review.who.charAt(0);
   return (
     <figure
       className={`flex h-full flex-col rounded-[1.6rem] p-6 shadow-card sm:p-7 ${
@@ -24,9 +25,7 @@ function ReviewCard({ review, product, featured = false }: { review: Review; pro
     >
       {review.rating && <Stars n={review.rating} />}
       <blockquote
-        className={`${review.rating ? "mt-5" : ""} flex-1 font-display leading-snug ${featured ? "text-2xl md:text-[1.9rem]" : "text-lg"} ${
-          review.placeholder ? "italic opacity-70" : ""
-        }`}
+        className={`${review.rating ? "mt-5" : ""} flex-1 font-display leading-snug ${featured ? "text-2xl md:text-[1.9rem]" : "text-lg"}`}
       >
         <p>{review.quote}</p>
       </blockquote>
@@ -51,11 +50,14 @@ function ReviewCard({ review, product, featured = false }: { review: Review; pro
   );
 }
 
+/** How many reviews the home page shows (the first is the large card). Staff set the order in admin. */
+const HOME_REVIEWS = 7;
+
 /** "What they say about us". Phones: a swipeable row. Desktop: one large review and a grid. */
 export async function Reviews() {
-  const catalog = await getStorefront();
-  const productOf = (r: Review) => (r.productSlug ? findProductBySlug(catalog, r.productSlug) : undefined);
-  const [first, ...rest] = REVIEWS;
+  const [catalog, reviews] = await Promise.all([getStorefront(), getPublicReviews()]);
+  const productOf = (r: Review) => (r.productId ? findProduct(catalog, r.productId) : undefined);
+  const [first, ...rest] = reviews.slice(0, HOME_REVIEWS);
   if (!first) return null;
   return (
     <section className="bg-paper-shade/35 py-20 md:py-28" aria-labelledby="reviews">

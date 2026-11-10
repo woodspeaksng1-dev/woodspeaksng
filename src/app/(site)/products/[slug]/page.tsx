@@ -6,6 +6,7 @@ import { findProductBySlug } from "@/lib/catalog";
 import { getStorefront } from "@/lib/server/catalog";
 import { formatNaira } from "@/lib/format";
 import { ProductImage } from "@/components/product/ProductImage";
+import { ProductReviews } from "@/components/product/ProductReviews";
 import { AddToCart } from "./AddToCart";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbLd, productLd } from "@/lib/structured-data";
@@ -104,6 +105,7 @@ async function Product({ params }: Pick<PageProps<"/products/[slug]">, "params">
 
         <AddToCart product={product} />
       </div>
+      <ProductReviews product={product} />
     </div>
   );
 }

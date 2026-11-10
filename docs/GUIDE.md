@@ -26,7 +26,7 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 - `npm test` — unit tests (Vitest) · `npm run test:emulator` — Firestore rules and the payment flow on the
   emulator (needs Java 21: `JAVA_HOME`, or a Temurin JDK under `~/.local/share/jdk`; see `scripts/with-java.mjs`)
 - `npm run emulators` — local Firestore, Auth and Storage emulators (demo project, no real data)
-- `node scripts/seed-catalog.mjs` — loads the starting catalog into Firestore (creates only what's missing)
+- `node scripts/seed-catalog.mjs` — loads the starting catalog and the old site's six reviews into Firestore (creates only what's missing)
 - `node scripts/deploy-rules.mjs` — publishes `firestore.rules` to the live project with the service account
 - `node scripts/set-owner.mjs <email>` — makes that email the admin owner (the only one who manages staff)
 
