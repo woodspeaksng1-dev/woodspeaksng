@@ -83,7 +83,6 @@
     outline-offset: 3px;
     border-radius: 2px;
   }
-  ::selection { background: var(--color-oxblood); color: var(--color-vellum); }
 }
 
 /* Product pages on phones: the sticky buy bar's height (pt-3 + h-12 + border + bottom padding), so the
