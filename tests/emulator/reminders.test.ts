@@ -21,7 +21,7 @@ const reminders = await import("@/lib/server/reminders");
 const confirmActions = await import("@/app/(site)/checkout/confirmation/actions");
 const accountActions = await import("@/app/(site)/account/actions");
 const stopRoute = await import("@/app/api/reminders/stop/route");
-const cronRoute = await import("@/app/api/cron/reminders/route");
+const cronRoute = await import("@/app/api/cron/daily/route");
 
 const SITE = "https://woodspeaks.test";
 
@@ -158,7 +158,7 @@ describe("stopping", () => {
 describe("the cron route", () => {
   it("refuses calls without Vercel's secret", async () => {
     process.env.CRON_SECRET = "s".repeat(32);
-    const call = (auth?: string) => cronRoute.GET(new Request(`${SITE}/api/cron/reminders`, { headers: auth ? { authorization: auth } : {} }));
+    const call = (auth?: string) => cronRoute.GET(new Request(`${SITE}/api/cron/daily`, { headers: auth ? { authorization: auth } : {} }));
     expect((await call()).status).toBe(401);
     expect((await call("Bearer wrong")).status).toBe(401);
     expect((await call(`Bearer ${"s".repeat(32)}`)).status).toBe(200);

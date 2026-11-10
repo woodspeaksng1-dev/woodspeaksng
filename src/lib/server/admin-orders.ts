@@ -94,7 +94,7 @@ export async function listCustomers(): Promise<CustomerRow[]> {
     if (c) {
       c.orders += 1;
       c.spent += o.total;
-      c.marketingOptIn ||= o.customer.marketingOptIn;
+      // Orders come newest first, so the latest order's choice about updates stands.
     } else {
       byEmail.set(o.customer.email, { ...o.customer, orders: 1, spent: o.total, lastOrder: o.paidAt ?? o.createdAt });
     }

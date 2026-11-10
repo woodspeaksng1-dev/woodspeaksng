@@ -8,7 +8,7 @@ import { db } from "./firebase";
 /*
  * Yearly gift reminders, kept in Firestore `reminders/{orderNumber}` (one per order). Created only from a
  * paid order, for that order's buyer: the browser names the order, never the email address. A daily job
- * (/api/cron/reminders) sends the ones due. Each email has a stop link carrying a random per-reminder token.
+ * (/api/cron/daily) sends the ones due. Each email has a stop link carrying a random per-reminder token.
  * A stopped reminder has nextSendOn null, so the daily query never sees it.
  */
 

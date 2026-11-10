@@ -302,8 +302,8 @@ Backend order of work:
    with personalisation, paid → crafting → dispatched → delivered in a transaction, NFC tag written before
    dispatch, one customer email on dispatch), products (all fields, featured max 6, hidden, limits; saves
    refresh the shop at once), delivery (fees, estimates, fresh items, add and remove areas, crafting time),
-   customers (from paid orders), activity log (payments and every change, by whom). Emails and
-   homepage ordering show "being connected" and are out of the menu until built.
+   customers (from paid orders), activity log (payments and every change, by whom). Homepage ordering
+   shows "being connected" and are out of the menu until built.
    Demo store and sample data deleted. 15 more emulator tests, plus a browser walk-through of every screen.
    Fixed on the way: product pages failed after an edit (params now read inside Suspense, per the ISR
    with Cache Components guide); admin pages are request-time only (connection()); navbar links and the
