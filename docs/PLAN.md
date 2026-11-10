@@ -344,22 +344,19 @@ Answered 6 to 9 Nov (recorded here; done in code where noted):
 - NFC: video file up to 100 MB or a link; no memory page; the client handles the tag (done, see above).
 - Product photos (bouquet, magnifying glass, cake, rose, NFC tag): the client uploads them from admin.
 - AI drafts: replaced by the curated writing library (done 4 Nov).
+- Answered 10 Nov: crafting time 3 days minimum (already set; staff can change it in admin → Delivery).
+  Cake, flowers and roses go to all 38 areas (already set). About keeps "2024". No engraving any more, but the
+  old reviews stay as they are. Mudi's writing library approved. Admin logins: the owner invites the rest.
 
 Still open:
 1. Logo: their bamboo mark is taken from the old site's favicon (1024px) and used for the site icons only.
-   The wax stamp carries a "W" (done in the scroll preview). Confirm the mark is current; an SVG if they have one
-2. Paystack or Kora (old site footer says Kora), then their keys
-3. Crafting time per order, and the shortest notice for a delivery date
-4. The exact 20 reasons printed on the standard puzzle (6 words max). The customizer shows a provisional
-   set (`STANDARD_REASONS` in `src/lib/drafts.ts`) until they send it
-5. Which of the 38 areas can take cake, flowers and roses (all assumed yes for now), and delivery
-   estimates per area if they want them shown
-6. How many admin logins, and for whom
-7. Did Woodspeaks start in 2024? (About page)
-8. Whether their business email is hosted on Hostinger (decides Resend or Hostinger mail)
-9. The Firebase Blaze plan (a card on file, budget alert at about $10) before uploads go live
-10. Read and approve Mudi's writing library
-11. Whether any product takes an engraving (some old reviews mention engraving and gold inlay)
-12. The privacy policy needs a Nigerian data protection practitioner's review; the draft policies hold
-    assumptions to confirm (48-hour damage reports, refunds only before crafting, second delivery attempt fee,
-    data requests within 30 days)
+   Confirm the mark is current; an SVG if they have one
+2. Paystack or Kora (old site footer says Kora), then their live keys
+3. The exact 20 reasons printed on the standard puzzle (6 words max): the client is sending them. The
+   customizer shows a provisional set (`STANDARD_REASONS` in `src/lib/drafts.ts`) until then
+4. Resend: whether the old site sends email through the Resend team that holds woodspeaks.ng (claiming it cuts
+   them off); then their own API key, and a paid plan if they'll email big lists
+5. The Firebase Blaze plan (a card on file, budget alert at about $10) before uploads go live
+6. The privacy policy needs a Nigerian data protection practitioner's review; the draft policies hold
+   assumptions to confirm (48-hour damage reports, refunds only before crafting, second delivery attempt fee,
+   data requests within 30 days)
