@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { ReviewsManager } from "@/components/admin/ReviewsManager";
+import { ComingNext } from "@/components/admin/ComingNext";
 
 export const metadata: Metadata = { title: "Reviews" };
 
-export default function AdminReviewsPage() {
-  return <ReviewsManager />;
+export default function Page() {
+  return <ComingNext title="Reviews" what="Adding and approving customer reviews." />;
 }

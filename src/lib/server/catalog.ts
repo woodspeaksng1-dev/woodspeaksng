@@ -59,6 +59,10 @@ const productSchema: z.ZodType<Product> = z.object({
   addOn: z.boolean().optional(),
   hidden: z.boolean().optional(),
   image: z.string().optional(),
+  dimensions: z.string().optional(),
+  included: z.string().optional(),
+  seoTitle: z.string().optional(),
+  imageAlt: z.string().optional(),
 });
 
 const zoneSchema: z.ZodType<ShippingZone> = z.object({

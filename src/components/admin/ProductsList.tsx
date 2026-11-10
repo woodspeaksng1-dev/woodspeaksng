@@ -1,16 +1,13 @@
-"use client";
-
 import Link from "next/link";
 import { formatNaira } from "@/lib/format";
-import { useAdmin } from "@/lib/admin/store";
+import type { Product } from "@/lib/types";
 import { ProductImage } from "../product/ProductImage";
 import { AdminHeader, Badge } from "./AdminShell";
 
-export function ProductsList() {
-  const products = useAdmin((s) => s.products);
+export function ProductsList({ products }: { products: Product[] }) {
   return (
     <div>
-      <AdminHeader title="Products" intro="Edit photos, prices, descriptions, tags and personalisation limits. Hidden products don't show in the shop." />
+      <AdminHeader title="Products" intro="Edit prices, descriptions, tags and personalisation limits. Changes show in the shop straight away; hidden products don't show at all." />
       <ul className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {products.map((p) => (
           <li key={p.id}>

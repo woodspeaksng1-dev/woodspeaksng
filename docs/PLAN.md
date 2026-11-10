@@ -290,8 +290,17 @@ Backend order of work:
    team in Firestore `staff/{email}`: one owner (woodspeaksng1@gmail.com, set with `scripts/set-owner.mjs`)
    who adds and removes staff on /admin/team (removal signs them out at once). Every admin page sits behind
    the check in `(panel)/layout.tsx`; admin route handlers check again (`requireStaffRequest`) plus Origin.
-   14 emulator tests. Still to do: orders, products and the rest read and write Firestore instead of
-   sample data; customer emails only on dispatch (client's call).
+   14 emulator tests.
+   Admin on real data done 10 Nov: overview, orders (to do / each status / awaiting payment, search, detail
+   with personalisation, paid → crafting → dispatched → delivered in a transaction, NFC tag written before
+   dispatch, one customer email on dispatch), products (all fields, featured max 6, hidden, limits; saves
+   refresh the shop at once), delivery (fees, estimates, fresh items, add and remove areas, crafting time),
+   customers (from paid orders), activity log (payments and every change, by whom). Reviews, reminders,
+   enquiries, emails and homepage ordering show "being connected" and are out of the menu until built.
+   Demo store and sample data deleted. 15 more emulator tests, plus a browser walk-through of every screen.
+   Fixed on the way: product pages failed after an edit (params now read inside Suspense, per the ISR
+   with Cache Components guide); admin pages are request-time only (connection()); navbar links and the
+   floating helpers sit in Suspense; the emulator uses a throwaway certificate so it behaves like production.
 7. Mailing: opt-in list (double opt-in), template broadcasts, reminder dates, daily job, unpaid nudge
 8. Uploads: customer photos and NFC videos (resumable, private, 100 MB cap in Storage rules)
 

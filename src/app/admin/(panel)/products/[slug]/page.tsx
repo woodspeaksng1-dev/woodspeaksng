@@ -1,17 +1,33 @@
 import type { Metadata } from "next";
-import { PRODUCTS, getProductBySlug } from "@/lib/catalog";
+import Link from "next/link";
+import { Suspense } from "react";
 import { ProductEditor } from "@/components/admin/ProductEditor";
+import { findProductBySlug } from "@/lib/catalog";
+import { requireStaff } from "@/lib/server/admin-session";
+import { readCatalog } from "@/lib/server/catalog";
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export const metadata: Metadata = { title: "Edit product" };
+
+export default function AdminProductPage({ params }: PageProps<"/admin/products/[slug]">) {
+  return (
+    <Suspense fallback={<p className="py-20 text-center text-ink-soft">Loading the product…</p>}>
+      <Editor params={params} />
+    </Suspense>
+  );
 }
 
-export async function generateMetadata({ params }: PageProps<"/admin/products/[slug]">): Promise<Metadata> {
+async function Editor({ params }: Pick<PageProps<"/admin/products/[slug]">, "params">) {
+  await requireStaff();
   const { slug } = await params;
-  return { title: getProductBySlug(slug)?.name ?? "Product" };
-}
-
-export default async function AdminProductPage({ params }: PageProps<"/admin/products/[slug]">) {
-  const { slug } = await params;
-  return <ProductEditor slug={slug} />;
+  const product = findProductBySlug(await readCatalog(), slug);
+  if (!product)
+    return (
+      <p className="py-20 text-center text-ink-soft">
+        Product not found.{" "}
+        <Link href="/admin/products" className="text-oxblood underline">
+          All products
+        </Link>
+      </p>
+    );
+  return <ProductEditor product={product} />;
 }

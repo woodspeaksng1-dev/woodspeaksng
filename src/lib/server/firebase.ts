@@ -1,4 +1,5 @@
 import "server-only";
+import { generateKeyPairSync } from "node:crypto";
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, initializeFirestore, type Firestore } from "firebase-admin/firestore";
 
@@ -21,7 +22,16 @@ function app(): App {
   if (emulator) {
     // The emulator's project comes from GCLOUD_PROJECT (set by `firebase emulators:*`), not NEXT_PUBLIC_…,
     // which the build bakes in as the live project.
-    created = initializeApp({ projectId: process.env.GCLOUD_PROJECT || "demo-woodspeaks" });
+    // A throwaway certificate: the emulator ignores it, but without one Google's library goes looking for
+    // cloud metadata over the network, which Next flags as uncached work during prerendering. With it,
+    // local runs behave like production, where the real service account key is used.
+    const { privateKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      privateKeyEncoding: { type: "pkcs8", format: "pem" },
+      publicKeyEncoding: { type: "spki", format: "pem" },
+    });
+    const projectId = process.env.GCLOUD_PROJECT || "demo-woodspeaks";
+    created = initializeApp({ projectId, credential: cert({ projectId, clientEmail: `emulator@${projectId}.iam.gserviceaccount.com`, privateKey }) });
   } else {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
     if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set.");

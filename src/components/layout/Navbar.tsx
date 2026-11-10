@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Wordmark } from "./Wordmark";
 import { BagIcon, CloseIcon, MenuIcon, UserIcon } from "../ui/icons";
@@ -14,8 +14,38 @@ const LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
+/**
+ * The desktop links, underlining the current section. They read the URL, so they sit in <Suspense>: pages
+ * that render on request (a product after a price change) can build their shell without it, showing
+ * the same links unhighlighted until the browser fills in the underline.
+ */
+function DesktopLinks({ pathname }: { pathname: string | null }) {
+  return (
+    <ul className="hidden items-center gap-10 md:flex">
+      {LINKS.map((l) => {
+        const active = !!pathname && (pathname === l.href || pathname.startsWith(`${l.href}/`));
+        return (
+          <li key={l.href}>
+            <Link
+              href={l.href}
+              aria-current={active ? "page" : undefined}
+              className={`relative py-2 text-[0.95rem] transition-colors hover:text-oxblood ${active ? "text-oxblood" : "text-ink"}`}
+            >
+              {l.label}
+              {active && <span className="absolute inset-x-0 -bottom-0.5 h-px bg-gold" aria-hidden />}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function CurrentDesktopLinks() {
+  return <DesktopLinks pathname={usePathname()} />;
+}
+
 export function Navbar() {
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const items = useCart((s) => s.items);
@@ -48,27 +78,9 @@ export function Navbar() {
       <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center px-4 sm:px-6 md:h-20 md:grid-cols-[1fr_auto_1fr] lg:px-10">
         <Wordmark className="justify-self-start text-oxblood" />
 
-        <ul className="hidden items-center gap-10 md:flex">
-          {LINKS.map((l) => {
-            const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
-            return (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`relative py-2 text-[0.95rem] transition-colors hover:text-oxblood ${
-                    active ? "text-oxblood" : "text-ink"
-                  }`}
-                >
-                  {l.label}
-                  {active && (
-                    <span className="absolute inset-x-0 -bottom-0.5 h-px bg-gold" aria-hidden />
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <Suspense fallback={<DesktopLinks pathname={null} />}>
+          <CurrentDesktopLinks />
+        </Suspense>
 
         <div className="flex items-center gap-1 justify-self-end">
           <Link

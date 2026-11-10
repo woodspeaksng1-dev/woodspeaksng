@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Preloader } from "@/components/preloader/Preloader";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
@@ -23,8 +23,13 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       </main>
       <Footer />
       <CartDrawer />
-      <MascotPanel />
-      <WhatsAppButton />
+      {/* Both read the URL to decide whether to show, so they wait for it (see Navbar). */}
+      <Suspense fallback={null}>
+        <MascotPanel />
+      </Suspense>
+      <Suspense fallback={null}>
+        <WhatsAppButton />
+      </Suspense>
     </>
   );
 }

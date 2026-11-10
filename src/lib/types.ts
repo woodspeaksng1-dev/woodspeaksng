@@ -42,6 +42,13 @@ export interface Product {
   addOn?: boolean;
   /** Hidden by staff: off the shop and refused at checkout, kept for past orders. */
   hidden?: boolean;
+  /** Set by staff in admin; shown on the product page when filled in. */
+  dimensions?: string;
+  included?: string;
+  /** Google result title; falls back to the name. */
+  seoTitle?: string;
+  /** Photo description for screen readers; falls back to the name. */
+  imageAlt?: string;
   /** Placeholder until the client's photography arrives. */
   image?: string;
 }

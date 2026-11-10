@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { saveProduct } from "@/app/admin/(panel)/catalog-actions";
 import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
-import { HOME_FEATURED_MAX, useAdmin, type AdminProduct } from "@/lib/admin/store";
-import type { Occasion, Personalization, Recipient } from "@/lib/types";
+import type { Occasion, Personalization, Product, Recipient } from "@/lib/types";
 import { ProductImage } from "../product/ProductImage";
 import { Check, TextField, inputClass } from "../ui/FormField";
 import { Card, adminButton } from "./AdminShell";
@@ -43,66 +44,100 @@ function Tags<T extends string>({
   );
 }
 
-const num = (v: string) => (v.trim() === "" ? NaN : Number(v));
+const num = (v: string) => (v.trim() === "" ? Number.NaN : Number(v));
 
-export function ProductEditor({ slug }: { slug: string }) {
-  const saved = useAdmin((s) => s.products.find((p) => p.slug === slug));
-  const updateProduct = useAdmin((s) => s.updateProduct);
-  const featuredCount = useAdmin((s) => s.products.filter((p) => p.featured).length);
-  const [draft, setDraft] = useState<AdminProduct | undefined>(saved);
-  const [price, setPrice] = useState(String(saved?.price ?? ""));
-  const [status, setStatus] = useState<string | null>(null);
+interface Draft {
+  name: string;
+  price: string;
+  description: string;
+  dimensions: string;
+  included: string;
+  occasions: Occasion[];
+  recipients: Recipient[];
+  personalization: Personalization;
+  featured: boolean;
+  hidden: boolean;
+  addOn: boolean;
+  perishable: boolean;
+  seoTitle: string;
+  imageAlt: string;
+}
 
-  if (!saved || !draft) return <p className="py-20 text-center text-ink-soft">Product not found.</p>;
+const draftOf = (p: Product): Draft => ({
+  name: p.name,
+  price: String(p.price),
+  description: p.description,
+  dimensions: p.dimensions ?? "",
+  included: p.included ?? "",
+  occasions: p.occasions,
+  recipients: p.recipients,
+  personalization: p.personalization,
+  featured: !!p.featured,
+  hidden: !!p.hidden,
+  addOn: !!p.addOn,
+  perishable: !!p.perishable,
+  seoTitle: p.seoTitle ?? "",
+  imageAlt: p.imageAlt ?? "",
+});
 
-  const set = <K extends keyof AdminProduct>(key: K, value: AdminProduct[K]) => {
+/** Edit one product. Saving goes through the server, which checks everything and updates the shop at once. */
+export function ProductEditor({ product }: { product: Product }) {
+  const router = useRouter();
+  const [draft, setDraft] = useState<Draft>(() => draftOf(product));
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const [saving, startSaving] = useTransition();
+
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setStatus(null);
-    setDraft((d) => d && { ...d, [key]: value });
+    setDraft((d) => ({ ...d, [key]: value }));
   };
-  const setLimit = (patch: Partial<Personalization>) =>
-    set("personalization", { ...draft.personalization, ...patch } as Personalization);
+  const setLimit = (patch: Partial<Personalization>) => set("personalization", { ...draft.personalization, ...patch } as Personalization);
 
   const save = (e: React.FormEvent) => {
     e.preventDefault();
-    const p = num(price);
-    if (!Number.isInteger(p) || p <= 0) return setStatus("Enter the price in naira as a whole number, e.g. 15590.");
-    if (draft.name.trim().length < 2) return setStatus("Give the product a name.");
-    const next: AdminProduct = { ...draft, price: p };
-    const patch = Object.fromEntries(
-      Object.entries(next).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(saved[k as keyof AdminProduct])),
-    ) as Partial<AdminProduct>;
-    if (Object.keys(patch).length === 0) return setStatus("No changes to save.");
-    if (patch.featured && featuredCount >= HOME_FEATURED_MAX)
-      return setStatus(`The home page shows ${HOME_FEATURED_MAX} products. Take one off in Homepage first.`);
-    updateProduct(saved.id, patch);
-    setStatus("Saved. The shop shows these changes once products are stored online (backend stage).");
+    startSaving(async () => {
+      const result = await saveProduct(product.id, { ...draft, price: num(draft.price) });
+      setStatus({ ok: result.ok, text: result.message });
+      if (result.ok) router.refresh();
+    });
   };
 
   const pz = draft.personalization;
+  const limitInput = (value: number, onValue: (n: number) => void) =>
+    function LimitField(p: { id: string }) {
+      return (
+        <input {...p} inputMode="numeric" value={Number.isNaN(value) ? "" : value} onChange={(e) => onValue(num(e.target.value))} className={inputClass} />
+      );
+    };
 
   return (
     <form onSubmit={save} noValidate>
       <Link href="/admin/products" className="-my-2.5 inline-block py-2.5 text-sm text-ink-soft underline underline-offset-2">
         All products
       </Link>
-      <h1 className="mt-3 text-4xl text-oxblood">{saved.name}</h1>
+      <h1 className="mt-3 text-4xl text-oxblood">{product.name}</h1>
+      <p className="mt-1 text-sm text-ink-soft">
+        <Link href={`/products/${product.slug}`} className="underline underline-offset-2" target="_blank">
+          See it in the shop
+        </Link>
+      </p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[16rem_1fr]">
         <Card className="self-start">
-          <ProductImage product={saved} className="rounded-xl" />
-          <label className={`mt-4 w-full cursor-pointer ${adminButton}`}>
-            Replace photo
-            <input type="file" accept="image/*" className="sr-only" onChange={() => setStatus("Photo uploads arrive with the backend stage.")} />
-          </label>
+          <ProductImage product={product} className="rounded-xl" />
+          <p className="mt-3 text-sm text-ink-soft">Uploading a new photo switches on with the Blaze plan.</p>
           <div className="mt-4 flex flex-col gap-3">
-            <Check checked={!!draft.featured} onChange={(v) => set("featured", v)}>
+            <Check checked={draft.featured} onChange={(v) => set("featured", v)}>
               Show on the home page
             </Check>
             <Check checked={draft.hidden} onChange={(v) => set("hidden", v)}>
               Hide from the shop
             </Check>
-            <Check checked={!!draft.addOn} onChange={(v) => set("addOn", v)}>
+            <Check checked={draft.addOn} onChange={(v) => set("addOn", v)}>
               Can be added to other gifts
+            </Check>
+            <Check checked={draft.perishable} onChange={(v) => set("perishable", v)}>
+              Fresh item (only to areas that take cake and flowers)
             </Check>
           </div>
         </Card>
@@ -114,7 +149,7 @@ export function ProductEditor({ slug }: { slug: string }) {
               {(p) => <input {...p} value={draft.name} onChange={(e) => set("name", e.target.value)} className={inputClass} />}
             </TextField>
             <TextField label="Price (₦)" hint="Whole naira. Checkout always takes the price from here, never from the browser.">
-              {(p) => <input {...p} inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} />}
+              {(p) => <input {...p} inputMode="numeric" value={draft.price} onChange={(e) => set("price", e.target.value)} className={inputClass} />}
             </TextField>
             <TextField label="Description">
               {(p) => (
@@ -122,7 +157,7 @@ export function ProductEditor({ slug }: { slug: string }) {
               )}
             </TextField>
             <div className="grid gap-5 sm:grid-cols-2">
-              <TextField label="Dimensions" hint="e.g. 30 cm long, 8 cm across">
+              <TextField label="Size" hint="e.g. 30 cm long, 8 cm across">
                 {(p) => <input {...p} value={draft.dimensions} onChange={(e) => set("dimensions", e.target.value)} className={inputClass} />}
               </TextField>
               <TextField label="What's included" hint="e.g. scroll, wax seal, gift box">
@@ -140,62 +175,36 @@ export function ProductEditor({ slug }: { slug: string }) {
           {pz.kind !== "none" && (
             <Card className="flex flex-col gap-5">
               <h2 className="text-2xl text-oxblood">Personalisation limits</h2>
-              {pz.kind === "letter" && (
-                <TextField label="Most words in the letter">
-                  {(p) => (
-                    <input {...p} inputMode="numeric" value={pz.maxWords} onChange={(e) => setLimit({ maxWords: num(e.target.value) || 0 })} className={inputClass} />
-                  )}
-                </TextField>
-              )}
+              {pz.kind === "letter" && <TextField label="Most words in the letter">{limitInput(pz.maxWords, (n) => setLimit({ maxWords: n }))}</TextField>}
               {pz.kind === "reasons" && (
                 <div className="grid gap-5 sm:grid-cols-3">
-                  <TextField label="Number of reasons">
-                    {(p) => <input {...p} inputMode="numeric" value={pz.count} onChange={(e) => setLimit({ count: num(e.target.value) || 0 })} className={inputClass} />}
-                  </TextField>
-                  <TextField label="Words per reason">
-                    {(p) => (
-                      <input {...p} inputMode="numeric" value={pz.maxWordsEach} onChange={(e) => setLimit({ maxWordsEach: num(e.target.value) || 0 })} className={inputClass} />
-                    )}
-                  </TextField>
-                  <TextField label="Write-your-own fee (₦)">
-                    {(p) => <input {...p} inputMode="numeric" value={pz.fee} onChange={(e) => setLimit({ fee: num(e.target.value) || 0 })} className={inputClass} />}
-                  </TextField>
+                  <TextField label="Number of reasons">{limitInput(pz.count, (n) => setLimit({ count: n }))}</TextField>
+                  <TextField label="Words per reason">{limitInput(pz.maxWordsEach, (n) => setLimit({ maxWordsEach: n }))}</TextField>
+                  <TextField label="Write-your-own fee (₦)">{limitInput(pz.fee, (n) => setLimit({ fee: n }))}</TextField>
                 </div>
               )}
-              {pz.kind === "photo" && (
-                <TextField label="Photos per item">
-                  {(p) => (
-                    <input {...p} inputMode="numeric" value={pz.maxPhotos} onChange={(e) => setLimit({ maxPhotos: num(e.target.value) || 0 })} className={inputClass} />
-                  )}
-                </TextField>
-              )}
-              {pz.kind === "video" && (
-                <TextField label="Largest video (MB)">
-                  {(p) => (
-                    <input {...p} inputMode="numeric" value={pz.maxMb} onChange={(e) => setLimit({ maxMb: num(e.target.value) || 0 })} className={inputClass} />
-                  )}
-                </TextField>
-              )}
+              {pz.kind === "photo" && <TextField label="Photos per item">{limitInput(pz.maxPhotos, (n) => setLimit({ maxPhotos: n }))}</TextField>}
+              {pz.kind === "video" && <TextField label="Largest video (MB)">{limitInput(pz.maxMb, (n) => setLimit({ maxMb: n }))}</TextField>}
             </Card>
           )}
 
           <Card className="flex flex-col gap-5">
             <h2 className="text-2xl text-oxblood">Search and sharing</h2>
-            <TextField label="Search title" hint="Shown in Google results. Around 60 characters.">
+            <TextField label="Search title" hint="Shown in Google results. Around 60 characters. Leave empty to use the name.">
               {(p) => <input {...p} value={draft.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} className={inputClass} />}
             </TextField>
-            <TextField label="Photo description" hint="Read aloud to people using screen readers. Describe what's in the photo.">
+            <TextField label="Photo description" hint="Read aloud to people using screen readers. Leave empty to use the name.">
               {(p) => <input {...p} value={draft.imageAlt} onChange={(e) => set("imageAlt", e.target.value)} className={inputClass} />}
             </TextField>
           </Card>
 
           <div className="flex flex-wrap items-center gap-4">
-            <button type="submit" className={adminButton}>
-              Save changes
+            <button type="submit" disabled={saving} className={adminButton}>
+              {saving ? "Saving…" : "Save changes"}
             </button>
             {status && (
-              <p role="status" className="text-sm text-ink">
-                {status}
+              <p role={status.ok ? "status" : "alert"} className={`text-sm ${status.ok ? "text-ink" : "text-oxblood"}`}>
+                {status.text}
               </p>
             )}
           </div>

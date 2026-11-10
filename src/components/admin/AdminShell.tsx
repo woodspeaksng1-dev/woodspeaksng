@@ -8,14 +8,10 @@ const NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/products", label: "Products" },
-  { href: "/admin/homepage", label: "Homepage" },
-  { href: "/admin/reviews", label: "Reviews" },
   { href: "/admin/delivery", label: "Delivery" },
   { href: "/admin/customers", label: "Customers" },
-  { href: "/admin/emails", label: "Emails" },
-  { href: "/admin/reminders", label: "Reminders" },
-  { href: "/admin/enquiries", label: "Enquiries" },
   { href: "/admin/activity", label: "Activity" },
+  // Reviews, reminders, enquiries, emails and homepage ordering join the menu as each is connected.
 ];
 
 export interface ShellStaff {
@@ -46,7 +42,7 @@ function SignOut() {
 
 /**
  * Staff-only panel chrome, shown once the server has confirmed the signed-in member of staff (`staff`).
- * Orders, products and the rest still show SAMPLE data until they're moved to the database (next step).
+ * Everything here reads and writes the live database.
  */
 export function AdminShell({ staff, children }: { staff: ShellStaff; children: ReactNode }) {
   const path = usePathname();
@@ -55,7 +51,7 @@ export function AdminShell({ staff, children }: { staff: ShellStaff; children: R
   return (
     <div className="flex min-h-dvh flex-col bg-parchment">
       <p className="bg-oxblood-deep px-4 py-2 text-center text-sm text-vellum print:hidden">
-        Orders, products and other lists still show sample data while they&rsquo;re connected to the database.
+        Test mode: payments use Paystack test cards and emails only reach the developer until woodspeaks.ng is verified.
       </p>
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col md:flex-row">
         <nav aria-label="Admin" className="border-b border-rule md:w-56 md:shrink-0 md:border-r md:border-b-0 print:hidden">

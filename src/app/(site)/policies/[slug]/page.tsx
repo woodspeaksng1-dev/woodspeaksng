@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMeta } from "@/lib/seo";
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: PageProps<"/policies/[slug]">
   return policy.draft ? { ...meta, robots: { index: false } } : meta;
 }
 
-export default async function PolicyPage({ params }: PageProps<"/policies/[slug]">) {
+async function PolicyContent({ params }: Pick<PageProps<"/policies/[slug]">, "params">) {
   const { slug } = await params;
   const policy = getPolicy(slug);
   if (!policy) notFound();
@@ -57,5 +58,15 @@ export default async function PolicyPage({ params }: PageProps<"/policies/[slug]
         </ul>
       </nav>
     </article>
+  );
+}
+
+// Which policy it is comes from the URL, so it's read inside <Suspense>: when the page is rebuilt after a
+// change in admin, Next makes its shell without the URL first (see the ISR with Cache Components guide).
+export default function PolicyPage({ params }: PageProps<"/policies/[slug]">) {
+  return (
+    <Suspense fallback={<div className="mx-auto min-h-[70vh] max-w-3xl px-4 sm:px-6" />}>
+      <PolicyContent params={params} />
+    </Suspense>
   );
 }

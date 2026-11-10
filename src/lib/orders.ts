@@ -9,6 +9,33 @@ import type { PricedLine } from "./order-pricing";
 
 export type OrderStatus = "pending" | "paid" | "crafting" | "dispatched" | "delivered" | "cancelled";
 
+/** The steps a paid order moves through, in order. Staff move it forward one step at a time. */
+export const STATUS_FLOW = ["paid", "crafting", "dispatched", "delivered"] as const satisfies readonly OrderStatus[];
+export type FlowStatus = (typeof STATUS_FLOW)[number];
+
+export const STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: "Awaiting payment",
+  paid: "Paid",
+  crafting: "Crafting",
+  dispatched: "Dispatched",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
+/** The next step for an order, or null when there isn't one (delivered, unpaid or cancelled). */
+export function nextStatus(status: OrderStatus): FlowStatus | null {
+  const i = STATUS_FLOW.indexOf(status as FlowStatus);
+  return i >= 0 && i < STATUS_FLOW.length - 1 ? STATUS_FLOW[i + 1] : null;
+}
+
+/** Why an order can't move to `next` yet, or null if it can. */
+export function statusBlock(order: Pick<StoredOrder, "status" | "nfc">, next: FlowStatus): string | null {
+  if (nextStatus(order.status) !== next) return "Orders move forward one step at a time.";
+  if (next === "dispatched" && order.nfc && order.nfc.status !== "written")
+    return "Put the video on the NFC tag and mark it written before dispatching.";
+  return null;
+}
+
 export interface StoredOrder {
   /** Also the Paystack reference. Long and random, because it appears in the confirmation link. */
   number: string;
@@ -37,6 +64,21 @@ export interface StoredOrder {
   nfc: { status: "to-write" | "written" } | null;
   paystack: { transactionId: number; channel: string | null; paidAt: string | null } | null;
   /** Set if Paystack reported a payment we couldn't accept (e.g. a different amount). Staff check these. */
+  paymentProblem: string | null;
+}
+
+/** One line in the admin's order list. */
+export interface OrderRow {
+  number: string;
+  status: OrderStatus;
+  createdAt: string;
+  paidAt: string | null;
+  customerName: string;
+  zoneName: string;
+  deliveryDate: string;
+  total: number;
+  items: string;
+  nfcToWrite: boolean;
   paymentProblem: string | null;
 }
 

@@ -78,7 +78,11 @@ export async function staffFromSession(cookie: string | undefined): Promise<Sign
     if (!decoded.email) return null;
     const member = await getStaffMember(decoded.email);
     return member ? { uid: decoded.uid, email: member.email, role: member.role, name: member.name } : null;
-  } catch {
+  } catch (error) {
+    // Expired, revoked or forged cookies are normal; anything else (Firebase down, misconfiguration) is logged.
+    const code = (error as { code?: string }).code ?? "";
+    if (!/session-cookie|argument-error|user-disabled|user-not-found|id-token/.test(code))
+      console.error("Admin session check failed.", error);
     return null;
   }
 }

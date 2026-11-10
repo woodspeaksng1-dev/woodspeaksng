@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { EnquiriesList } from "@/components/admin/EnquiriesList";
+import { ComingNext } from "@/components/admin/ComingNext";
 
 export const metadata: Metadata = { title: "Enquiries" };
 
-export default function AdminEnquiriesListPage() {
-  return <EnquiriesList />;
+export default function Page() {
+  return <ComingNext title="Enquiries" what="Messages from the contact and corporate forms." />;
 }

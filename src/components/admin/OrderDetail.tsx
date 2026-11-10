@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { getProduct, getZone } from "@/lib/catalog";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { moveOrderOn, nfcWritten } from "@/app/admin/(panel)/orders/actions";
 import { formatNaira } from "@/lib/format";
-import { NFC_LABEL, STATUS_FLOW, STATUS_LABEL, orderTotal, statusBlock, useAdmin } from "@/lib/admin/store";
+import { STATUS_FLOW, STATUS_LABEL, nextStatus, statusBlock, type StoredOrder } from "@/lib/orders";
 import { shortDate, shortDateTime } from "@/lib/admin/format";
-import type { AdminOrder } from "@/lib/admin/sample-data";
 import { Badge, Card, adminButton, adminButtonQuiet } from "./AdminShell";
 
-function Personalisation({ line }: { line: AdminOrder["lines"][number] }) {
+type Line = StoredOrder["lines"][number];
+
+/** The personalisation, exactly as the buyer entered it, for the workshop. */
+function Personalisation({ line }: { line: Line }) {
   const c = line.customization;
   if (c.kind === "letter")
     return <p className="mt-2 rounded-xl bg-parchment/60 p-4 font-display whitespace-pre-line italic">{c.text}</p>;
@@ -28,6 +31,7 @@ function Personalisation({ line }: { line: AdminOrder["lines"][number] }) {
       <p className="mt-1 text-ink-soft">
         Photo: {c.photoNames[0] ?? "missing"}
         {c.crop && ` · zoom ${c.crop.zoom.toFixed(2)}, offset ${Math.round(c.crop.x)}%, ${Math.round(c.crop.y)}%`}
+        <span className="block text-sm">The photo file arrives once uploads are switched on (Blaze plan).</span>
       </p>
     );
   if (c.kind === "video")
@@ -43,30 +47,27 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   return (
     <div className="grid grid-cols-[7.5rem_1fr] gap-3 py-1.5">
       <dt className="text-sm text-ink-soft">{label}</dt>
-      <dd>{children}</dd>
+      <dd className="min-w-0 break-words">{children}</dd>
     </div>
   );
 }
 
-export function OrderDetail({ number }: { number: string }) {
-  const order = useAdmin((s) => s.orders.find((o) => o.number === number));
-  const setStatus = useAdmin((s) => s.setStatus);
-  const setNfc = useAdmin((s) => s.setNfc);
-  const [message, setMessage] = useState<string | null>(null);
+export function OrderDetail({ order }: { order: StoredOrder }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
-  if (!order)
-    return (
-      <p className="py-20 text-center text-ink-soft">
-        Order {number} isn&rsquo;t in the sample data.{" "}
-        <Link href="/admin/orders" className="text-oxblood underline">
-          Back to orders
-        </Link>
-      </p>
-    );
-
-  const next = STATUS_FLOW[STATUS_FLOW.indexOf(order.status) + 1];
+  const next = nextStatus(order.status);
   const block = next ? statusBlock(order, next) : null;
   const nfcVideo = order.lines.map((l) => l.customization).find((c) => c.kind === "video");
+  const unpaid = order.status === "pending";
+
+  const run = (action: () => Promise<{ ok: boolean; message: string }>) =>
+    startTransition(async () => {
+      const result = await action();
+      setMessage({ ok: result.ok, text: result.message });
+      if (result.ok) router.refresh();
+    });
 
   return (
     <div>
@@ -77,55 +78,86 @@ export function OrderDetail({ number }: { number: string }) {
         <div>
           <h1 className="text-4xl text-oxblood tabular-nums">{order.number}</h1>
           <p className="mt-1 text-ink-soft">
-            Placed {shortDateTime(order.placedAt)} · {formatNaira(orderTotal(order))} paid
+            Placed {shortDateTime(order.createdAt)} · {formatNaira(order.total)} {unpaid ? "not paid" : "paid"}
+            {order.paystack?.channel && ` by ${order.paystack.channel.replace("_", " ")}`}
           </p>
         </div>
-        <button type="button" onClick={() => window.print()} className={`${adminButtonQuiet} print:hidden`}>
-          Print order sheet
-        </button>
+        {!unpaid && (
+          <button type="button" onClick={() => window.print()} className={`${adminButtonQuiet} print:hidden`}>
+            Print order sheet
+          </button>
+        )}
       </header>
 
-      <Card className="mt-6 print:hidden">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <ol className="flex flex-wrap gap-2" aria-label="Status">
-            {STATUS_FLOW.map((s) => (
-              <li key={s}>
-                <Badge tone={s === order.status ? "wine" : STATUS_FLOW.indexOf(s) < STATUS_FLOW.indexOf(order.status) ? "neutral" : "quiet"}>
-                  {STATUS_LABEL[s]}
-                </Badge>
-              </li>
-            ))}
-          </ol>
-          {next ? (
-            <button
-              type="button"
-              disabled={!!block}
-              onClick={() => setMessage(setStatus(order.number, next) ?? `Marked as ${STATUS_LABEL[next].toLowerCase()}. The customer was emailed.`)}
-              className={adminButton}
-            >
-              Mark as {STATUS_LABEL[next].toLowerCase()}
-            </button>
-          ) : (
-            <p className="text-ink-soft">Delivered. Nothing more to do.</p>
-          )}
-        </div>
-        {(block || message) && (
-          <p role="status" className="mt-3 text-sm text-oxblood">
-            {block ?? message}
-          </p>
-        )}
-      </Card>
+      {order.paymentProblem && (
+        <Card className="mt-6 border border-oxblood print:hidden">
+          <h2 className="text-xl text-oxblood">Payment needs checking</h2>
+          <p className="mt-2">{order.paymentProblem}</p>
+          <p className="mt-1 text-sm text-ink-soft">Check this payment in the Paystack dashboard before making anything.</p>
+        </Card>
+      )}
 
-      {order.nfc && (
+      {unpaid ? (
+        <Card className="mt-6 print:hidden">
+          <p className="text-ink">
+            <strong>Awaiting payment.</strong> The buyer started checkout but hasn&rsquo;t paid, so there&rsquo;s nothing to make.
+            It moves to Paid on its own if they finish paying.
+          </p>
+        </Card>
+      ) : (
+        <Card className="mt-6 print:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <ol className="flex flex-wrap gap-2" aria-label="Status">
+              {STATUS_FLOW.map((s) => (
+                <li key={s}>
+                  <Badge
+                    tone={
+                      s === order.status
+                        ? "wine"
+                        : STATUS_FLOW.indexOf(s) < STATUS_FLOW.indexOf(order.status as (typeof STATUS_FLOW)[number])
+                          ? "neutral"
+                          : "quiet"
+                    }
+                  >
+                    {STATUS_LABEL[s]}
+                  </Badge>
+                </li>
+              ))}
+            </ol>
+            {next ? (
+              <button
+                type="button"
+                disabled={!!block || pending}
+                onClick={() => run(() => moveOrderOn(order.number, next))}
+                className={adminButton}
+              >
+                {pending ? "Saving…" : `Mark as ${STATUS_LABEL[next].toLowerCase()}`}
+              </button>
+            ) : (
+              <p className="text-ink-soft">{order.status === "delivered" ? "Delivered. Nothing more to do." : STATUS_LABEL[order.status]}</p>
+            )}
+          </div>
+          {next === "dispatched" && !block && (
+            <p className="mt-3 text-sm text-ink-soft">Marking it dispatched emails the buyer that it&rsquo;s on its way.</p>
+          )}
+          {(block || message) && (
+            <p role="status" className={`mt-3 text-sm ${message?.ok && !block ? "text-ink" : "text-oxblood"}`}>
+              {block ?? message?.text}
+            </p>
+          )}
+        </Card>
+      )}
+
+      {order.nfc && !unpaid && (
         <Card className="mt-4 print:hidden">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl text-oxblood">NFC tag video</h2>
-            <Badge tone="gold">{NFC_LABEL[order.nfc.status]}</Badge>
+            <Badge tone="gold">{order.nfc.status === "written" ? "Tag written" : "Tag to write"}</Badge>
           </div>
           {nfcVideo?.kind === "video" && nfcVideo.source === "file" && (
             <p className="mt-3">
               File: <span className="font-semibold">{nfcVideo.fileName}</span> ({nfcVideo.sizeMb} MB)
-              <span className="mt-1 block text-sm text-ink-soft">The download button arrives with the backend.</span>
+              <span className="mt-1 block text-sm text-ink-soft">The file itself arrives once uploads are switched on (Blaze plan).</span>
             </p>
           )}
           {nfcVideo?.kind === "video" && nfcVideo.source === "link" && (
@@ -142,7 +174,7 @@ export function OrderDetail({ number }: { number: string }) {
             </p>
           )}
           {order.nfc.status === "to-write" && (
-            <button type="button" onClick={() => setNfc(order.number, "written")} className={`mt-4 ${adminButton}`}>
+            <button type="button" disabled={pending} onClick={() => run(() => nfcWritten(order.number))} className={`mt-4 ${adminButton}`}>
               Mark tag as written
             </button>
           )}
@@ -152,30 +184,35 @@ export function OrderDetail({ number }: { number: string }) {
       <Card className="mt-4 print:shadow-none">
         <h2 className="text-2xl text-oxblood">What to make</h2>
         <ul className="mt-2 divide-y divide-rule">
-          {order.lines.map((l, i) => {
-            const p = getProduct(l.productId);
-            return (
-              <li key={i} className="py-4">
-                <p className="font-display text-xl">
-                  {p?.name ?? l.productId}
+          {order.lines.map((l, i) => (
+            <li key={i} className="py-4">
+              <p className="flex flex-wrap items-baseline justify-between gap-2 font-display text-xl">
+                <span>
+                  {l.name}
                   {l.quantity > 1 && <span className="text-ink-soft"> × {l.quantity}</span>}
-                </p>
-                <Personalisation line={l} />
-              </li>
-            );
-          })}
+                </span>
+                <span className="font-sans text-sm text-ink-soft tabular-nums print:hidden">{formatNaira(l.lineTotal)}</span>
+              </p>
+              <Personalisation line={l} />
+            </li>
+          ))}
         </ul>
+        <dl className="mt-2 border-t border-rule pt-3 text-sm print:hidden">
+          <Row label="Items">{formatNaira(order.itemsTotal)}</Row>
+          <Row label="Delivery">{formatNaira(order.deliveryFee)}</Row>
+          <Row label="Total">{formatNaira(order.total)}</Row>
+        </dl>
       </Card>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <Card className="print:shadow-none">
           <h2 className="text-2xl text-oxblood">Delivery</h2>
           <dl className="mt-2">
-            <Row label="Deliver on">{shortDate(order.deliveryDate)}</Row>
-            <Row label="Area">{getZone(order.zoneId)?.name}</Row>
-            <Row label="Address">{order.address}</Row>
-            {order.landmark && <Row label="Landmark">{order.landmark}</Row>}
-            <Row label="Price in box">{order.hidePrice ? "No, leave it out" : "Yes"}</Row>
+            <Row label="Deliver on">{shortDate(order.delivery.date)}</Row>
+            <Row label="Area">{order.delivery.zoneName}</Row>
+            <Row label="Address">{order.delivery.address}</Row>
+            {order.delivery.landmark && <Row label="Landmark">{order.delivery.landmark}</Row>}
+            <Row label="Price in box">{order.delivery.hidePrice ? "No, leave it out" : "Yes"}</Row>
           </dl>
         </Card>
         <Card className="print:shadow-none">
@@ -184,20 +221,30 @@ export function OrderDetail({ number }: { number: string }) {
             <Row label="Buyer">
               {order.customer.name}
               <span className="block text-sm text-ink-soft">
-                {order.customer.email} · {order.customer.phone}
+                <a href={`mailto:${order.customer.email}`} className="underline underline-offset-2">
+                  {order.customer.email}
+                </a>{" "}
+                ·{" "}
+                <a href={`tel:${order.customer.phone}`} className="underline underline-offset-2">
+                  {order.customer.phone}
+                </a>
               </span>
             </Row>
             <Row label="Recipient">
               {order.recipient ? (
                 <>
                   {order.recipient.name}
-                  <span className="block text-sm text-ink-soft">{order.recipient.phone}</span>
+                  <span className="block text-sm text-ink-soft">
+                    <a href={`tel:${order.recipient.phone}`} className="underline underline-offset-2">
+                      {order.recipient.phone}
+                    </a>
+                  </span>
                 </>
               ) : (
                 "The buyer"
               )}
             </Row>
-            <Row label="Emails">{order.customer.optIn ? "Opted in to updates" : "Order emails only"}</Row>
+            <Row label="Emails">{order.customer.marketingOptIn ? "Opted in to updates" : "Order emails only"}</Row>
           </dl>
         </Card>
       </div>

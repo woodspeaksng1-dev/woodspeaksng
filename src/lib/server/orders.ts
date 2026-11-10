@@ -129,6 +129,12 @@ export async function confirmPayment(
       amountKobo: tx.amount,
       recordedAt: paid.paidAt,
     });
+    t.create(db().collection("auditLog").doc(), {
+      at: paid.paidAt,
+      by: "Paystack",
+      action: "payment received",
+      target: `${reference} (${paid.total.toLocaleString("en-NG")} naira)`,
+    });
     return { outcome: "paid-now", order: paid };
   });
 }

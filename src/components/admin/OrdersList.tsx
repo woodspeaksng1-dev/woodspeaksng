@@ -1,64 +1,101 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { getProduct, getZone } from "@/lib/catalog";
+import { useMemo, useState } from "react";
 import { formatNaira } from "@/lib/format";
-import { NFC_LABEL, STATUS_FLOW, STATUS_LABEL, orderTotal, useAdmin } from "@/lib/admin/store";
+import { STATUS_LABEL, type OrderRow, type OrderStatus } from "@/lib/orders";
 import { shortDate, shortDateTime } from "@/lib/admin/format";
-import type { OrderStatus } from "@/lib/admin/sample-data";
 import { AdminHeader, Badge } from "./AdminShell";
 
-export function OrdersList() {
-  const orders = useAdmin((s) => s.orders);
-  const [filter, setFilter] = useState<OrderStatus | "all">("all");
-  const shown = [...orders]
-    .filter((o) => filter === "all" || o.status === filter)
-    .sort((a, b) => b.placedAt.localeCompare(a.placedAt));
+type View = "to-do" | "paid" | "crafting" | "dispatched" | "delivered" | "pending" | "all";
+
+const VIEWS: { id: View; label: string; match: (s: OrderStatus) => boolean }[] = [
+  { id: "to-do", label: "To do", match: (s) => s === "paid" || s === "crafting" },
+  { id: "paid", label: "Paid", match: (s) => s === "paid" },
+  { id: "crafting", label: "Crafting", match: (s) => s === "crafting" },
+  { id: "dispatched", label: "Dispatched", match: (s) => s === "dispatched" },
+  { id: "delivered", label: "Delivered", match: (s) => s === "delivered" },
+  { id: "pending", label: "Awaiting payment", match: (s) => s === "pending" },
+  { id: "all", label: "All paid", match: (s) => s !== "pending" },
+];
+
+/** Real orders, newest first. "To do" shows what the workshop has to make. */
+export function OrdersList({ orders }: { orders: OrderRow[] }) {
+  const [view, setView] = useState<View>("to-do");
+  const [query, setQuery] = useState("");
+  const current = VIEWS.find((v) => v.id === view)!;
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return orders.filter(
+      (o) =>
+        current.match(o.status) &&
+        (!q || o.number.toLowerCase().includes(q) || o.customerName.toLowerCase().includes(q) || o.items.toLowerCase().includes(q)),
+    );
+  }, [orders, current, query]);
 
   return (
     <div>
-      <AdminHeader title="Orders" intro="Newest first. Open an order to see the personalisation, move its status or print the workshop sheet." />
-      <div role="radiogroup" aria-label="Filter by status" className="mt-6 flex gap-2 overflow-x-auto">
-        {(["all", ...STATUS_FLOW] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            role="radio"
-            aria-checked={filter === s}
-            onClick={() => setFilter(s)}
-            className={`shrink-0 rounded-full border px-4 py-1.5 text-sm ${
-              filter === s ? "border-oxblood bg-oxblood text-vellum" : "border-rule bg-vellum text-ink hover:border-oxblood"
-            }`}
-          >
-            {s === "all" ? `All (${orders.length})` : `${STATUS_LABEL[s]} (${orders.filter((o) => o.status === s).length})`}
-          </button>
-        ))}
+      <AdminHeader title="Orders" intro="Newest first. Open an order to see the personalisation, move it on or print the workshop sheet." />
+      <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div role="radiogroup" aria-label="Which orders" className="flex gap-2 overflow-x-auto pb-1">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              role="radio"
+              aria-checked={view === v.id}
+              onClick={() => setView(v.id)}
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm ${
+                view === v.id ? "border-oxblood bg-oxblood text-vellum" : "border-rule bg-vellum text-ink hover:border-oxblood"
+              }`}
+            >
+              {v.label} ({orders.filter((o) => v.match(o.status)).length})
+            </button>
+          ))}
+        </div>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search number, name or item"
+          aria-label="Search orders"
+          className="h-10 w-full rounded-full border border-rule bg-vellum px-4 text-sm text-ink outline-none focus:border-oxblood md:w-64"
+        />
       </div>
       <ul className="mt-6 flex flex-col gap-3">
         {shown.map((o) => (
           <li key={o.number}>
             <Link
               href={`/admin/orders/${o.number}`}
-              className="grid gap-x-6 gap-y-1 rounded-2xl bg-vellum p-4 shadow-card transition-colors hover:ring-1 hover:ring-oxblood sm:grid-cols-[8rem_1fr_auto]"
+              className="grid gap-x-6 gap-y-1 rounded-2xl bg-vellum p-4 shadow-card transition-colors hover:ring-1 hover:ring-oxblood sm:grid-cols-[10rem_1fr_auto]"
             >
               <span className="font-semibold tabular-nums">{o.number}</span>
               <span className="min-w-0">
-                <span className="block truncate">{o.lines.map((l) => getProduct(l.productId)?.name).join(", ")}</span>
+                <span className="block truncate">{o.items}</span>
                 <span className="block text-sm text-ink-soft">
-                  {o.customer.name} · {getZone(o.zoneId)?.name} · deliver {shortDate(o.deliveryDate)}
+                  {o.customerName} · {o.zoneName} · deliver {shortDate(o.deliveryDate)}
                 </span>
               </span>
               <span className="flex flex-wrap items-center gap-2 sm:justify-end">
-                {o.nfc && o.nfc.status !== "written" && <Badge tone="gold">{NFC_LABEL[o.nfc.status]}</Badge>}
-                <Badge tone={o.status === "paid" ? "wine" : o.status === "delivered" ? "quiet" : "neutral"}>{STATUS_LABEL[o.status]}</Badge>
-                <span className="text-sm tabular-nums">{formatNaira(orderTotal(o))}</span>
+                {o.paymentProblem && <Badge tone="wine">Check payment</Badge>}
+                {o.nfcToWrite && <Badge tone="gold">NFC tag to write</Badge>}
+                <Badge tone={o.status === "paid" ? "wine" : o.status === "delivered" || o.status === "pending" ? "quiet" : "neutral"}>
+                  {STATUS_LABEL[o.status]}
+                </Badge>
+                <span className="text-sm tabular-nums">{formatNaira(o.total)}</span>
               </span>
-              <span className="text-xs text-ink-soft sm:col-start-2">Placed {shortDateTime(o.placedAt)}</span>
+              <span className="text-xs text-ink-soft sm:col-start-2">
+                {o.paidAt ? `Paid ${shortDateTime(o.paidAt)}` : `Started ${shortDateTime(o.createdAt)}`}
+              </span>
             </Link>
           </li>
         ))}
-        {shown.length === 0 && <li className="py-10 text-center text-ink-soft">No orders here.</li>}
+        {shown.length === 0 && (
+          <li className="py-10 text-center text-ink-soft">
+            {orders.length === 0 ? "No orders yet. They appear here as soon as someone checks out." : "No orders here."}
+          </li>
+        )}
       </ul>
     </div>
   );

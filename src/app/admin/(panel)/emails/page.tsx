@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { EmailComposer } from "@/components/admin/EmailComposer";
+import { ComingNext } from "@/components/admin/ComingNext";
 
 export const metadata: Metadata = { title: "Emails" };
 
-export default function AdminEmailComposerPage() {
-  return <EmailComposer />;
+export default function Page() {
+  return <ComingNext title="Emails" what="Emails to customers who agreed to hear from Woodspeaks." />;
 }

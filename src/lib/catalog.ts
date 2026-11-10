@@ -4,7 +4,7 @@ import type { Catalog, Product, ShippingZone } from "./types";
  * The STARTING catalog, from the client's asset list (22 Oct 2026). The live catalog is in Firestore
  * (staff edit it in admin): the site reads it with `getStorefront()` on the server and `useCatalog()` in
  * the browser. This file only seeds Firestore (`scripts/seed-catalog.mjs`), is the fallback if Firestore
- * can't be read, and feeds the admin demo until admin moves to real data. Never price an order from it.
+ * can't be read (display only). Never price an order from it.
  */
 export const PRODUCTS: Product[] = [
   {
@@ -189,7 +189,6 @@ export const SHIPPING_ZONES: ShippingZone[] = [
   { id: "yaba", name: "Yaba", fee: 5000, estimate: null, perishables: true },
 ];
 
-export const getZone = (id: string) => SHIPPING_ZONES.find((z) => z.id === id);
 
 /** Days to make an order before it can be delivered. TO CONFIRM with the client (2–3 days). */
 export const CRAFTING_DAYS = 3;
@@ -202,10 +201,6 @@ export const findProduct = (c: Catalog, id: string) => c.products.find((p) => p.
 export const findProductBySlug = (c: Catalog, slug: string) => c.products.find((p) => p.slug === slug);
 export const findZone = (c: Catalog, id: string) => c.zones.find((z) => z.id === id);
 export const featured = (c: Catalog) => c.products.filter((p) => p.featured).slice(0, 6);
-
-// Seed-only lookups, for the admin demo's sample data. The shop uses the live catalog above.
-export const getProduct = (id: string) => findProduct(SEED_CATALOG, id);
-export const getProductBySlug = (slug: string) => findProductBySlug(SEED_CATALOG, slug);
 
 export const OCCASION_LABELS = {
   birthday: "Birthday",

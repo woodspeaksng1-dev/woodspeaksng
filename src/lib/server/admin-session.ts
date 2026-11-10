@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { SESSION_COOKIE, staffFromSession, type SignedInStaff } from "./staff";
@@ -10,6 +11,8 @@ import { SESSION_COOKIE, staffFromSession, type SignedInStaff } from "./staff";
  * handler and action that reads or changes data: the page check alone is never the only lock.
  */
 export const currentStaff = cache(async (): Promise<SignedInStaff | null> => {
+  // Admin pages only ever render for a real request: never prerendered or prefetched ahead of time.
+  await connection();
   const cookie = (await cookies()).get(SESSION_COOKIE)?.value;
   return staffFromSession(cookie);
 });

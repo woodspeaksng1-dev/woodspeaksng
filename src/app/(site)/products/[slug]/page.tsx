@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { pageMeta } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { findProductBySlug } from "@/lib/catalog";
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
   const personal = product.personalization.kind !== "none";
   const description = `${product.description} ${formatNaira(product.price)}.${personal ? " Personalised for you and made" : " Made"} by hand in Lagos.`;
   return pageMeta({
-    title: personal ? `${product.name}, personalised` : product.name,
+    title: product.seoTitle || (personal ? `${product.name}, personalised` : product.name),
     ogTitle: `${product.name} | Woodspeaks`,
     description,
     path,
@@ -31,9 +32,10 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
   });
 }
 
-export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
+async function Product({ params }: Pick<PageProps<"/products/[slug]">, "params">) {
   const { slug } = await params;
-  const product = findProductBySlug(await getStorefront(), slug);
+  const catalog = await getStorefront();
+  const product = findProductBySlug(catalog, slug);
   if (!product) notFound();
 
   const p = product.personalization;
@@ -82,8 +84,20 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
               <dd>Upload a video up to {p.maxMb} MB, or paste a link to one</dd>
             </>
           )}
+          {product.dimensions && (
+            <>
+              <dt className="text-ink-soft">Size</dt>
+              <dd>{product.dimensions}</dd>
+            </>
+          )}
+          {product.included && (
+            <>
+              <dt className="text-ink-soft">What&rsquo;s included</dt>
+              <dd>{product.included}</dd>
+            </>
+          )}
           <dt className="text-ink-soft">Crafting time</dt>
-          <dd>To be confirmed</dd>
+          <dd>About {catalog.craftingDays} days, made by hand</dd>
           <dt className="text-ink-soft">Delivery</dt>
           <dd>{product.perishable ? "Selected Lagos areas, on the day" : "Fee shown at checkout by area"}</dd>
         </dl>
@@ -91,5 +105,15 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
         <AddToCart product={product} />
       </div>
     </div>
+  );
+}
+
+// Which product it is comes from the URL, so it's read inside <Suspense>: when the page is rebuilt after a
+// change in admin, Next makes its shell without the URL first (see the ISR with Cache Components guide).
+export default function ProductPage({ params }: PageProps<"/products/[slug]">) {
+  return (
+    <Suspense fallback={<div className="mx-auto min-h-[70vh] max-w-7xl px-4 sm:px-6 lg:px-10" />}>
+      <Product params={params} />
+    </Suspense>
   );
 }

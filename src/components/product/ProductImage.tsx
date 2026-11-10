@@ -27,7 +27,7 @@ export function ProductImage({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={cutout}
-          alt={product.name}
+          alt={product.imageAlt || product.name}
           loading="lazy"
           className="absolute inset-0 h-full w-full object-contain p-[8%] drop-shadow-[0_16px_14px_rgb(42_23_18/0.28)] transition-transform duration-700 ease-quill group-hover:scale-[1.04]"
         />
@@ -35,7 +35,7 @@ export function ProductImage({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photo}
-          alt={product.name}
+          alt={product.imageAlt || product.name}
           loading="lazy"
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-quill group-hover:scale-[1.04]"
         />

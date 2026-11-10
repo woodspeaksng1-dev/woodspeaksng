@@ -111,6 +111,29 @@ function teamEmail(order: StoredOrder, to: string) {
   };
 }
 
+/** The one status email (client's choice): the order is on its way. Errors are logged, not thrown. */
+export async function sendDispatchedEmail(order: StoredOrder) {
+  const first = order.customer.name.split(" ")[0];
+  const to = order.recipient?.name ?? order.customer.name;
+  const items = order.lines.map((l) => l.name).join(", ");
+  await sendEmail({
+    to: order.customer.email,
+    subject: `Your Woodspeaks order ${order.number} is on its way`,
+    html: page(
+      `<p style="font-size:14px;color:#6b5446;margin:0">Order ${e(order.number)}</p>` +
+        `<h1 style="font-size:26px;color:#4a1420;margin:8px 0 16px">It's on its way, ${e(first)}</h1>` +
+        `<p style="font-size:16px;line-height:1.5">${e(items)} ${order.lines.length > 1 ? "have" : "has"} left our workshop and ` +
+        `${order.lines.length > 1 ? "are" : "is"} heading to ${e(to)} in ${e(order.delivery.zoneName)}. ` +
+        `Our rider will call ${order.recipient ? e(order.recipient.name) : "you"} on arrival.</p>` +
+        `<p style="font-size:14px;line-height:1.5;color:#6b5446">Questions about delivery? Reply to this email.</p>`,
+    ),
+    text:
+      `It's on its way, ${first}. ${items} ${order.lines.length > 1 ? "have" : "has"} left our workshop and ` +
+      `${order.lines.length > 1 ? "are" : "is"} heading to ${to} in ${order.delivery.zoneName}. Our rider will call on arrival.\n` +
+      `Order ${order.number}. Questions? Reply to this email.`,
+  }).catch((error) => console.error(`Order ${order.number}: dispatched email failed.`, error));
+}
+
 /** Sends both emails; a failure of one doesn't stop the other. Errors are logged, not thrown. */
 export async function sendPaidOrderEmails(order: StoredOrder, siteUrl: string) {
   const team = process.env.ORDER_NOTIFICATION_EMAIL;
