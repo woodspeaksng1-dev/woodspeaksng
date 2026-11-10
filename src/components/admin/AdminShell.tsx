@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, type ReactNode } from "react";
 
 const NAV = [
   { href: "/admin", label: "Overview" },
@@ -18,14 +18,44 @@ const NAV = [
   { href: "/admin/activity", label: "Activity" },
 ];
 
-/** Staff-only panel chrome. DEMO: open without sign-in and showing sample data until the backend stage. */
-export function AdminShell({ children }: { children: ReactNode }) {
+export interface ShellStaff {
+  email: string;
+  name: string | null;
+  role: "owner" | "staff";
+}
+
+function SignOut() {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        await fetch("/api/admin/session", { method: "DELETE" }).catch(() => {});
+        router.replace("/admin/login");
+        router.refresh();
+      }}
+      className="text-sm text-ink-soft underline underline-offset-2 hover:text-oxblood disabled:opacity-50"
+    >
+      Sign out
+    </button>
+  );
+}
+
+/**
+ * Staff-only panel chrome, shown once the server has confirmed the signed-in member of staff (`staff`).
+ * Orders, products and the rest still show SAMPLE data until they're moved to the database (next step).
+ */
+export function AdminShell({ staff, children }: { staff: ShellStaff; children: ReactNode }) {
   const path = usePathname();
   const active = (href: string) => (href === "/admin" ? path === href : path.startsWith(href));
+  const nav = staff.role === "owner" ? [...NAV, { href: "/admin/team", label: "Team" }] : NAV;
   return (
     <div className="flex min-h-dvh flex-col bg-parchment">
       <p className="bg-oxblood-deep px-4 py-2 text-center text-sm text-vellum print:hidden">
-        Demo admin with sample data. Changes reset when you reload. Staff sign-in arrives with the backend.
+        Orders, products and other lists still show sample data while they&rsquo;re connected to the database.
       </p>
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col md:flex-row">
         <nav aria-label="Admin" className="border-b border-rule md:w-56 md:shrink-0 md:border-r md:border-b-0 print:hidden">
@@ -36,9 +66,21 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Link href="/" className="-my-2.5 inline-block py-2.5 text-sm text-ink-soft underline underline-offset-2 md:mt-1 md:block">
               View the shop
             </Link>
+            <div className="hidden md:mt-6 md:block">
+              <p className="truncate text-sm text-ink" title={staff.email}>
+                {staff.name ?? staff.email}
+              </p>
+              <p className="text-xs text-ink-soft">{staff.role === "owner" ? "Owner" : "Staff"}</p>
+              <div className="mt-1">
+                <SignOut />
+              </div>
+            </div>
+            <div className="md:hidden">
+              <SignOut />
+            </div>
           </div>
           <ul className="flex gap-1 overflow-x-auto px-3 py-3 md:mt-6 md:flex-col md:px-3 md:py-0">
-            {NAV.map((n) => (
+            {nav.map((n) => (
               <li key={n.href} className="shrink-0">
                 <Link
                   href={n.href}

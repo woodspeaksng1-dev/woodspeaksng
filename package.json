@@ -12,7 +12,7 @@
     "lint": "eslint",
     "test": "vitest run --exclude 'tests/rules/**' --exclude 'tests/emulator/**'",
     "emulators": "node scripts/with-java.mjs npx firebase emulators:start --project demo-woodspeaks",
-    "test:emulator": "node scripts/with-java.mjs npx firebase emulators:exec --only firestore --project demo-woodspeaks \"vitest run --no-file-parallelism tests/rules tests/emulator\""
+    "test:emulator": "node scripts/with-java.mjs npx firebase emulators:exec --only firestore,auth --project demo-woodspeaks \"vitest run --no-file-parallelism tests/rules tests/emulator\""
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",

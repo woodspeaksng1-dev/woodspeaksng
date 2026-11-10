@@ -285,6 +285,13 @@ Backend order of work:
    `rateLimits.expiresAt`, then one real test payment on a phone.
 5. Order emails; email-link sign-in, order history, saved addresses
 6. Admin panel on real data
+   Sign-in and team done 10 Nov: /admin/login (Google or an emailed one-time link we send through Resend),
+   server-checked httpOnly SameSite=Strict session cookie (7 days, revocation checked every request); the
+   team in Firestore `staff/{email}`: one owner (woodspeaksng1@gmail.com, set with `scripts/set-owner.mjs`)
+   who adds and removes staff on /admin/team (removal signs them out at once). Every admin page sits behind
+   the check in `(panel)/layout.tsx`; admin route handlers check again (`requireStaffRequest`) plus Origin.
+   14 emulator tests. Still to do: orders, products and the rest read and write Firestore instead of
+   sample data; customer emails only on dispatch (client's call).
 7. Mailing: opt-in list (double opt-in), template broadcasts, reminder dates, daily job, unpaid nudge
 8. Uploads: customer photos and NFC videos (resumable, private, 100 MB cap in Storage rules)
 
