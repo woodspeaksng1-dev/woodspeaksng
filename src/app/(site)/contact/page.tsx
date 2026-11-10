@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
+import { ContactForm } from "@/components/contact/ContactForm";
 import { CONTACT } from "@/lib/contact";
 
 export const metadata: Metadata = pageMeta({
   title: "Contact",
   description:
-    "Message Woodspeaks on WhatsApp or Instagram for help choosing or personalising a gift.",
+    "Message Woodspeaks on WhatsApp, Instagram or by email for help choosing or personalising a gift.",
   path: "/contact",
 });
 
-// The contact form arrives with the backend (it needs spam protection and email sending).
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 pt-8 pb-28 sm:px-6">
@@ -31,6 +31,9 @@ export default function ContactPage() {
           </a>
         </li>
       </ul>
+      <div className="mt-12">
+        <ContactForm />
+      </div>
     </div>
   );
 }

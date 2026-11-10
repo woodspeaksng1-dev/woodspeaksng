@@ -49,7 +49,7 @@ Done (frontend, mock data):
   `src/lib/policies.ts`. They show a "being finalised" note and stay `noindex` and out of the sitemap
   until `draft: false`. Acceptable use added to the footer.
 - Corporate (`/corporate`, indexed): what we offer, the brand logos and an enquiry form (Zod, honeypot).
-  Until email sending exists, a valid enquiry opens WhatsApp with the details filled in (`EMAIL_LIVE`).
+  Sent to `/api/enquiry` (see Enquiries below); if sending fails, WhatsApp with the details filled in.
 - Account (`/account`), DEMO: email-link sign-in form (sends nothing), then a labelled sample account with
   order tracking (Paid, Crafting, Dispatched, Delivered), saved addresses, reminders and NFC tag videos
 - Admin panel (`/admin`), DEMO with SAMPLE data (`src/lib/admin/sample-data.ts`) in an in-memory store
@@ -303,7 +303,7 @@ Backend order of work:
    dispatch, one customer email on dispatch), products (all fields, featured max 6, hidden, limits; saves
    refresh the shop at once), delivery (fees, estimates, fresh items, add and remove areas, crafting time),
    customers (from paid orders), activity log (payments and every change, by whom). Reviews, reminders,
-   enquiries, emails and homepage ordering show "being connected" and are out of the menu until built.
+   emails and homepage ordering show "being connected" and are out of the menu until built.
    Demo store and sample data deleted. 15 more emulator tests, plus a browser walk-through of every screen.
    Fixed on the way: product pages failed after an edit (params now read inside Suspense, per the ISR
    with Cache Components guide); admin pages are request-time only (connection()); navbar links and the

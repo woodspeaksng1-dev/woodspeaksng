@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isoDate } from "./checkout";
 
-/** Corporate gifting enquiry. Shared by the form and, later, the server route that emails the team. */
+/** Contact and corporate gifting enquiries. Shared by the forms and the server route (/api/enquiry). */
 
 export const BUDGETS = {
   "under-20k": "Under ₦20,000 per gift",
@@ -38,3 +38,30 @@ export const enquirySchema = z.object({
 
 export type EnquiryInput = z.input<typeof enquirySchema>;
 export type Enquiry = z.output<typeof enquirySchema>;
+
+/** The contact page's general message. */
+export const contactSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name.").max(80),
+  email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address.")),
+  phone: z.string().trim().max(20),
+  message: z.string().trim().min(10, "Tell us a little more.").max(2000, "Keep it under 2,000 characters."),
+  website: z.string().max(0),
+});
+
+export type ContactInput = z.input<typeof contactSchema>;
+export type ContactMessage = z.output<typeof contactSchema>;
+
+/** What the route accepts: either form, tagged with `kind`. */
+export const enquiryRequestSchema = z.discriminatedUnion("kind", [
+  contactSchema.extend({ kind: z.literal("contact") }),
+  enquirySchema.extend({ kind: z.literal("corporate") }),
+]);
+export type EnquiryRequest = z.output<typeof enquiryRequestSchema>;
+
+export type EnquiryStatus = "new" | "handled";
+
+/** An enquiry as saved in Firestore `enquiries/{id}` (the honeypot is never stored). */
+export type StoredEnquiry = { id: string; createdAt: string; status: EnquiryStatus; handledBy: string | null; handledAt: string | null } & (
+  | ({ kind: "contact" } & Omit<ContactMessage, "website">)
+  | ({ kind: "corporate" } & Omit<Enquiry, "website">)
+);

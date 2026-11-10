@@ -3,13 +3,8 @@
 import { useEffect, useState } from "react";
 import { CONTACT } from "@/lib/contact";
 import { BUDGETS, enquirySchema, type Enquiry, type EnquiryInput } from "@/lib/enquiry";
+import { postEnquiry } from "../contact/post-enquiry";
 import { TextField, inputClass } from "../ui/FormField";
-
-/**
- * Until the email route exists (backend stage), a valid enquiry opens WhatsApp with the
- * details filled in, so it still reaches the team today. Set to true when /api/enquiry is live.
- */
-const EMAIL_LIVE = false;
 
 type Field = keyof EnquiryInput;
 
@@ -44,6 +39,8 @@ export function EnquiryForm() {
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [attempt, setAttempt] = useState(0);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [failure, setFailure] = useState<{ message: string; whatsapp: string } | null>(null);
 
   useEffect(() => {
     if (attempt) document.querySelector<HTMLElement>("#enquiry [aria-invalid=true]")?.focus();
@@ -54,7 +51,7 @@ export function EnquiryForm() {
     setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
-  const submit = (ev: React.FormEvent) => {
+  const submit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     const result = enquirySchema.safeParse(form);
     if (!result.success) {
@@ -66,8 +63,13 @@ export function EnquiryForm() {
       setAttempt((n) => n + 1);
       return;
     }
-    if (!EMAIL_LIVE) window.open(CONTACT.whatsappUrl(whatsappText(result.data)), "_blank", "noopener");
-    setSent(true);
+    setSending(true);
+    setFailure(null);
+    const r = await postEnquiry({ kind: "corporate", ...result.data });
+    setSending(false);
+    // If it can't be sent, WhatsApp with the details filled in is the way through.
+    if (r.ok) setSent(true);
+    else setFailure({ message: r.message, whatsapp: CONTACT.whatsappUrl(whatsappText(result.data)) });
   };
 
   if (sent)
@@ -75,9 +77,7 @@ export function EnquiryForm() {
       <div role="status" className="rounded-[1.6rem] bg-vellum p-8 shadow-card">
         <p className="font-display text-3xl text-oxblood">Thank you</p>
         <p className="mt-3 text-lg text-ink">
-          {EMAIL_LIVE
-            ? "We've got your enquiry and will reply by email within one working day."
-            : "WhatsApp has opened with your enquiry filled in. Press send there and we'll reply as soon as we can."}
+          We&rsquo;ve got your enquiry and will reply by email within one working day.
         </p>
       </div>
     );
@@ -133,8 +133,20 @@ export function EnquiryForm() {
           <input tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => set("website", e.target.value)} />
         </label>
       </div>
-      <button type="submit" className="mt-2 h-12 rounded-full bg-oxblood px-10 text-vellum transition-colors hover:bg-wine sm:self-start">
-        {EMAIL_LIVE ? "Send enquiry" : "Send on WhatsApp"}
+      {failure && (
+        <p role="alert" className="text-oxblood">
+          {failure.message}{" "}
+          <a href={failure.whatsapp} target="_blank" rel="noopener" className="underline underline-offset-2">
+            Send it on WhatsApp instead
+          </a>
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={sending}
+        className="mt-2 h-12 rounded-full bg-oxblood px-10 text-vellum transition-colors hover:bg-wine disabled:opacity-60 sm:self-start"
+      >
+        {sending ? "Sending…" : "Send enquiry"}
       </button>
     </form>
   );
