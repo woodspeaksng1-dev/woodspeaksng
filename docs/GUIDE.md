@@ -87,6 +87,9 @@ bouquet, magnifying glass, cake, real rose and NFC tag (they upload these from a
 - Paystack webhook: HMAC SHA512 on the raw body, verify the transaction with Paystack, fulfil each reference once.
 - Personalised text is user input: validate with `src/lib/validation.ts`, escape in emails.
 - No new dependency without a reason; prefer what's installed.
+- `package.json` overrides give jwks-rsa (inside firebase-admin's auth) jose v5: jose v6 is ESM-only and Vercel's
+  runtime won't require() it, which broke admin sign-in live. Check a change to Firebase packages with
+  `NODE_OPTIONS=--no-experimental-require-module npx next start` (fails the same way Vercel does).
 
 ## Personalisation rules (from the client's current site; confirm with the catalog sheet)
 - Love scroll: letter up to 300 words, personalised wax stamp
