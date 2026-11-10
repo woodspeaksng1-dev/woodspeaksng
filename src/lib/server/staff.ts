@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { cookieFromRequest, createSessionCookie, readSessionCookie, sameOrigin, sessionCookieHeader as cookieHeader, verifySignIn } from "./auth-session";
 import { adminAuth, db } from "./firebase";
 
 /*
@@ -15,8 +16,6 @@ import { adminAuth, db } from "./firebase";
 
 export const SESSION_COOKIE = "ws_admin";
 export const SESSION_DAYS = 7;
-/** Sign-in must be this fresh to start a session (Firebase also enforces 5 minutes). */
-const RECENT_SIGN_IN_SECONDS = 5 * 60;
 
 export type StaffRole = "owner" | "staff";
 export interface StaffMember {
@@ -51,60 +50,28 @@ export type SessionResult = { ok: true; cookie: string; staff: SignedInStaff } |
 
 /** Turns a fresh Firebase ID token into a session cookie value, if the email is on the team. */
 export async function startSession(idToken: string): Promise<SessionResult> {
-  const auth = await adminAuth();
-  let decoded;
-  try {
-    decoded = await auth.verifyIdToken(idToken, true);
-  } catch {
-    return { ok: false, status: 401, message: "That sign-in didn't work. Try again." };
-  }
-  if (!decoded.email || !decoded.email_verified) return { ok: false, status: 401, message: "Sign in with a verified email address." };
-  if (Date.now() / 1000 - decoded.auth_time > RECENT_SIGN_IN_SECONDS)
-    return { ok: false, status: 401, message: "That sign-in has expired. Sign in again." };
-
-  const member = await getStaffMember(decoded.email);
+  const check = await verifySignIn(idToken);
+  if (!check.ok) return check;
+  const { person } = check;
+  const member = await getStaffMember(person.email);
   if (!member) return { ok: false, status: 403, message: "This email isn't on the Woodspeaks team. Ask the owner to add you." };
-
-  const cookie = await auth.createSessionCookie(idToken, { expiresIn: SESSION_DAYS * 24 * 60 * 60 * 1000 });
-  if (!member.name && decoded.name) await staffDoc(member.email).update({ name: decoded.name });
-  return { ok: true, cookie, staff: { uid: decoded.uid, email: member.email, role: member.role, name: member.name ?? decoded.name ?? null } };
+  const cookie = await createSessionCookie(idToken, SESSION_DAYS);
+  if (!member.name && person.name) await staffDoc(member.email).update({ name: person.name });
+  return { ok: true, cookie, staff: { uid: person.uid, email: member.email, role: member.role, name: member.name ?? person.name } };
 }
 
 /** The member of staff behind a session cookie value, or null (no cookie, expired, revoked, or removed). */
 export async function staffFromSession(cookie: string | undefined): Promise<SignedInStaff | null> {
-  if (!cookie) return null;
-  try {
-    const decoded = await (await adminAuth()).verifySessionCookie(cookie, true);
-    if (!decoded.email) return null;
-    const member = await getStaffMember(decoded.email);
-    return member ? { uid: decoded.uid, email: member.email, role: member.role, name: member.name } : null;
-  } catch (error) {
-    // Expired, revoked or forged cookies are normal; anything else (Firebase down, misconfiguration) is logged.
-    const code = (error as { code?: string }).code ?? "";
-    if (!/session-cookie|argument-error|user-disabled|user-not-found|id-token/.test(code))
-      console.error("Admin session check failed.", error);
-    return null;
-  }
+  const person = await readSessionCookie(cookie);
+  if (!person) return null;
+  const member = await getStaffMember(person.email);
+  return member ? { uid: person.uid, email: member.email, role: member.role, name: member.name } : null;
 }
 
-/** Reads the session cookie from a request's headers (route handlers). */
-export function sessionFromRequest(request: Request): string | undefined {
-  const header = request.headers.get("cookie") ?? "";
-  for (const part of header.split(";")) {
-    const [name, ...rest] = part.trim().split("=");
-    if (name === SESSION_COOKIE) return decodeURIComponent(rest.join("="));
-  }
-  return undefined;
-}
+/** Reads the admin session cookie from a request's headers (route handlers). */
+export const sessionFromRequest = (request: Request) => cookieFromRequest(request, SESSION_COOKIE);
 
-/**
- * Route handlers that change data also require the request to come from our own pages (Origin matches),
- * on top of the SameSite=Strict cookie, so another site can't trigger admin actions in a staff browser.
- */
-export function sameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  return !!origin && origin === new URL(request.url).origin;
-}
+export { sameOrigin };
 
 export type StaffCheck = { ok: true; staff: SignedInStaff } | { ok: false; response: Response };
 
@@ -119,10 +86,8 @@ export async function requireStaffRequest(request: Request, role?: "owner"): Pro
   return { ok: true, staff };
 }
 
-export const sessionCookieHeader = (value: string, maxAgeSeconds: number) =>
-  `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Strict${
-    process.env.NODE_ENV === "production" ? "; Secure" : ""
-  }`;
+/** Admin cookies are SameSite=Strict: no other site can ever send them. */
+export const sessionCookieHeader = (value: string, maxAgeSeconds: number) => cookieHeader(SESSION_COOKIE, value, maxAgeSeconds, "Strict");
 
 // --- Team changes (owner only; callers check that first) ---
 

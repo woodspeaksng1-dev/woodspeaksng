@@ -284,6 +284,13 @@ Backend order of work:
    To go live: deploy, set the webhook URL in Paystack, add a Firestore TTL policy on
    `rateLimits.expiresAt`, then one real test payment on a phone.
 5. Order emails; email-link sign-in, order history, saved addresses
+   Customer accounts done 10 Nov: /account signs in with Google or an emailed link (any verified email,
+   no sign-up; links rate limited 3 an hour per email); 14-day httpOnly SameSite=Lax cookie (Firebase's
+   maximum is 2 weeks); orders found by email so guest orders appear, unpaid checkouts left out; status
+   tracker; up to 5 saved addresses (real delivery areas only); checkout fills name, email, phone and
+   offers saved addresses. Sign-in code shared with admin (`auth-session.ts`, `SignInForm`). 10 emulator
+   tests. Customer emails (links, confirmations) only reach real inboxes once woodspeaks.ng is verified in
+   Resend. Copy now says delivery across Lagos (not Nigeria).
 6. Admin panel on real data
    Sign-in and team done 10 Nov: /admin/login (Google or an emailed one-time link we send through Resend),
    server-checked httpOnly SameSite=Strict session cookie (7 days, revocation checked every request); the

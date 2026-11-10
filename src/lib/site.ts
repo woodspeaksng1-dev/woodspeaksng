@@ -11,7 +11,7 @@ export const SITE = {
   legalName: "Woodspeaks Limited",
   tagline: "Gifts that speak louder than words",
   description:
-    "Handwritten love scrolls, personalised puzzles, lockets and keepsakes, made by hand in Lagos and delivered across Nigeria. Write your own words, or let us help.",
+    "Handwritten love scrolls, personalised puzzles, lockets and keepsakes, made by hand and delivered in Lagos. Write your own words, or let us help.",
   city: "Lagos",
   country: "NG",
   phone: CONTACT.phoneDisplay,

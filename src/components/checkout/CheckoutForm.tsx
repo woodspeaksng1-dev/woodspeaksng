@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import type { CustomerProfile } from "@/lib/account";
 import { cartSubtotal, lineTotal, useCart, useCartHydrated } from "@/lib/cart-store";
 import { findProduct, findZone } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
@@ -11,7 +12,7 @@ import { formatNaira } from "@/lib/format";
 import { OrderLines } from "./OrderLines";
 import { Check, TextField, inputClass } from "../ui/FormField";
 
-/** Paystack is connected in the backend stage. Until then "Pay" places a demo order. */
+/** Sends checkout to our server, which prices the order and returns a Paystack payment page. */
 type Field = keyof CheckoutInput;
 type Errors = Partial<Record<Field, string>>;
 
@@ -56,6 +57,23 @@ export function CheckoutForm() {
   const [placing, setPlacing] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [account, setAccount] = useState<CustomerProfile | null>(null);
+
+  // Signed in? Fill in their details (only fields still empty) and offer their saved addresses.
+  useEffect(() => {
+    let live = true;
+    fetch("/api/account/me", { cache: "no-store" })
+      .then((r) => r.json() as Promise<{ signedIn: boolean } & Partial<CustomerProfile>>)
+      .then((me) => {
+        if (!live || !me.signedIn || !me.email) return;
+        setAccount({ email: me.email, name: me.name ?? null, phone: me.phone ?? null, addresses: me.addresses ?? [] });
+        setForm((f) => ({ ...f, name: f.name || me.name || "", email: f.email || me.email || "", phone: f.phone || me.phone || "" }));
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
 
   // After a failed submit, move to the first problem so phone users see what to fix.
   useEffect(() => {
@@ -218,6 +236,33 @@ export function CheckoutForm() {
         </Section>
 
         <Section n={3} title="Delivery">
+          {account && account.addresses.some((a) => catalog.zones.some((z) => z.id === a.zoneId)) && (
+            <fieldset>
+              <legend className="text-sm text-ink">Use a saved address</legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {account.addresses
+                  .filter((a) => catalog.zones.some((z) => z.id === a.zoneId))
+                  .map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      aria-pressed={form.address === a.address && form.zoneId === a.zoneId}
+                      onClick={() => {
+                        setForm((f) => ({ ...f, zoneId: a.zoneId, address: a.address, landmark: a.landmark }));
+                        setErrors((e) => ({ ...e, zoneId: undefined, address: undefined }));
+                      }}
+                      className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                        form.address === a.address && form.zoneId === a.zoneId
+                          ? "border-oxblood bg-oxblood text-vellum"
+                          : "border-rule bg-vellum text-ink hover:border-oxblood"
+                      }`}
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+              </div>
+            </fieldset>
+          )}
           <TextField
             label="Delivery area"
             hint={

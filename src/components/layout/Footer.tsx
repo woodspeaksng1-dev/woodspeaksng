@@ -46,7 +46,7 @@ export function Footer() {
             Woodspeaks
           </Link>
           <p className="mt-4 text-vellum/75">
-            A place for emotions. Handcrafted keepsakes made in Lagos, delivered across Nigeria.
+            A place for emotions. Handcrafted keepsakes made and delivered in Lagos.
           </p>
           <div className="mt-5 flex flex-col text-vellum/90">
             <a href={CONTACT.whatsappUrl()} className="py-2 hover:text-gold-light" rel="noopener">

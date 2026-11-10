@@ -6,7 +6,7 @@ import { EnquiryForm } from "@/components/corporate/EnquiryForm";
 export const metadata: Metadata = pageMeta({
   title: "Corporate gifting",
   description:
-    "Handmade, personalised gifts for your team, clients and events, from Woodspeaks in Lagos. Delivered across Nigeria.",
+    "Handmade, personalised gifts for your team, clients and events, from Woodspeaks in Lagos. Delivered across Lagos.",
   path: "/corporate",
 });
 

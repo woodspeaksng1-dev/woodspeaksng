@@ -6,7 +6,7 @@ import { ShopGrid, ShopGridFromParams } from "./ShopGrid";
 export const metadata: Metadata = pageMeta({
   title: "Shop personalised gifts",
   description:
-    "Love scrolls, 20 Reasons puzzles, lockets, pocket watches and keepsakes, personalised with your words and made by hand in Lagos. Delivery across Nigeria.",
+    "Love scrolls, 20 Reasons puzzles, lockets, pocket watches and keepsakes, personalised with your words and made by hand in Lagos. Delivery across Lagos.",
   path: "/shop",
 });
 

@@ -6,15 +6,24 @@ import { GoogleAuthProvider, isSignInWithEmailLink, signInWithEmailLink, signInW
 import { firebaseAuth } from "@/lib/firebase-client";
 
 /*
- * Staff sign-in: Google, or a one-time link by email. Either way Firebase proves the email, then our
- * server checks it's on the team and sets the admin session. The Firebase sign-in in this browser is
- * ended straight after (the session cookie is what counts), so nothing lingers in the browser.
+ * Sign-in for staff (admin) and customers (account): Google, or a one-time link by email. Either way
+ * Firebase proves the email, then our server checks it and sets its own session cookie. The Firebase
+ * sign-in in this browser is ended straight after (the session cookie is what counts).
  */
 
-const EMAIL_KEY = "ws-admin-email";
+export interface SignInEndpoints {
+  /** Route that swaps the Firebase ID token for our session cookie. */
+  sessionUrl: string;
+  /** Route that emails a sign-in link. */
+  linkUrl: string;
+  /** Where to go once signed in. */
+  after: string;
+  /** Remembers the email between asking for a link and opening it (same browser). */
+  emailKey: string;
+}
 
-async function startSession(idToken: string): Promise<string | null> {
-  const res = await fetch("/api/admin/session", {
+async function startSession(sessionUrl: string, idToken: string): Promise<string | null> {
+  const res = await fetch(sessionUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ idToken }),
@@ -24,7 +33,8 @@ async function startSession(idToken: string): Promise<string | null> {
   return data.message ?? "That sign-in didn't work. Try again.";
 }
 
-export function LoginForm() {
+export function SignInForm({ sessionUrl, linkUrl, after, emailKey }: SignInEndpoints) {
+  const EMAIL_KEY = emailKey;
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<{ tone: "info" | "error"; text: string } | null>(null);
@@ -32,7 +42,7 @@ export function LoginForm() {
   const [linkFlow, setLinkFlow] = useState(false);
 
   const finish = async (idToken: string) => {
-    const error = await startSession(idToken);
+    const error = await startSession(sessionUrl, idToken);
     await signOut(await firebaseAuth()).catch(() => {});
     if (error) {
       setStatus({ tone: "error", text: error });
@@ -42,7 +52,7 @@ export function LoginForm() {
     try {
       localStorage.removeItem(EMAIL_KEY);
     } catch {}
-    router.replace("/admin");
+    router.replace(after);
     router.refresh();
   };
 
@@ -52,7 +62,7 @@ export function LoginForm() {
     try {
       const auth = await firebaseAuth();
       const cred = await signInWithEmailLink(auth, address.trim(), window.location.href);
-      window.history.replaceState(null, "", "/admin/login");
+      window.history.replaceState(null, "", window.location.pathname);
       await finish(await cred.user.getIdToken());
     } catch {
       setStatus({ tone: "error", text: "That link has expired or was already used. Ask for a new one below." });
@@ -102,7 +112,7 @@ export function LoginForm() {
     if (linkFlow) return completeLink(email);
     setBusy(true);
     setStatus(null);
-    const res = await fetch("/api/admin/login-link", {
+    const res = await fetch(linkUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
