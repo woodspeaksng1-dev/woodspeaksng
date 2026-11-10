@@ -7,6 +7,7 @@ import { CONTACT } from "@/lib/contact";
 import { summarise } from "@/lib/orders";
 import { sendPaidOrderEmails } from "@/lib/server/order-emails";
 import { confirmPayment, type ConfirmOutcome } from "@/lib/server/orders";
+import { getReminder } from "@/lib/server/reminders";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 
@@ -95,5 +96,6 @@ async function Confirmation({ searchParams }: Pick<PageProps<"/checkout/confirma
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
     after(() => sendPaidOrderEmails(order, siteUrl || "https://www.woodspeaks.ng"));
   }
-  return <OrderConfirmation summary={summarise(result.order)} />;
+  const reminder = await getReminder(result.order.number).catch(() => null);
+  return <OrderConfirmation summary={summarise(result.order)} reminderFor={reminder?.nextOccasion ?? null} />;
 }

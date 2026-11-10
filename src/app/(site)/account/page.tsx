@@ -4,6 +4,7 @@ import { AccountDashboard } from "@/components/account/AccountDashboard";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { currentCustomer } from "@/lib/server/customer-session";
 import { getCustomerProfile, listCustomerOrders } from "@/lib/server/customers";
+import { listCustomerReminders } from "@/lib/server/reminders";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false } };
 
@@ -30,6 +31,10 @@ async function Account() {
         <SignInForm sessionUrl="/api/account/session" linkUrl="/api/account/login-link" after="/account" emailKey="ws-account-email" />
       </div>
     );
-  const [orders, profile] = await Promise.all([listCustomerOrders(person.email), getCustomerProfile(person)]);
-  return <AccountDashboard orders={orders} profile={profile} />;
+  const [orders, profile, reminders] = await Promise.all([
+    listCustomerOrders(person.email),
+    getCustomerProfile(person),
+    listCustomerReminders(person.email),
+  ]);
+  return <AccountDashboard orders={orders} profile={profile} reminders={reminders} />;
 }

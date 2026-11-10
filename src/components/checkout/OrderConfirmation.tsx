@@ -1,25 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { remindNextYear } from "@/app/(site)/checkout/confirmation/actions";
 import { useCart } from "@/lib/cart-store";
 import { formatNaira } from "@/lib/format";
 import type { OrderSummary } from "@/lib/orders";
 import { OrderLines } from "./OrderLines";
 
-const longDate = (iso: string, yearsLater = 0) => {
+const longDate = (iso: string) => {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(
-    new Date(y + yearsLater, m - 1, d),
-  );
+  return new Intl.DateTimeFormat("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(y, m - 1, d));
 };
 
 /**
  * A paid order, as the server confirmed it with Paystack. Empties the cart, since it's been bought.
  * Shows no phone numbers or street address: the link is in the confirmation email and can be shared.
+ * `reminderFor` is the date of the yearly reminder, if one is already set for this order.
  */
-export function OrderConfirmation({ summary: order }: { summary: OrderSummary }) {
-  const [reminder, setReminder] = useState(false);
+export function OrderConfirmation({ summary: order, reminderFor }: { summary: OrderSummary; reminderFor: string | null }) {
+  const [reminder, setReminder] = useState(reminderFor);
+  const [reminderError, setReminderError] = useState<string | null>(null);
+  const [saving, start] = useTransition();
   useEffect(() => useCart.getState().clear(), []);
 
   return (
@@ -79,18 +81,30 @@ export function OrderConfirmation({ summary: order }: { summary: OrderSummary })
         </h2>
         {reminder ? (
           <p className="mt-3 text-ink" role="status">
-            Done. We&rsquo;ll email you a week before {longDate(order.deliveryDate, 1)}.
+            Done. We&rsquo;ll email you a week before {longDate(reminder)}, and each year after. Every reminder has a link to stop them.
           </p>
         ) : (
           <>
-            <p className="mt-3 text-ink-soft">We&rsquo;ll email you a week before this date next year, so it never slips by.</p>
+            <p className="mt-3 text-ink-soft">We&rsquo;ll email you a week before this date each year, so it never slips by.</p>
             <button
               type="button"
-              onClick={() => setReminder(true)}
-              className="mt-5 h-11 rounded-full bg-oxblood px-7 text-vellum transition-colors hover:bg-wine"
+              disabled={saving}
+              onClick={() =>
+                start(async () => {
+                  const r = await remindNextYear(order.number).catch(() => ({ ok: false, message: "We couldn't set that just now. Try again in a moment." }));
+                  if (r.ok && "nextOccasion" in r && r.nextOccasion) setReminder(r.nextOccasion);
+                  else setReminderError(r.message);
+                })
+              }
+              className="mt-5 h-11 rounded-full bg-oxblood px-7 text-vellum transition-colors hover:bg-wine disabled:opacity-60"
             >
-              Yes, remind me
+              {saving ? "Setting your reminder…" : "Yes, remind me"}
             </button>
+            {reminderError && (
+              <p role="alert" className="mt-3 text-sm text-oxblood">
+                {reminderError}
+              </p>
+            )}
           </>
         )}
       </section>

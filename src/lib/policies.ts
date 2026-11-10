@@ -86,7 +86,7 @@ export const POLICIES = {
         heading: "What we collect and why",
         body: [
           "To make and deliver your order: your name, email, phone number, the recipient's name and phone number, the delivery address, and the words and photos you add to your gift.",
-          "To send gift reminders and updates: your email and the dates you ask us to remember, only if you tick the box at checkout. You can unsubscribe from any email.",
+          "To send gift reminders and updates: your email and the date you ask us to remember, only if you choose “Yes, remind me” after an order, or tick the updates box at checkout. You can stop them from any email or your account.",
           "To keep the site working and safe: basic technical information such as your browser type and IP address.",
         ],
       },

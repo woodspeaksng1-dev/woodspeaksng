@@ -10,7 +10,14 @@ const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;"
 
 export const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => ESCAPES[c]);
 
-export async function sendEmail(message: { to: string; subject: string; html: string; text: string; replyTo?: string }) {
+export async function sendEmail(message: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
+}) {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   if (!key || !from) throw new Error("RESEND_API_KEY or EMAIL_FROM is not set.");
@@ -24,6 +31,7 @@ export async function sendEmail(message: { to: string; subject: string; html: st
       html: message.html,
       text: message.text,
       ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+      ...(message.headers ? { headers: message.headers } : {}),
     }),
     signal: AbortSignal.timeout(15_000),
   });

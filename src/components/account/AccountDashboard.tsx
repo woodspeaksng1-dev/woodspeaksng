@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
-import { deleteAddress, saveAddress } from "@/app/(site)/account/actions";
+import { deleteAddress, saveAddress, stopReminder } from "@/app/(site)/account/actions";
 import { formatNaira } from "@/lib/format";
 import { STATUS_FLOW, STATUS_LABEL, type OrderStatus } from "@/lib/orders";
 import type { CustomerOrderRow, CustomerProfile } from "@/lib/account";
+import type { ReminderRow } from "@/lib/reminders";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { inputClass } from "../ui/FormField";
 
@@ -158,8 +159,55 @@ function Addresses({ profile }: { profile: CustomerProfile }) {
   );
 }
 
-/** A signed-in customer's account: their orders (found by email, guest orders included) and saved addresses. */
-export function AccountDashboard({ orders, profile }: { orders: CustomerOrderRow[]; profile: CustomerProfile }) {
+function Reminders({ reminders }: { reminders: ReminderRow[] }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, start] = useTransition();
+  return (
+    <Panel title="Yearly reminders">
+      {reminders.length === 0 ? (
+        <p className="text-ink-soft">
+          None set. After an order, choose &ldquo;Yes, remind me&rdquo; and we&rsquo;ll email you a week before that date each year.
+        </p>
+      ) : (
+        <ul className="divide-y divide-rule">
+          {reminders.map((r) => (
+            <li key={r.orderNumber} className="flex items-start justify-between gap-4 py-3">
+              <span className="min-w-0">
+                <span className="block font-semibold">{r.nextOccasion && day(r.nextOccasion)}</span>
+                <span className="block text-sm text-ink-soft">
+                  {r.items} for {r.deliverTo}. We&rsquo;ll email you on {r.nextSendOn && day(r.nextSendOn)}.
+                </span>
+              </span>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  start(async () => {
+                    const res = await stopReminder(r.orderNumber);
+                    setMsg({ ok: res.ok, text: res.message });
+                    if (res.ok) router.refresh();
+                  })
+                }
+                className="shrink-0 text-sm text-oxblood underline underline-offset-2"
+              >
+                Stop
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {msg && (
+        <p role={msg.ok ? "status" : "alert"} className={`mt-3 text-sm ${msg.ok ? "text-ink-soft" : "text-oxblood"}`}>
+          {msg.text}
+        </p>
+      )}
+    </Panel>
+  );
+}
+
+/** A signed-in customer's account: their orders (found by email, guest orders included), saved addresses and reminders. */
+export function AccountDashboard({ orders, profile, reminders }: { orders: CustomerOrderRow[]; profile: CustomerProfile; reminders: ReminderRow[] }) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const first = (profile.name ?? profile.email).split(/[ @]/)[0];
@@ -211,7 +259,10 @@ export function AccountDashboard({ orders, profile }: { orders: CustomerOrderRow
             </ul>
           )}
         </Panel>
-        <Addresses profile={profile} />
+        <div className="flex flex-col gap-6">
+          <Addresses profile={profile} />
+          <Reminders reminders={reminders} />
+        </div>
       </div>
     </div>
   );
