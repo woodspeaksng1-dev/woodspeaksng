@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import type { PhotoCrop } from "@/lib/types";
+import { PHOTO_MAX_BYTES, PHOTO_TYPES } from "@/lib/uploads";
 import { LocketFrame } from "./LocketFrame";
 
 export interface ChosenPhoto {
@@ -9,11 +10,11 @@ export interface ChosenPhoto {
   name: string;
   width: number;
   height: number;
+  file: File;
 }
 
 export type PhotoFrameKind = "locket" | "polaroid";
 
-const MAX_BYTES = 15 * 1024 * 1024;
 /** Below this many source pixels across the frame, the print may look soft. */
 const MIN_PIXELS: Record<PhotoFrameKind, number> = { locket: 600, polaroid: 1000 };
 
@@ -30,7 +31,7 @@ export function PhotoFrame({
   onCropChange,
 }: {
   kind: PhotoFrameKind;
-  photo: ChosenPhoto | null;
+  photo: Pick<ChosenPhoto, "url"> | null;
   crop: PhotoCrop;
   onCropChange?: (crop: PhotoCrop) => void;
 }) {
@@ -113,12 +114,13 @@ export function PhotoEditor({
 
   const choose = (file: File | undefined) => {
     if (!file) return;
-    if (file.size > MAX_BYTES) return onError("That photo is over 15 MB. Choose a smaller one.");
+    if (file.size > PHOTO_MAX_BYTES) return onError("That photo is over 15 MB. Choose a smaller one.");
+    if (!(PHOTO_TYPES as readonly string[]).includes(file.type)) return onError("Choose a JPG, PNG or WebP photo.");
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       onError(null);
-      onPhoto({ url, name: file.name, width: img.naturalWidth, height: img.naturalHeight });
+      onPhoto({ url, name: file.name, width: img.naturalWidth, height: img.naturalHeight, file });
       onCropChange({ zoom: 1, x: 0, y: 0 });
     };
     img.onerror = () => {
@@ -136,7 +138,7 @@ export function PhotoEditor({
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          accept={PHOTO_TYPES.join(",")}
           className="sr-only"
           id="photo"
           onChange={(e) => {

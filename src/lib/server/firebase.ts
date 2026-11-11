@@ -50,3 +50,16 @@ export const db = (): Firestore => getFirestore(app());
 
 /** Admin Auth, loaded only when used (sign-in, staff claims): it pulls in a large token library. */
 export const adminAuth = async () => (await import("firebase-admin/auth")).getAuth(app());
+
+/**
+ * The private bucket for customer files (needs the Blaze plan). FIREBASE_STORAGE_BUCKET if set, else the
+ * web config's bucket. Loaded only when used: it pulls in Google's storage library.
+ */
+export const storageBucket = async () => {
+  const { getStorage } = await import("firebase-admin/storage");
+  const name =
+    process.env.FIREBASE_STORAGE_BUCKET ||
+    (process.env.FIREBASE_STORAGE_EMULATOR_HOST ? `${app().options.projectId}.appspot.com` : process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
+  if (!name) throw new Error("No storage bucket is set (FIREBASE_STORAGE_BUCKET).");
+  return getStorage(app()).bucket(name);
+};

@@ -2,10 +2,11 @@ import { timingSafeEqual } from "node:crypto";
 import { lagosToday } from "@/lib/reminders";
 import { runBroadcasts } from "@/lib/server/broadcasts";
 import { sendDueReminders } from "@/lib/server/reminders";
+import { deleteUnusedUploads, uploadsEnabled } from "@/lib/server/uploads";
 
 /*
  * Daily job (vercel.json → crons, 07:00 UTC = 08:00 in Lagos): sends the yearly gift reminders that are due,
- * then the next batch of any customer email still going out. Vercel calls it with
+ * then the next batch of any customer email still going out, then deletes uploads no paid order used. Vercel calls it with
  * `Authorization: Bearer $CRON_SECRET`; anything else is refused.
  */
 
@@ -25,7 +26,8 @@ export async function GET(request: Request) {
   const today = lagosToday();
   const reminders = await sendDueReminders(today, new URL(request.url).origin);
   const broadcasts = await runBroadcasts({ today, deadline: started + 50_000 });
-  const result = { reminders, broadcasts };
-  if (reminders.sent || reminders.failed || broadcasts.sent || broadcasts.failed) console.log("Daily job:", JSON.stringify(result));
+  const uploadsDeleted = uploadsEnabled() ? await deleteUnusedUploads().catch((error) => (console.error("Daily job: upload clean-up failed.", error), 0)) : 0;
+  const result = { reminders, broadcasts, uploadsDeleted };
+  if (reminders.sent || reminders.failed || broadcasts.sent || broadcasts.failed || uploadsDeleted) console.log("Daily job:", JSON.stringify(result));
   return Response.json(result);
 }

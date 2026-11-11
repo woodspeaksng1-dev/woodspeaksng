@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { findProductBySlug } from "@/lib/catalog";
 import { getStorefront } from "@/lib/server/catalog";
+import { uploadsEnabled } from "@/lib/server/uploads";
 import { CustomizerLoader } from "./CustomizerLoader";
 
 export async function generateStaticParams() {
@@ -24,7 +25,7 @@ async function Personalise({ params }: Pick<PageProps<"/products/[slug]/personal
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 pb-28 sm:px-6 lg:px-10">
-      <CustomizerLoader product={product} />
+      <CustomizerLoader product={product} uploads={uploadsEnabled()} />
     </div>
   );
 }

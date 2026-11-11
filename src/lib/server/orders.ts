@@ -6,6 +6,7 @@ import type { StoredOrder } from "@/lib/orders";
 import { decidePayment, type VerifiedTransaction } from "@/lib/payment-check";
 import { db } from "./firebase";
 import { verifyPayment } from "./paystack";
+import { uploadIdsOf } from "./uploads";
 
 /*
  * Orders in Firestore. Created "pending" when the buyer starts paying; marked "paid" only by
@@ -129,6 +130,8 @@ export async function confirmPayment(
       amountKobo: tx.amount,
       recordedAt: paid.paidAt,
     });
+    // Link the buyer's files to this order, so the weekly clean-up keeps them.
+    for (const id of uploadIdsOf(order.lines)) t.set(db().collection("uploads").doc(id), { orderNumber: reference }, { merge: true });
     t.create(db().collection("auditLog").doc(), {
       at: paid.paidAt,
       by: "Paystack",

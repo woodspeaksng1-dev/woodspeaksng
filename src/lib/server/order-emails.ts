@@ -1,7 +1,9 @@
 import "server-only";
 import { formatNaira } from "@/lib/format";
 import type { StoredOrder } from "@/lib/orders";
+import { CONTACT } from "@/lib/contact";
 import type { CartCustomization } from "@/lib/types";
+import { fileStillNeeded, sendFileMessage } from "@/lib/uploads";
 import { escapeHtml as e, sendEmail } from "./email";
 
 /*
@@ -25,9 +27,11 @@ function personalisation(c: CartCustomization): string {
     case "reasons":
       return c.mode === "custom" ? c.reasons.map((r, i) => `${i + 1}. ${r}`).join("\n") : "Our standard 20 reasons";
     case "photo":
-      return `Photo: ${c.photoNames.join(", ")}`;
+      return `Photo: ${c.photoNames.join(", ")}${fileStillNeeded(c) ? " (to be sent on WhatsApp)" : " (uploaded)"}`;
     case "video":
-      return c.source === "file" ? `Video file: ${c.fileName} (${c.sizeMb} MB)` : `Video link: ${c.url}`;
+      return c.source === "file"
+        ? `Video file: ${c.fileName} (${c.sizeMb} MB)${fileStillNeeded(c) ? " (to be sent on WhatsApp)" : " (uploaded)"}`
+        : `Video link: ${c.url}`;
     default:
       return "";
   }
@@ -61,8 +65,19 @@ const linesText = (order: StoredOrder, withPersonalisation: boolean) =>
     })
     .join("\n\n") + `\n\nDelivery (${order.delivery.zoneName}): ${formatNaira(order.deliveryFee)}\nTotal paid: ${formatNaira(order.total)}`;
 
+/** The files the buyer still has to send us, and the WhatsApp link that sends them with the order number. */
+function filesToSend(order: StoredOrder) {
+  const files = order.lines.flatMap((l) => {
+    const kind = fileStillNeeded(l.customization);
+    return kind ? [{ name: l.name, kind }] : [];
+  });
+  return files.length ? { files, link: CONTACT.whatsappUrl(sendFileMessage(order.number, files)) } : null;
+}
+
 function customerEmail(order: StoredOrder, siteUrl: string) {
   const first = order.customer.name.split(" ")[0];
+  const send = filesToSend(order);
+  const sendWhat = send ? send.files.map((f) => `the ${f.kind} for the ${f.name}`).join(" and ") : "";
   const to = order.recipient?.name ?? order.customer.name;
   const link = `${siteUrl}/checkout/confirmation?reference=${order.number}`;
   return {
@@ -73,13 +88,22 @@ function customerEmail(order: StoredOrder, siteUrl: string) {
         `<h1 style="font-size:26px;color:#4a1420;margin:8px 0 16px">Thank you, ${e(first)}</h1>` +
         `<p style="font-size:16px;line-height:1.5">We've received your payment and started on your order. ` +
         `We'll deliver to ${e(to)} in ${e(order.delivery.zoneName)} on <strong>${e(longDate(order.delivery.date))}</strong>.</p>` +
+        (send
+          ? `<div style="border:2px solid #4a1420;border-radius:12px;padding:16px;margin:0 0 20px">` +
+            `<p style="font-size:16px;line-height:1.5;margin:0 0 12px"><strong>Please send us ${e(sendWhat)}.</strong> We need it before we can start. ` +
+            `Send it on WhatsApp as a document so it keeps its full quality.</p>` +
+            `<a href="${e(send.link)}" style="display:inline-block;background:#4a1420;color:#f8f2e6;text-decoration:none;padding:12px 22px;border-radius:999px">Send it on WhatsApp</a>` +
+            `<p style="font-size:13px;color:#6b5446;margin:12px 0 0">Or send it to ${e(CONTACT.phoneDisplay)} with order ${e(order.number)}.</p></div>`
+          : "") +
         linesTable(order, true) +
         `<p style="font-size:14px;line-height:1.5;color:#6b5446;margin-top:20px">Spotted a mistake in your words? Reply to this email straight away, before we start making it. ` +
         `You can see your order any time at <a href="${e(link)}" style="color:#4a1420">${e(link)}</a>.</p>`,
     ),
     text:
       `Thank you, ${first}. We've received your payment for order ${order.number}.\n` +
-      `We'll deliver to ${to} in ${order.delivery.zoneName} on ${longDate(order.delivery.date)}.\n\n${linesText(order, true)}\n\n` +
+      `We'll deliver to ${to} in ${order.delivery.zoneName} on ${longDate(order.delivery.date)}.\n\n` +
+      (send ? `Please send us ${sendWhat} on WhatsApp (as a document, to keep its quality): ${send.link}\n\n` : "") +
+      `${linesText(order, true)}\n\n` +
       `Spotted a mistake in your words? Reply to this email straight away.\n${link}`,
   };
 }
@@ -94,6 +118,9 @@ function teamEmail(order: StoredOrder, to: string) {
     ["Delivery date", longDate(order.delivery.date)],
     ["Price in package", order.delivery.hidePrice ? "No, hide the price" : "Yes"],
     ...(order.nfc ? [["NFC tag", "Put the buyer's video on the tag before dispatch"] as [string, string]] : []),
+    ...(filesToSend(order)
+      ? [["Files to come", `The buyer was asked to send ${filesToSend(order)!.files.map((f) => `the ${f.kind} for the ${f.name}`).join(" and ")} on WhatsApp`] as [string, string]]
+      : []),
     ["Paid by", order.paystack?.channel ?? "Paystack"],
   ];
   return {

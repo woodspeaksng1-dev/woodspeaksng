@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { remindNextYear } from "@/app/(site)/checkout/confirmation/actions";
 import { useCart } from "@/lib/cart-store";
+import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
 import type { OrderSummary } from "@/lib/orders";
+import { fileStillNeeded, sendFileMessage, type UploadKind } from "@/lib/uploads";
 import { OrderLines } from "./OrderLines";
 
 const longDate = (iso: string) => {
@@ -23,6 +25,11 @@ export function OrderConfirmation({ summary: order, reminderFor }: { summary: Or
   const [reminderError, setReminderError] = useState<string | null>(null);
   const [saving, start] = useTransition();
   useEffect(() => useCart.getState().clear(), []);
+  const filesToSend = order.lines.flatMap((l) => {
+    const kind = fileStillNeeded(l.customization);
+    return kind ? [{ name: l.name, kind }] : [];
+  }) satisfies { name: string; kind: UploadKind }[];
+  const what = filesToSend.every((f) => f.kind === "photo") ? (filesToSend.length > 1 ? "photos" : "photo") : filesToSend.every((f) => f.kind === "video") ? (filesToSend.length > 1 ? "videos" : "video") : "photo and video";
 
   return (
     <article>
@@ -32,6 +39,27 @@ export function OrderConfirmation({ summary: order, reminderFor }: { summary: Or
         We&rsquo;ve received your payment and started on your order. A confirmation is on its way to{" "}
         <strong>{order.email}</strong>.
       </p>
+
+      {filesToSend.length > 0 && (
+        <section className="mt-8 rounded-[1.6rem] border-2 border-oxblood bg-vellum p-6" aria-labelledby="send-file">
+          <h2 id="send-file" className="text-2xl text-oxblood">
+            Now send us your {what}
+          </h2>
+          <p className="mt-3 text-ink">
+            We need the {what} for {filesToSend.map((f) => `the ${f.name}`).join(" and ")} before we can start. Send{" "}
+            {filesToSend.length > 1 ? "them" : "it"} on WhatsApp as a document or file, not as a regular photo or video, so it keeps its full
+            quality. The message already has your order number.
+          </p>
+          <a
+            href={CONTACT.whatsappUrl(sendFileMessage(order.number, filesToSend))}
+            rel="noopener"
+            className="mt-5 inline-flex h-12 items-center rounded-full bg-oxblood px-7 text-vellum transition-colors hover:bg-wine"
+          >
+            Send it on WhatsApp
+          </a>
+          <p className="mt-3 text-sm text-ink-soft">Or send it to {CONTACT.phoneDisplay} with order {order.number}.</p>
+        </section>
+      )}
 
       <dl className="mt-10 grid gap-x-8 gap-y-4 rounded-[1.6rem] bg-vellum p-6 shadow-card sm:grid-cols-2">
         <div>

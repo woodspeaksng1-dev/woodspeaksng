@@ -4,15 +4,43 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { moveOrderOn, nfcWritten } from "@/app/admin/(panel)/orders/actions";
+import { PhotoFrame } from "@/components/customizer/PhotoEditor";
+import { whatsappToCustomer } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
+import { fileStillNeeded } from "@/lib/uploads";
 import { STATUS_FLOW, STATUS_LABEL, nextStatus, statusBlock, type StoredOrder } from "@/lib/orders";
 import { shortDate, shortDateTime } from "@/lib/admin/format";
 import { Badge, Card, adminButton, adminButtonQuiet } from "./AdminShell";
 
 type Line = StoredOrder["lines"][number];
 
+/** The buyer's file for a line: a download link, or, if they're sending it on WhatsApp, a way to chase it. */
+function FileOnLine({ id, kind, files, askBuyer }: { id: string | undefined; kind: "photo" | "video"; files: Record<string, string>; askBuyer: string | null }) {
+  const url = id ? files[id] : undefined;
+  if (url)
+    return (
+      <a href={url} className="mt-2 inline-block text-sm text-oxblood underline underline-offset-2 print:hidden">
+        Download the {kind} (link works for an hour; reload for a new one)
+      </a>
+    );
+  if (id) return <span className="mt-1 block text-sm text-oxblood">The uploaded {kind} couldn&rsquo;t be found. Ask the buyer to send it again.</span>;
+  return (
+    <span className="mt-1 block text-sm">
+      Not uploaded: the buyer was asked to send it on WhatsApp. Check the shop&rsquo;s WhatsApp for order messages.
+      {askBuyer && (
+        <>
+          {" "}
+          <a href={askBuyer} target="_blank" rel="noopener noreferrer" className="text-oxblood underline underline-offset-2 print:hidden">
+            Message the buyer
+          </a>
+        </>
+      )}
+    </span>
+  );
+}
+
 /** The personalisation, exactly as the buyer entered it, for the workshop. */
-function Personalisation({ line }: { line: Line }) {
+function Personalisation({ line, files, askBuyer }: { line: Line; files: Record<string, string>; askBuyer: string | null }) {
   const c = line.customization;
   if (c.kind === "letter")
     return <p className="mt-2 rounded-xl bg-parchment/60 p-4 font-display whitespace-pre-line italic">{c.text}</p>;
@@ -26,19 +54,31 @@ function Personalisation({ line }: { line: Line }) {
     ) : (
       <p className="mt-1 text-ink-soft">Our standard 20 reasons</p>
     );
-  if (c.kind === "photo")
+  if (c.kind === "photo") {
+    const id = c.uploadIds?.[0];
+    const url = id ? files[id] : undefined;
     return (
-      <p className="mt-1 text-ink-soft">
-        Photo: {c.photoNames[0] ?? "missing"}
-        {c.crop && ` · zoom ${c.crop.zoom.toFixed(2)}, offset ${Math.round(c.crop.x)}%, ${Math.round(c.crop.y)}%`}
-        <span className="block text-sm">The photo file arrives once uploads are switched on (Blaze plan).</span>
-      </p>
+      <div className="mt-1 text-ink-soft">
+        <p>
+          Photo: {c.photoNames[0] ?? "missing"}
+          {c.crop && ` · zoom ${c.crop.zoom.toFixed(2)}, offset ${Math.round(c.crop.x)}%, ${Math.round(c.crop.y)}%`}
+        </p>
+        {url && (
+          <div className="mt-3 w-48">
+            <p className="mb-2 text-sm">As the buyer placed it:</p>
+            <PhotoFrame kind={line.productId === "locket" ? "locket" : "polaroid"} photo={{ url }} crop={c.crop ?? { zoom: 1, x: 0, y: 0 }} />
+          </div>
+        )}
+        <FileOnLine id={id} kind="photo" files={files} askBuyer={askBuyer} />
+      </div>
     );
+  }
   if (c.kind === "video")
     return (
-      <p className="mt-1 break-all text-ink-soft">
-        {c.source === "file" ? `Video: ${c.fileName} (${c.sizeMb} MB)` : `Video link: ${c.url}`}
-      </p>
+      <div className="mt-1 break-all text-ink-soft">
+        <p>{c.source === "file" ? `Video: ${c.fileName} (${c.sizeMb} MB)` : `Video link: ${c.url}`}</p>
+        {c.source === "file" && <FileOnLine id={c.uploadId} kind="video" files={files} askBuyer={askBuyer} />}
+      </div>
     );
   return null;
 }
@@ -52,7 +92,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export function OrderDetail({ order }: { order: StoredOrder }) {
+export function OrderDetail({ order, files }: { order: StoredOrder; files: Record<string, string> }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -61,6 +101,18 @@ export function OrderDetail({ order }: { order: StoredOrder }) {
   const block = next ? statusBlock(order, next) : null;
   const nfcVideo = order.lines.map((l) => l.customization).find((c) => c.kind === "video");
   const unpaid = order.status === "pending";
+  const missingFiles = order.lines.flatMap((l) => {
+    const kind = fileStillNeeded(l.customization);
+    return kind ? [{ name: l.name, kind }] : [];
+  });
+  const askBuyer = missingFiles.length
+    ? whatsappToCustomer(
+        order.customer.phone,
+        `Hello ${order.customer.name.split(" ")[0]}, this is Woodspeaks. Thank you for order ${order.number}. To start making it, please send ${missingFiles
+          .map((f) => `the ${f.kind} for the ${f.name}`)
+          .join(" and ")} here, as a document so it keeps its quality.`,
+      )
+    : null;
 
   const run = (action: () => Promise<{ ok: boolean; message: string }>) =>
     startTransition(async () => {
@@ -157,7 +209,7 @@ export function OrderDetail({ order }: { order: StoredOrder }) {
           {nfcVideo?.kind === "video" && nfcVideo.source === "file" && (
             <p className="mt-3">
               File: <span className="font-semibold">{nfcVideo.fileName}</span> ({nfcVideo.sizeMb} MB)
-              <span className="mt-1 block text-sm text-ink-soft">The file itself arrives once uploads are switched on (Blaze plan).</span>
+              <FileOnLine id={nfcVideo.uploadId} kind="video" files={files} askBuyer={askBuyer} />
             </p>
           )}
           {nfcVideo?.kind === "video" && nfcVideo.source === "link" && (
@@ -193,7 +245,7 @@ export function OrderDetail({ order }: { order: StoredOrder }) {
                 </span>
                 <span className="font-sans text-sm text-ink-soft tabular-nums print:hidden">{formatNaira(l.lineTotal)}</span>
               </p>
-              <Personalisation line={l} />
+              <Personalisation line={l} files={files} askBuyer={askBuyer} />
             </li>
           ))}
         </ul>

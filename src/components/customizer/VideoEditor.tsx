@@ -1,16 +1,18 @@
 "use client";
 
 import { useRef } from "react";
+import { VIDEO_TYPES } from "@/lib/uploads";
 
 export interface ChosenVideo {
   url: string;
   name: string;
   sizeMb: number;
+  file: File;
 }
 
 export type VideoSource = "file" | "link";
 
-const ACCEPT = "video/mp4,video/quicktime,video/*";
+const ACCEPT = VIDEO_TYPES.join(",");
 
 /** Host name of a link, for showing it back to the buyer ("youtube.com"). */
 function hostOf(link: string) {
@@ -75,11 +77,11 @@ export function VideoEditor({
   const choose = (file: File | undefined) => {
     if (!file) return;
     const sizeMb = file.size / (1024 * 1024);
-    if (!file.type.startsWith("video/")) return onError("That isn't a video. Choose an MP4 or MOV file.");
+    if (!(VIDEO_TYPES as readonly string[]).includes(file.type)) return onError("That isn't a video we can use. Choose an MP4 or MOV file.");
     if (sizeMb > maxMb)
       return onError(`That video is ${Math.ceil(sizeMb)} MB; the most we can take is ${maxMb} MB. Trim it, or paste a link instead.`);
     onError(null);
-    onVideo({ url: URL.createObjectURL(file), name: file.name, sizeMb: Math.round(sizeMb * 10) / 10 });
+    onVideo({ url: URL.createObjectURL(file), name: file.name, sizeMb: Math.round(sizeMb * 10) / 10, file });
   };
 
   const option = (value: VideoSource, label: string) => (

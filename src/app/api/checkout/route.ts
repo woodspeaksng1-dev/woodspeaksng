@@ -5,6 +5,7 @@ import { readCatalog } from "@/lib/server/catalog";
 import { createPendingOrder, discardPendingOrder } from "@/lib/server/orders";
 import { startPayment } from "@/lib/server/paystack";
 import { allow, clientIp } from "@/lib/server/rate-limit";
+import { checkLineUploads, uploadIdsOf } from "@/lib/server/uploads";
 
 /*
  * POST /api/checkout: { details, lines } from the checkout form.
@@ -51,6 +52,18 @@ export async function POST(request: Request) {
   if (!priced.ok) return fail(400, priced.problems[0]?.message ?? "Check your cart.", { problems: priced.problems });
   if (priced.order.deliveryFee == null)
     return fail(400, "We can't take payment for delivery to this area online yet. Message us on WhatsApp to order.");
+
+  // Uploaded photos and videos: each must be ours, complete, and for that item.
+  if (uploadIdsOf(priced.order.lines).length > 0) {
+    let problem: string | null;
+    try {
+      problem = await checkLineUploads(priced.order.lines);
+    } catch (error) {
+      console.error("Checkout: couldn't check the uploaded files.", error);
+      return fail(503, "We couldn't check your photos or videos just now. Try again in a minute.");
+    }
+    if (problem) return fail(400, problem);
+  }
 
   const order = await createPendingOrder(details.data, priced.order);
   try {

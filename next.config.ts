@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // The old site (until Nov 2026) had only /, /checkout and /success; Google indexed none of its pages.
+  // /checkout is the same address here. Its logo images (/logos/*) are deliberately left to 404.
+  async redirects() {
+    return [
+      { source: "/success", destination: "/shop", permanent: true },
+      { source: "/favicon.jpg", destination: "/icon.png", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

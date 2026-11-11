@@ -310,6 +310,14 @@ Backend order of work:
    floating helpers sit in Suspense; the emulator uses a throwaway certificate so it behaves like production.
 7. Mailing: opt-in list (double opt-in), template broadcasts, reminder dates, daily job, unpaid nudge
 8. Uploads: customer photos and NFC videos (resumable, private, 100 MB cap in Storage rules)
+   Built 11 Nov, off until Blaze (`UPLOADS_ENABLED=1`). The server opens a resumable upload fixed to the file's
+   exact size and type; the browser sends 8 MB pieces straight to Google and resumes after a dropped connection.
+   Checkout checks each file (ours, complete, right product, not on another paid order); payment links it to the
+   order; admin shows the photo as placed plus an hour-long download link; the daily job deletes files no paid
+   order used after a week. Storage rules deny all browser access. While off, or if an upload fails, the buyer
+   sends the file on WhatsApp: the confirmation page and email ask for it with the order number filled in, the
+   team email says it's to come, and admin has "Message the buyer". 7 emulator tests, 3 unit tests.
+   To switch on: `node scripts/enable-uploads.mjs`, then `UPLOADS_ENABLED=1` in Vercel and redeploy.
 
 Tests that must exist before launch: cart totals (add-ons, every zone, puzzle fee); personalisation
 validation edge cases; webhook (valid signature, bad signature, wrong amount, repeated delivery);
@@ -319,7 +327,8 @@ full checkout on a real phone in test mode, then one small live payment and refu
 ## Launch checklist
 
 - Copy every DNS record first; keep MX (email) records unchanged; switch DNS on 10 Nov
-- 301 redirect map from the old site's URLs to the new pages
+- 301 redirect map from the old site's URLs to the new pages (done 11 Nov: the old site had only /, /checkout
+  and /success, and Google indexed none; /success goes to /shop, /favicon.jpg to the new icon)
 - SPF, DKIM and DMARC for woodspeaks.ng so emails don't land in spam
 - Live Paystack keys; one small live payment and refund
 - Search Console: verify, submit the sitemap; set `NEXT_PUBLIC_SITE_URL` if the domain isn't www.woodspeaks.ng

@@ -29,6 +29,8 @@ Payments, auth and Firestore rules get line-by-line review and failure-case test
 - `node scripts/seed-catalog.mjs` — loads the starting catalog and the old site's six reviews into Firestore (creates only what's missing)
 - `node scripts/deploy-rules.mjs` — publishes `firestore.rules` to the live project with the service account
 - `node scripts/set-owner.mjs <email>` — makes that email the admin owner (the only one who manages staff)
+- `node scripts/enable-uploads.mjs` — once Blaze is on: publishes `storage.rules` and lets the shop's addresses upload
+  to the bucket; then set `UPLOADS_ENABLED=1` in Vercel and redeploy
 
 ## Layout
 - `src/app/(site)/` shop routes (navbar, footer, cart, floating helpers via `SiteChrome`): home, shop,

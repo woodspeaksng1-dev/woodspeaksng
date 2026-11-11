@@ -9,6 +9,6 @@ const Customizer = dynamic(() => import("@/components/customizer/Customizer").th
   loading: () => <p className="py-24 text-center text-ink-soft">Opening the customizer…</p>,
 });
 
-export function CustomizerLoader({ product }: { product: Product }) {
-  return <Customizer product={product} />;
+export function CustomizerLoader({ product, uploads }: { product: Product; uploads: boolean }) {
+  return <Customizer product={product} uploads={uploads} />;
 }

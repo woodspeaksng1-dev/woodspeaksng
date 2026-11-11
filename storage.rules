@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Customer files are private. Browsers never read or write Storage through Firebase: the server opens
+// each upload (a resumable session fixed to one file's size and type) and gives staff short-lived links.
+// Admin access and those sessions don't go through these rules.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { findProduct, findZone } from "./catalog";
 import { unitPrice } from "./pricing";
 import type { CartCustomization, Catalog, Product, ShippingZone } from "./types";
+import { uploadId } from "./uploads";
 import { letterSchema, reasonsSchema, videoLinkSchema } from "./validation";
 
 /*
@@ -61,6 +62,7 @@ function customizationSchema(product: Product): z.ZodType<CartCustomization> {
         kind: z.literal("photo"),
         photoNames: z.array(fileName).min(1, "Add a photo.").max(p.maxPhotos, `Up to ${p.maxPhotos} photo${p.maxPhotos === 1 ? "" : "s"}.`),
         crop: crop.optional(),
+        uploadIds: z.array(uploadId).max(p.maxPhotos).optional(),
       });
     case "video":
       return z.discriminatedUnion("source", [
@@ -69,6 +71,7 @@ function customizationSchema(product: Product): z.ZodType<CartCustomization> {
           source: z.literal("file"),
           fileName,
           sizeMb: z.number().positive().max(p.maxMb, `Videos can be up to ${p.maxMb} MB.`),
+          uploadId: uploadId.optional(),
         }),
         z.object({ kind: z.literal("video"), source: z.literal("link"), url: videoLinkSchema }),
       ]);

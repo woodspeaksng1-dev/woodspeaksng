@@ -57,8 +57,8 @@ export type CartCustomization =
   | { kind: "none" }
   | { kind: "letter"; text: string }
   | { kind: "reasons"; mode: "standard" | "custom"; reasons: string[] }
-  | { kind: "photo"; photoNames: string[]; crop?: PhotoCrop }
-  | { kind: "video"; source: "file"; fileName: string; sizeMb: number }
+  | { kind: "photo"; photoNames: string[]; crop?: PhotoCrop; /** Our upload ids, one per photo, once uploaded. */ uploadIds?: string[] }
+  | { kind: "video"; source: "file"; fileName: string; sizeMb: number; /** Our upload id, once uploaded. */ uploadId?: string }
   | { kind: "video"; source: "link"; url: string };
 
 /** How the photo sits in its frame: zoom (1 = fills the frame) and offset in % of the frame. */
