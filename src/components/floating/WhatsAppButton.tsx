@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CONTACT } from "@/lib/contact";
+import { SITE } from "@/lib/site";
 import { findProductBySlug } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { CloseIcon, WhatsAppIcon } from "../ui/icons";
@@ -23,7 +24,7 @@ export function WhatsAppButton() {
     ? findProductBySlug(catalog, pathname.split("/")[2] ?? "")
     : undefined;
   const message = product
-    ? `Hello Woodspeaks, I have a question about the ${product.name}: https://woodspeaks.ng${pathname}`
+    ? `Hello Woodspeaks, I have a question about the ${product.name}: ${SITE.url}${pathname}`
     : "Hello Woodspeaks, I'd like help choosing a gift.";
 
   return (

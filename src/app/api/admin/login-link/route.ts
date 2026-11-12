@@ -22,7 +22,9 @@ export async function POST(request: Request) {
   if (!(await allow("admin-link-ip", ip, 10, 3600)) || !(await allow("admin-link-email", email, 3, 3600)))
     return Response.json({ message: "Too many links requested. Try again in an hour." }, { status: 429 });
 
-  if (await getStaffMember(email)) {
+  // Any failure is logged, never shown: the reply must not reveal who is on the team.
+  try {
+    if (!(await getStaffMember(email))) return Response.json(SAME_REPLY);
     const link = await (await adminAuth()).generateSignInWithEmailLink(email, {
       url: new URL("/admin/login", request.url).toString(),
       handleCodeInApp: true,
@@ -37,7 +39,9 @@ export async function POST(request: Request) {
         `<p><a href="${escapeHtml(link)}" style="display:inline-block;background:#4a1420;color:#f8f2e6;padding:12px 24px;border-radius:999px;text-decoration:none">Sign in</a></p>` +
         `<p style="font-size:13px;color:#6b5446">Didn't ask for this? Ignore it; nobody can sign in without this email.</p></div>`,
       text: `Sign in to Woodspeaks admin (works once, for an hour):\n${link}\n\nDidn't ask for this? Ignore it.`,
-    }).catch((error) => console.error("Admin sign-in link: email failed.", error));
+    });
+  } catch (error) {
+    console.error("Admin sign-in link failed.", error);
   }
   return Response.json(SAME_REPLY);
 }

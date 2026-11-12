@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { lagosToday } from "@/lib/reminders";
+import { SITE } from "@/lib/site";
 import { runBroadcasts } from "@/lib/server/broadcasts";
 import { sendDueReminders } from "@/lib/server/reminders";
 import { deleteUnusedUploads, uploadsEnabled } from "@/lib/server/uploads";
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
   if (!authorised(request)) return Response.json({ message: "Not allowed." }, { status: 401 });
   const started = Date.now();
   const today = lagosToday();
-  const reminders = await sendDueReminders(today, new URL(request.url).origin);
+  const reminders = await sendDueReminders(today, SITE.url) // not request.url: Vercel calls this on an internal address;
   const broadcasts = await runBroadcasts({ today, deadline: started + 50_000 });
   const uploadsDeleted = uploadsEnabled() ? await deleteUnusedUploads().catch((error) => (console.error("Daily job: upload clean-up failed.", error), 0)) : 0;
   const result = { reminders, broadcasts, uploadsDeleted };

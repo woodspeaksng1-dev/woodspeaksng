@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sendPaidOrderEmails } from "@/lib/server/order-emails";
 import { confirmPayment, isOrderNumber } from "@/lib/server/orders";
 import { isGenuineWebhook } from "@/lib/server/paystack";
+import { SITE } from "@/lib/site";
 
 /*
  * POST /api/paystack/webhook: Paystack's server telling us about a payment.
@@ -35,8 +36,7 @@ export async function POST(request: Request) {
   try {
     const result = await confirmPayment(reference);
     if (result.outcome === "paid-now") {
-      const siteUrl = new URL(request.url).origin;
-      after(() => sendPaidOrderEmails(result.order, siteUrl));
+      after(() => sendPaidOrderEmails(result.order, SITE.url));
     }
     return Response.json({ outcome: result.outcome });
   } catch (error) {

@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
-// Baseline security headers. A full Content-Security-Policy (allowing Paystack,
-// Firebase and the email provider) is added in the backend stage.
+// Baseline security headers. The CSP covers what can't break the site: no plugins, no <base> hijack, no
+// framing. A script allow-list (Paystack, Firebase, Google sign-in) is a later, tested step.
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
