@@ -335,7 +335,14 @@ full checkout on a real phone in test mode, then one small live payment and refu
 - Live Paystack keys; one small live payment and refund
 - Search Console: verify, submit the sitemap; set `NEXT_PUBLIC_SITE_URL` if the domain isn't www.woodspeaks.ng
 - Google Business Profile for Woodspeaks in Lagos
-- Error tracking (Sentry), uptime monitor, Firestore backups, funnel analytics (view, customize, add to
+- Safety net done 12 Nov: paid-order emails retried and recorded on the order (`emails`); the daily job
+  checks pending orders from the last 3 days with Paystack (missed webhooks) and resends unsent emails;
+  team alerts (`lib/server/alerts.ts`, one per kind an hour) for payment mismatches, Paystack refusing
+  payments, the database not answering checkout, email failures and daily job problems. Firestore daily
+  backups (7 days) and the rateLimits TTL are on. Product photos upload from admin (12 Nov).
+- Hosting: the project is on Vercel Hobby under the developer's account (non-commercial terms, ~1 hour
+  logs). Before long: Vercel Pro on the client's account, or move to Firebase App Hosting (pay as you go)
+- Error tracking (Sentry), uptime monitor, funnel analytics (view, customize, add to
   cart, checkout, paid); cookie banner only if tracking cookies are used
 - Privacy policy naming Paystack, Firebase, Vercel and the email provider (NDPA 2023 / GAID);
   the client confirms obligations with a Nigerian data protection practitioner
