@@ -289,8 +289,7 @@ Backend order of work:
    maximum is 2 weeks); orders found by email so guest orders appear, unpaid checkouts left out; status
    tracker; up to 5 saved addresses (real delivery areas only); checkout fills name, email, phone and
    offers saved addresses. Sign-in code shared with admin (`auth-session.ts`, `SignInForm`). 10 emulator
-   tests. Customer emails (links, confirmations) only reach real inboxes once woodspeaks.ng is verified in
-   Resend. Copy now says delivery across Lagos (not Nigeria).
+   tests. Customer emails go from orders@woodspeaks.ng (verified in Resend 12 Nov). Copy now says delivery across Lagos (not Nigeria).
 6. Admin panel on real data
    Sign-in and team done 10 Nov: /admin/login (Google or an emailed one-time link we send through Resend),
    server-checked httpOnly SameSite=Strict session cookie (7 days, revocation checked every request); the
@@ -326,10 +325,13 @@ full checkout on a real phone in test mode, then one small live payment and refu
 
 ## Launch checklist
 
-- Copy every DNS record first; keep MX (email) records unchanged; switch DNS on 10 Nov
+- Domain switched 12 Nov: woodspeaks.ng and www moved from the old developer's Vercel project to ours by
+  `_vercel` TXT verification (DNS stays at Hostinger; A/CNAME and MX unchanged). woodspeaks.ng 308s to www;
+  `NEXT_PUBLIC_SITE_URL` is https://www.woodspeaks.ng; both added to Firebase authorized domains
+  (`scripts/auth-domains.mjs`); Paystack live webhook is www.woodspeaks.ng/api/paystack/webhook
 - 301 redirect map from the old site's URLs to the new pages (done 11 Nov: the old site had only /, /checkout
   and /success, and Google indexed none; /success goes to /shop, /favicon.jpg to the new icon)
-- SPF, DKIM and DMARC for woodspeaks.ng so emails don't land in spam
+- SPF, DKIM and DMARC for woodspeaks.ng so emails don't land in spam (done 12 Nov; DMARC is p=none)
 - Live Paystack keys; one small live payment and refund
 - Search Console: verify, submit the sitemap; set `NEXT_PUBLIC_SITE_URL` if the domain isn't www.woodspeaks.ng
 - Google Business Profile for Woodspeaks in Lagos
