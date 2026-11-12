@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { imageSrc, videoSources } from "@/lib/media";
 import { LoopVideo } from "../media/LoopVideo";
 import { onIntroDone } from "../preloader/intro";
+import { markHeroDone } from "./hero-done";
 import { HeroScroll } from "./HeroScroll";
 
 /**
@@ -43,6 +44,7 @@ export function HeroStage() {
             className="h-full w-full object-contain [mask-image:linear-gradient(90deg,transparent,black_5%,black_95%,transparent),linear-gradient(transparent,black_4%,black_96%,transparent)] [mask-composite:intersect]"
             afterIntro
             once
+            onFinished={markHeroDone}
           />
         ) : (
           <div className="mx-auto h-full w-[80%] pt-[4%]">

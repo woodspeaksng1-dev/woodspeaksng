@@ -3,6 +3,7 @@
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect } from "react";
 import { onIntroDone } from "../preloader/intro";
+import { markHeroDone } from "./hero-done";
 
 /*
  * PLACEHOLDER ART. When the client's cut-out photos arrive, replace the drawn
@@ -34,11 +35,12 @@ export function HeroScroll() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
       progress.set(1);
+      markHeroDone();
       return;
     }
     let a: ReturnType<typeof animate> | undefined;
     const stop = onIntroDone(() => {
-      a = animate(progress, 1, { delay: 0.15, duration: 1.7, ease: [0.65, 0, 0.35, 1] });
+      a = animate(progress, 1, { delay: 0.15, duration: 1.7, ease: [0.65, 0, 0.35, 1], onComplete: markHeroDone });
     });
     return () => {
       stop();

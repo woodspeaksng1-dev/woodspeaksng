@@ -20,6 +20,7 @@ export function prefersStill() {
  * `once` plays through a single time and rests on the last frame; still-preferring
  * visitors are shown that last frame too, so they see the finished state. So are visitors
  * whose browser refuses to autoplay (Safari in Low Power Mode or with Auto-Play off).
+ * `onFinished` (with `once`) is called when it comes to rest on the last frame, however it got there.
  */
 export function LoopVideo({
   sources,
@@ -28,6 +29,7 @@ export function LoopVideo({
   className = "",
   afterIntro = false,
   once = false,
+  onFinished,
 }: {
   sources: VideoSource[];
   poster?: string | null;
@@ -35,8 +37,13 @@ export function LoopVideo({
   className?: string;
   afterIntro?: boolean;
   once?: boolean;
+  onFinished?: () => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const finished = useRef(onFinished);
+  useEffect(() => {
+    finished.current = onFinished;
+  });
 
   useEffect(() => {
     const video = ref.current;
@@ -45,7 +52,10 @@ export function LoopVideo({
     video.muted = video.defaultMuted = true;
     // Show the finished state: seek to the end once the length is known.
     const showEnd = () => {
-      const toEnd = () => (video.currentTime = Math.max(0, video.duration - 0.05));
+      const toEnd = () => {
+        video.currentTime = Math.max(0, video.duration - 0.05);
+        finished.current?.();
+      };
       if (video.readyState >= 1) toEnd();
       else video.addEventListener("loadedmetadata", toEnd, { once: true });
     };
@@ -53,11 +63,14 @@ export function LoopVideo({
       if (once) showEnd();
       return;
     }
+    const onEnded = () => finished.current?.();
+    if (once) video.addEventListener("ended", onEnded);
     let ready = !afterIntro;
     let visible = false;
     const sync = () => {
       if (once && video.ended) return;
-      return ready && visible ? video.play().catch(() => once && showEnd()) : video.pause();
+      // Only a refusal to autoplay skips to the end; a play interrupted by scrolling away (AbortError) just waits.
+      return ready && visible ? video.play().catch((e: unknown) => once && (e as Error)?.name === "NotAllowedError" && showEnd()) : video.pause();
     };
     const stopWaiting = afterIntro ? onIntroDone(() => ((ready = true), sync())) : () => {};
     const io = new IntersectionObserver(([e]) => ((visible = e.isIntersecting), sync()), { threshold: 0.25 });
@@ -65,6 +78,7 @@ export function LoopVideo({
     return () => {
       io.disconnect();
       stopWaiting();
+      video.removeEventListener("ended", onEnded);
     };
   }, [afterIntro, once]);
 

@@ -90,6 +90,17 @@ Done (frontend, mock data):
 - Scroll preview (9 Nov): a rod at both ends like the real scroll (bottom rod built from the top one,
   border flipped); letter text smaller as it grows and the preview wider on desktop, so 300 words stays
   a sensible length (about 770 px on desktop, 850 px on phones).
+- Client changes (12 Nov): Mudi says hello once a visit. On the home page, once the hero scroll has
+  finished unrolling (`markHeroDone`/`onHeroDone`, `components/home/hero-done.ts`; elsewhere after the
+  intro), Mudi pops up mid-screen, says "Hello, I'm Mudi. I can help with gift suggestions, and even write you
+  a thoughtful message. If you need me, I'll be right here." word by word (with Suggest a gift and close), then
+  flies to its corner. Reduced motion: appears and fades. "Click me" nudges start 20 s after the hello.
+  Hero film: an interrupted play no longer skips to the last frame (only a refused autoplay does).
+- Admin prices (12 Nov): price, fee and day boxes accept "17,000", "₦17,000" and "17 000" (before, a comma was
+  refused as "Enter the price." and nothing saved); the price box shows "Shows in the shop as ₦17,000"; Save
+  stays on screen with "Not saved yet". Checked end to end on the emulator: a saved price shows at once on home,
+  shop and product pages. Full admin check: every page loads signed in; 133 emulator tests pass. Homepage
+  (moments, logos) is still unbuilt; featured products are set on each product.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -164,7 +175,8 @@ delivery (policy wording updated).
 
 ## Mudi, the mascot
 
-A guided helper with buttons, not an open chatbot. Floating bottom-left; never opens on its own.
+A guided helper with buttons, not an open chatbot. Floating bottom-left; the panel never opens on its own.
+Once a visit it pops up and says hello after the hero scroll has dropped, then goes to its corner (12 Nov).
 - **Suggest a gift** (done): who it's for + occasion → 3 random products tagged with both, falling back
   to featured products. No AI call.
 - **Help me write it** (done, in the customizer): who, occasion, tone → 3 letters → **Use this** inserts
