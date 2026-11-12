@@ -363,9 +363,10 @@ Still open:
 2. Paystack or Kora (old site footer says Kora), then their live keys
 3. The exact 20 reasons printed on the standard puzzle (6 words max): the client is sending them. The
    customizer shows a provisional set (`STANDARD_REASONS` in `src/lib/drafts.ts`) until then
-4. Resend: whether the old site sends email through the Resend team that holds woodspeaks.ng (claiming it cuts
-   them off); then their own API key, and a paid plan if they'll email big lists
-5. The Firebase Blaze plan (a card on file, budget alert at about $10) before uploads go live
+4. Resend: done 12 Nov. The old developer deleted woodspeaks.ng from their account; it's verified in our
+   team (woodspeaksng1, eu-west-1) and the live site sends from orders@woodspeaks.ng (lands in the inbox).
+   Still to decide: a paid plan if they'll email big lists (free plan: 100 a day)
+5. The Firebase Blaze plan: on since 11 Nov, uploads live (set a budget alert at about $10 if not done)
 6. The privacy policy needs a Nigerian data protection practitioner's review; the draft policies hold
    assumptions to confirm (48-hour damage reports, refunds only before crafting, second delivery attempt fee,
    data requests within 30 days)

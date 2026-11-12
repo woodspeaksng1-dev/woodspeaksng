@@ -1,8 +1,8 @@
 import "server-only";
 
 /*
- * Sends email through Resend (RESEND_API_KEY, EMAIL_FROM). Until woodspeaks.ng is verified in Resend,
- * EMAIL_FROM is onboarding@resend.dev and Resend only delivers to the account owner's address.
+ * Sends email through Resend (RESEND_API_KEY, EMAIL_FROM). woodspeaks.ng is verified in Resend, so live
+ * mail goes from orders@woodspeaks.ng; a local key without the domain can only use onboarding@resend.dev.
  * Everything a customer typed must go through escapeHtml() before it's put in an email.
  */
 
