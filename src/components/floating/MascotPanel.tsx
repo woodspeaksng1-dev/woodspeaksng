@@ -11,6 +11,7 @@ import type { Occasion, Product, Recipient } from "@/lib/types";
 import { CloseIcon, WizardHatIcon } from "../ui/icons";
 import { Chips } from "../ui/Chips";
 import { imageSrc } from "@/lib/media";
+import { tuckClasses, useTuckOnScroll } from "./useTuckOnScroll";
 
 const mudi = imageSrc("mascot/mudi");
 
@@ -46,6 +47,7 @@ export function MascotPanel() {
   const [opened, setOpened] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
+  const tucked = useTuckOnScroll(!open);
 
   useEffect(() => {
     try {
@@ -100,7 +102,9 @@ export function MascotPanel() {
   if (pathname.startsWith("/checkout") || pathname.endsWith("/personalise")) return null;
 
   return (
-    <div className="fixed bottom-[calc(1rem+var(--sticky-bar,0px))] left-4 z-30 flex flex-col items-start gap-3 md:bottom-6 md:left-6">
+    <div
+      className={`fixed bottom-[calc(1rem+var(--sticky-bar,0px))] left-4 z-30 flex flex-col items-start gap-3 md:bottom-6 md:left-6 ${tuckClasses(tucked, "left")}`}
+    >
       <AnimatePresence>
         {open && (
           <motion.div

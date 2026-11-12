@@ -6,7 +6,7 @@ import type { Product } from "@/lib/types";
 import { BagIcon, PenIcon } from "../ui/icons";
 
 const pill =
-  "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-ink text-[0.82rem] text-vellum transition-colors hover:bg-oxblood w-10 sm:w-auto sm:pr-4 sm:pl-3.5";
+  "inline-flex h-10 shrink-0 items-center whitespace-nowrap justify-center gap-2 rounded-full bg-ink text-[0.82rem] text-vellum transition-colors hover:bg-oxblood w-10 sm:w-auto sm:pr-4 sm:pl-3.5";
 
 /** The dark pill on each card: personalise (goes to the product) or add straight to the cart. */
 export function CardAction({ product }: { product: Product }) {

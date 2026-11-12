@@ -7,12 +7,14 @@ import { CONTACT } from "@/lib/contact";
 import { findProductBySlug } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { CloseIcon, WhatsAppIcon } from "../ui/icons";
+import { tuckClasses, useTuckOnScroll } from "./useTuckOnScroll";
 
 /** Shown on the shop and product pages only (not the customizer, where it would cover the text box). */
 export function WhatsAppButton() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const catalog = useCatalog();
+  const tucked = useTuckOnScroll(!open);
 
   const onShop = pathname === "/shop" || (pathname.startsWith("/products/") && !pathname.endsWith("/personalise"));
   if (!onShop) return null;
@@ -25,7 +27,9 @@ export function WhatsAppButton() {
     : "Hello Woodspeaks, I'd like help choosing a gift.";
 
   return (
-    <div className="fixed right-4 bottom-[calc(1rem+var(--sticky-bar,0px))] z-30 flex flex-col items-end gap-3 md:right-6 md:bottom-6">
+    <div
+      className={`fixed right-4 bottom-[calc(1rem+var(--sticky-bar,0px))] z-30 flex flex-col items-end gap-3 md:right-6 md:bottom-6 ${tuckClasses(tucked, "right")}`}
+    >
       <AnimatePresence>
         {open && (
           <motion.div
