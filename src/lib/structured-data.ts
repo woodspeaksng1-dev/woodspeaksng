@@ -41,7 +41,7 @@ export function websiteLd() {
 }
 
 export function productImage(product: Product) {
-  return imageSrc(`products/${product.slug}-cutout`) ?? imageSrc(`products/${product.slug}`);
+  return product.image || imageSrc(`products/${product.slug}-cutout`) || imageSrc(`products/${product.slug}`);
 }
 
 export function productLd(product: Product) {

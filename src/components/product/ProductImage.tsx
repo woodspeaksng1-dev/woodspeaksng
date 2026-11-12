@@ -3,7 +3,8 @@ import { imageSrc } from "@/lib/media";
 import { CATEGORY_TONE } from "./tones";
 
 /**
- * Two kinds of product photo:
+ * Product photos, in order of preference:
+ * - product.image: a photo staff uploaded in admin (served from /catalog-photo), filling the frame.
  * - products/<slug>-cutout: the product cut out on a transparent background, set on
  *   the card's tone with a soft drawn shadow.
  * - products/<slug>: a full styled photo (the client's moody table shots), filling the frame.
@@ -16,8 +17,9 @@ export function ProductImage({
   product: Product;
   className?: string;
 }) {
-  const cutout = imageSrc(`products/${product.slug}-cutout`);
-  const photo = cutout ? null : imageSrc(`products/${product.slug}`);
+  const uploaded = product.image || null;
+  const cutout = uploaded ? null : imageSrc(`products/${product.slug}-cutout`);
+  const photo = uploaded ?? (cutout ? null : imageSrc(`products/${product.slug}`));
   return (
     <div
       className={`relative isolate aspect-[4/5] overflow-hidden bg-gradient-to-b ${CATEGORY_TONE[product.category].image} ${className}`}

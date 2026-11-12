@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
   const product = findProductBySlug(await getStorefront(), slug);
   if (!product) return {};
   const path = `/products/${product.slug}`;
-  const share = imageSrc(`og/${product.slug}`);
+  const share = imageSrc(`og/${product.slug}`) ?? (product.image || null);
   const personal = product.personalization.kind !== "none";
   const description = `${product.description} ${formatNaira(product.price)}.${personal ? " Personalised for you and made" : " Made"} by hand in Lagos.`;
   return pageMeta({

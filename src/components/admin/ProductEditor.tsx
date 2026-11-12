@@ -6,9 +6,9 @@ import { useState, useTransition } from "react";
 import { saveProduct } from "@/app/admin/(panel)/catalog-actions";
 import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
 import type { Occasion, Personalization, Product, Recipient } from "@/lib/types";
-import { ProductImage } from "../product/ProductImage";
 import { Check, TextField, inputClass } from "../ui/FormField";
 import { Card, adminButton } from "./AdminShell";
+import { ProductPhoto } from "./ProductPhoto";
 
 function Tags<T extends string>({
   label,
@@ -124,8 +124,7 @@ export function ProductEditor({ product }: { product: Product }) {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[16rem_1fr]">
         <Card className="self-start">
-          <ProductImage product={product} className="rounded-xl" />
-          <p className="mt-3 text-sm text-ink-soft">Uploading a new photo switches on with the Blaze plan.</p>
+          <ProductPhoto product={product} />
           <div className="mt-4 flex flex-col gap-3">
             <Check checked={draft.featured} onChange={(v) => set("featured", v)}>
               Show on the home page

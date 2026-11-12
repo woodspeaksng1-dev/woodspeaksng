@@ -18,7 +18,7 @@ vi.mock("@/lib/server/paystack", async (original) => ({
   verifyPayment: paystack.verify,
   startPayment: paystack.start,
 }));
-const mail = vi.hoisted(() => ({ send: vi.fn(async (_m: { to: string; subject: string }) => {}) }));
+const mail = vi.hoisted(() => ({ send: vi.fn<(m: { to: string; subject: string }) => Promise<void>>(async () => {}) }));
 vi.mock("@/lib/server/email", async (original) => ({
   ...(await original<typeof import("@/lib/server/email")>()),
   sendEmail: mail.send,
