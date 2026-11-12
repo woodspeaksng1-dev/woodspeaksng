@@ -3,16 +3,14 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
-import { MOMENTS } from "@/lib/gallery";
+import type { Moment } from "@/lib/gallery";
 import { MomentMedia } from "../media/MomentMedia";
-
-const SHOWN = MOMENTS.slice(0, 4);
 
 /**
  * A few customer moments as a stack of cards. Tap or click the front card to put
- * it to the back; a clip plays on hover. "See all moments" opens the gallery.
+ * it to the back. "See all moments" opens the gallery. `moments`: the first few, from admin (see Moments.tsx).
  */
-export function MomentsStack() {
+export function MomentsStack({ moments: SHOWN }: { moments: Moment[] }) {
   const [order, setOrder] = useState(SHOWN.map((_, i) => i));
   const [hover, setHover] = useState(false);
   const reduce = useReducedMotion();
@@ -71,7 +69,7 @@ export function MomentsStack() {
                 transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 240, damping: 28 }}
               >
                 <MomentMedia
-                  mediaKey={`gallery/${m.id}`}
+                  image={m.image}
                   label={m.caption}
                   active={front && hover}
                   tone={idx}

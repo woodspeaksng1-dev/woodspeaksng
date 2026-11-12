@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
-import { MOMENTS } from "@/lib/gallery";
+import { getPublicMoments } from "@/lib/server/moments";
 import { GalleryCard } from "./GalleryCard";
 
 export const metadata: Metadata = pageMeta({
@@ -11,7 +11,8 @@ export const metadata: Metadata = pageMeta({
   image: { url: "/media/gallery/m02.webp", alt: "A customer smiling as she unrolls her Woodspeaks love scroll" },
 });
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const moments = await getPublicMoments();
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 pb-28 sm:px-6 lg:px-10">
       <nav aria-label="Breadcrumb" className="text-sm text-ink-soft">
@@ -25,10 +26,10 @@ export default function GalleryPage() {
       </nav>
       <h1 className="mt-4 text-5xl text-ink md:text-6xl">Gallery</h1>
       <p className="mt-4 max-w-lg text-ink-soft">
-        Moments our customers have shared with us. Hover over a card with a clip to play it.
+        Moments our customers have shared with us.
       </p>
       <ul className="mt-12 columns-2 gap-4 sm:gap-6 md:columns-3">
-        {MOMENTS.map((m, i) => (
+        {moments.map((m, i) => (
           <li key={m.id} className="mb-4 break-inside-avoid sm:mb-6">
             <GalleryCard moment={m} tone={i} />
           </li>

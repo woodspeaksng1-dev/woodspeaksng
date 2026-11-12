@@ -99,8 +99,13 @@ Done (frontend, mock data):
 - Admin prices (12 Nov): price, fee and day boxes accept "17,000", "₦17,000" and "17 000" (before, a comma was
   refused as "Enter the price." and nothing saved); the price box shows "Shows in the shop as ₦17,000"; Save
   stays on screen with "Not saved yet". Checked end to end on the emulator: a saved price shows at once on home,
-  shop and product pages. Full admin check: every page loads signed in; 133 emulator tests pass. Homepage
-  (moments, logos) is still unbuilt; featured products are set on each product.
+  shop and product pages. Full admin check: every page loads signed in; 133 emulator tests pass.
+- Moments in admin (12 Nov): staff add customer moments (photo, caption, optional name and product, the
+  customer's OK required), edit, hide, reorder and delete them (`/admin/moments`, Firestore `moments`,
+  `lib/server/moments.ts`). New ones go first. Home shows the first 4 shown, About 3, the gallery all. Photos
+  are shrunk in the browser and stored like product photos (/catalog-photo). The four built-in moments
+  (public/media/gallery) load into Firestore the first time admin opens Moments; until then, or if Firestore
+  can't be read, the shop shows them. `/admin/homepage` now goes to Moments. Brand logos still live in code.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -237,7 +242,7 @@ Staff run the shop without a developer.
 | --- | --- |
 | Orders | See new and past orders; view personalisation text, buyer, recipient and delivery details; move status Paid → Crafting → Dispatched → Delivered (each emails the customer); print an order sheet for the workshop; for NFC orders, download the video or open the link, and mark the tag written |
 | Products | Add and edit: photos, price, description, dimensions, included items, add-ons, occasion and recipient tags, personalisation limits, SEO title and image alt text; mark featured (the home page shows 6); hide or show |
-| Homepage | Choose the featured products; upload and order customer moments; manage brand logos |
+| Homepage | Featured products: on each product (done). Customer moments: add, edit, hide, order (done 12 Nov, Moments). Brand logos: still in code |
 | Reviews | Add and approve real customer reviews (they feed "What they say about us") |
 | Delivery | Edit zone fees and estimates; set crafting time |
 | Customers | List of customers and who opted in to emails |
@@ -313,7 +318,7 @@ Backend order of work:
    with personalisation, paid → crafting → dispatched → delivered in a transaction, NFC tag written before
    dispatch, one customer email on dispatch), products (all fields, featured max 6, hidden, limits; saves
    refresh the shop at once), delivery (fees, estimates, fresh items, add and remove areas, crafting time),
-   customers (from paid orders), activity log (payments and every change, by whom). Homepage ordering
+   customers (from paid orders), activity log (payments and every change, by whom). Homepage ordering (moments done 12 Nov)
    shows "being connected" and are out of the menu until built.
    Demo store and sample data deleted. 15 more emulator tests, plus a browser walk-through of every screen.
    Fixed on the way: product pages failed after an edit (params now read inside Suspense, per the ISR

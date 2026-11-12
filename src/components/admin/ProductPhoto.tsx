@@ -4,35 +4,13 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "../product/ProductImage";
+import { shrinkPhoto } from "./shrink-photo";
 
 /*
- * The product's photo in admin: upload, replace or remove. The browser shrinks the photo first (longest
- * side MAX_EDGE, WebP or JPEG), so a 6 MB phone photo goes up as a few hundred KB, quick on mobile data
- * and light for buyers. The server checks it again and the shop shows it straight away.
+ * The product's photo in admin: upload, replace or remove. The browser shrinks the photo first (shrinkPhoto),
+ * so a 6 MB phone photo goes up as a few hundred KB, quick on mobile data and light for buyers. The server
+ * checks it again and the shop shows it straight away.
  */
-
-const MAX_EDGE = 1600;
-
-async function shrink(file: File): Promise<Blob> {
-  let bitmap: ImageBitmap;
-  try {
-    bitmap = await createImageBitmap(file);
-  } catch {
-    throw new Error("This browser can't open that photo. Choose a JPG or PNG (iPhone photos: share as JPG, or use Safari).");
-  }
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  const encode = (type: string) => new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.86));
-  // WebP keeps transparent cut-outs; browsers that can't make WebP give back PNG, so fall back to JPEG.
-  const webp = await encode("image/webp");
-  const blob = webp?.type === "image/webp" ? webp : await encode("image/jpeg");
-  if (!blob) throw new Error("That photo couldn't be prepared. Try another.");
-  return blob;
-}
 
 export function ProductPhoto({ product }: { product: Product }) {
   const router = useRouter();
@@ -56,7 +34,7 @@ export function ProductPhoto({ product }: { product: Product }) {
     setStatus(null);
     setBusy("upload");
     try {
-      await send("POST", await shrink(file));
+      await send("POST", await shrinkPhoto(file));
     } catch (error) {
       setStatus({ ok: false, text: error instanceof Error ? error.message : "The photo couldn't be uploaded." });
     } finally {

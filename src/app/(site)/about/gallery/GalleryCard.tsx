@@ -7,12 +7,6 @@ import { useCatalog } from "@/components/catalog/CatalogProvider";
 import type { Moment } from "@/lib/gallery";
 import { MomentMedia } from "@/components/media/MomentMedia";
 
-const ASPECT: Record<Moment["shape"], string> = {
-  tall: "aspect-[3/4]",
-  portrait: "aspect-[4/5]",
-  square: "aspect-square",
-};
-
 export function GalleryCard({ moment, tone }: { moment: Moment; tone: number }) {
   const [hover, setHover] = useState(false);
   const catalog = useCatalog();
@@ -26,11 +20,11 @@ export function GalleryCard({ moment, tone }: { moment: Moment; tone: number }) 
       onBlur={() => setHover(false)}
     >
       <MomentMedia
-        mediaKey={`gallery/${moment.id}`}
+        image={moment.image}
         label={moment.caption}
         active={hover}
         tone={tone}
-        className={`${ASPECT[moment.shape]} rounded-[1.1rem]`}
+        className="aspect-[4/5] rounded-[1.1rem]"
       />
       <figcaption className="px-1.5 pt-3 pb-1.5 sm:px-2">
         <p className="text-sm font-semibold text-ink sm:text-base">{moment.caption}</p>

@@ -18,7 +18,7 @@ drawn placeholder. No code change is needed. While `npm run dev` is running, run
 | brand/mark.png | The Woodspeaks bamboo mark, transparent (source of the site icons) | 600x600+ |
 | seal/stamp.webp | Blank wax seal, no text (the site writes "Shop now") | 1000x1000 |
 | products/<slug>.webp | One per product, slug as in src/lib/catalog.ts | 1200x1500 |
-| gallery/m01.webp … m09 (+ .mp4) | Real customer photos and clips (with consent) | 1080x1350 |
+| gallery/m01.webp … m04 | The four customer moments the site started with. New moments are added in admin (Moments), not here | 1080x1350 |
 | brands/<name>.svg | Client logos, single colour, with permission | SVG |
 
 Compress a video before dropping it in (makes .mp4 and .webm):

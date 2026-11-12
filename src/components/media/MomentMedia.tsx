@@ -7,23 +7,26 @@ const TONES = ["from-blush/70 to-dusk/80", "from-parchment to-sand", "from-vellu
 
 /**
  * A customer photo, or its clip when one exists (plays on hover / when on screen).
- * Falls back to a toned placeholder until the real media is in public/media.
+ * `mediaKey` looks the files up in public/media; `image` is a photo's address (customer moments from admin).
+ * Falls back to a toned placeholder when there's no photo.
  */
 export function MomentMedia({
   mediaKey,
+  image,
   label,
   active,
   tone = 0,
   className = "",
 }: {
-  mediaKey: string;
+  mediaKey?: string;
+  image?: string | null;
   label: string;
   active?: boolean;
   tone?: number;
   className?: string;
 }) {
-  const poster = imageSrc(mediaKey);
-  const video = videoSources(mediaKey);
+  const poster = mediaKey ? imageSrc(mediaKey) : (image ?? null);
+  const video = mediaKey ? videoSources(mediaKey) : [];
   const fill = "absolute inset-0 h-full w-full object-cover";
 
   return (

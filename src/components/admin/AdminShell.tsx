@@ -13,9 +13,9 @@ const NAV = [
   { href: "/admin/enquiries", label: "Enquiries" },
   { href: "/admin/reminders", label: "Reminders" },
   { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/moments", label: "Moments" },
   { href: "/admin/emails", label: "Emails" },
   { href: "/admin/activity", label: "Activity" },
-  // Homepage ordering joins the menu as each is connected.
 ];
 
 export interface ShellStaff {

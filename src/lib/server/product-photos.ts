@@ -38,6 +38,11 @@ const fileOf = (image: string | undefined) => {
   return name && PHOTO_FILE.test(name) ? name : null;
 };
 
+/** Deletes a photo this file stored, given its /catalog-photo address. Anything else is left alone. */
+export async function deletePhoto(image: string | null | undefined) {
+  await deleteStored(fileOf(image ?? undefined));
+}
+
 async function deleteStored(name: string | null) {
   if (!name) return;
   try {
@@ -47,22 +52,41 @@ async function deleteStored(name: string | null) {
   }
 }
 
-export async function saveProductPhoto(staff: SignedInStaff, productId: string, bytes: Uint8Array): Promise<PhotoResult> {
+/** Checks the bytes really are a photo, then the first half of storing one: is it acceptable? */
+function checkPhoto(bytes: Uint8Array): { ok: false; message: string } | { ok: true; type: PhotoType } {
   if (bytes.length === 0) return { ok: false, message: "That file is empty." };
   if (bytes.length > PRODUCT_PHOTO_MAX_BYTES) return { ok: false, message: "That photo is too large. Try a smaller one." };
   const type = sniff(bytes);
   if (!type) return { ok: false, message: "Choose a JPG, PNG or WebP photo." };
+  return { ok: true, type };
+}
+
+/** Stores a checked photo privately as <base>-<random id>.<type> and returns its /catalog-photo address. */
+async function store(bytes: Uint8Array, type: PhotoType, base: string): Promise<{ name: string; image: string }> {
+  const name = `${base}-${randomUUID()}.${TYPES[type]}`;
+  await (await storageBucket()).file(PREFIX + name).save(Buffer.from(bytes), {
+    resumable: false,
+    metadata: { contentType: type, cacheControl: "public, max-age=31536000, immutable" },
+  });
+  return { name, image: PHOTO_ROUTE + name };
+}
+
+/** For other admin photos (customer moments): checks and stores one, named after `base`. */
+export async function storePhoto(bytes: Uint8Array, base: string): Promise<{ ok: false; message: string } | { ok: true; image: string }> {
+  const check = checkPhoto(bytes);
+  if (!check.ok) return check;
+  return { ok: true, image: (await store(bytes, check.type, base)).image };
+}
+
+export async function saveProductPhoto(staff: SignedInStaff, productId: string, bytes: Uint8Array): Promise<PhotoResult> {
+  const check = checkPhoto(bytes);
+  if (!check.ok) return check;
 
   const ref = db().collection("products").doc(productId);
   const snap = await ref.get();
   if (!snap.exists) return { ok: false, message: "That product doesn't exist." };
 
-  const name = `${productId}-${randomUUID()}.${TYPES[type]}`;
-  await (await storageBucket()).file(PREFIX + name).save(Buffer.from(bytes), {
-    resumable: false,
-    metadata: { contentType: type, cacheControl: "public, max-age=31536000, immutable" },
-  });
-  const image = PHOTO_ROUTE + name;
+  const { name, image } = await store(bytes, check.type, productId);
 
   const before = await db().runTransaction(async (t) => {
     const current = await t.get(ref);

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
-import { MOMENTS } from "@/lib/gallery";
+import { ABOUT_MOMENTS } from "@/lib/gallery";
+import { getPublicMoments } from "@/lib/server/moments";
 import { MomentMedia } from "@/components/media/MomentMedia";
 
 export const metadata: Metadata = pageMeta({
@@ -13,7 +14,7 @@ export const metadata: Metadata = pageMeta({
 
 // Intro from the client's asset list (22 Oct 2026). "Our story" and "What inspires us" are DRAFTS
 // written from the old site's wording (28 Oct 2026); replace or approve with the client's own text.
-export default function AboutPage() {
+export default async function AboutPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 pt-8 pb-28 sm:px-6">
       <h1 className="text-5xl text-ink md:text-6xl">About us</h1>
@@ -77,9 +78,9 @@ export default function AboutPage() {
           </Link>
         </div>
         <ul className="mt-6 grid grid-cols-3 gap-3">
-          {MOMENTS.slice(0, 3).map((m, i) => (
+          {(await getPublicMoments()).slice(0, ABOUT_MOMENTS).map((m, i) => (
             <li key={m.id} className="rounded-[1.2rem] bg-vellum p-1.5 shadow-card">
-              <MomentMedia mediaKey={`gallery/${m.id}`} label={m.caption} tone={i} className="aspect-[4/5] rounded-[0.9rem]" />
+              <MomentMedia image={m.image} label={m.caption} tone={i} className="aspect-[4/5] rounded-[0.9rem]" />
             </li>
           ))}
         </ul>
