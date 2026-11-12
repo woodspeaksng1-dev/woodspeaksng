@@ -13,5 +13,11 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
 
 async function StaffGate({ children }: { children: ReactNode }) {
   const staff = await requireStaff();
-  return <AdminShell staff={{ email: staff.email, name: staff.name, role: staff.role }}>{children}</AdminShell>;
+  // Only a yes/no leaves the server: whether Paystack is on its test keys.
+  const testPayments = !process.env.PAYSTACK_SECRET_KEY?.startsWith("sk_live_");
+  return (
+    <AdminShell staff={{ email: staff.email, name: staff.name, role: staff.role }} testPayments={testPayments}>
+      {children}
+    </AdminShell>
+  );
 }

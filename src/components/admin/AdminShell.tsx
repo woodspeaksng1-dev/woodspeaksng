@@ -48,15 +48,17 @@ function SignOut() {
  * Staff-only panel chrome, shown once the server has confirmed the signed-in member of staff (`staff`).
  * Everything here reads and writes the live database.
  */
-export function AdminShell({ staff, children }: { staff: ShellStaff; children: ReactNode }) {
+export function AdminShell({ staff, testPayments, children }: { staff: ShellStaff; testPayments: boolean; children: ReactNode }) {
   const path = usePathname();
   const active = (href: string) => (href === "/admin" ? path === href : path.startsWith(href));
   const nav = staff.role === "owner" ? [...NAV, { href: "/admin/team", label: "Team" }] : NAV;
   return (
     <div className="flex min-h-dvh flex-col bg-parchment">
-      <p className="bg-oxblood-deep px-4 py-2 text-center text-sm text-vellum print:hidden">
-        Test mode: payments use Paystack test cards and emails only reach the developer until woodspeaks.ng is verified.
-      </p>
+      {testPayments && (
+        <p className="bg-oxblood-deep px-4 py-2 text-center text-sm text-vellum print:hidden">
+          Test mode: payments use Paystack test cards. Orders paid now aren&rsquo;t real.
+        </p>
+      )}
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col md:flex-row">
         <nav aria-label="Admin" className="border-b border-rule md:w-56 md:shrink-0 md:border-r md:border-b-0 print:hidden">
           <div className="flex items-center justify-between px-4 pt-4 md:block md:px-6 md:pt-8">
