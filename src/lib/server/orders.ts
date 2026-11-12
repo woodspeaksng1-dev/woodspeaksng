@@ -4,6 +4,7 @@ import type { CheckoutDetails } from "@/lib/checkout";
 import { toKobo, type PricedOrder } from "@/lib/order-pricing";
 import type { StoredOrder } from "@/lib/orders";
 import { decidePayment, type VerifiedTransaction } from "@/lib/payment-check";
+import { alertTeam } from "./alerts";
 import { db } from "./firebase";
 import { verifyPayment } from "./paystack";
 import { uploadIdsOf } from "./uploads";
@@ -101,7 +102,7 @@ export async function confirmPayment(
 
   const tx = await verify(reference);
 
-  return db().runTransaction<ConfirmOutcome>(async (t) => {
+  const result = await db().runTransaction<ConfirmOutcome>(async (t) => {
     const ref = orders().doc(reference);
     const snap = await t.get(ref);
     if (!snap.exists) return { outcome: "unknown-order", order: null };
@@ -121,8 +122,9 @@ export async function confirmPayment(
       status: "paid",
       paidAt: new Date().toISOString(),
       paystack: { transactionId: tx.id, channel: tx.channel, paidAt: tx.paidAt },
+      emails: { customer: false, team: false },
     };
-    t.update(ref, { status: paid.status, paidAt: paid.paidAt, paystack: paid.paystack });
+    t.update(ref, { status: paid.status, paidAt: paid.paidAt, paystack: paid.paystack, emails: paid.emails });
     // One record per reference; create() fails if it exists, a second guard against fulfilling twice.
     t.create(db().collection("paystackEvents").doc(reference), {
       reference,
@@ -140,4 +142,14 @@ export async function confirmPayment(
     });
     return { outcome: "paid-now", order: paid };
   });
+
+  // A payment that doesn't match its order needs a person: tell the team the first time it's seen.
+  if (result.outcome === "rejected" && existing.paymentProblem !== result.reason)
+    await alertTeam(
+      `payment-${reference}`,
+      `Order ${reference}: a payment doesn't match`,
+      `Paystack reported a payment for order ${reference} that the site couldn't accept: ${result.reason}\n` +
+        `The order is still unpaid in admin. Check the transaction in Paystack and contact the buyer.`,
+    );
+  return result;
 }

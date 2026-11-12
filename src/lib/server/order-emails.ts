@@ -4,7 +4,9 @@ import type { StoredOrder } from "@/lib/orders";
 import { CONTACT } from "@/lib/contact";
 import type { CartCustomization } from "@/lib/types";
 import { fileStillNeeded, sendFileMessage } from "@/lib/uploads";
+import { alertTeam } from "./alerts";
 import { escapeHtml as e, sendEmail } from "./email";
+import { db } from "./firebase";
 
 /*
  * The two emails sent when an order is paid: a confirmation to the buyer, and an alert to the
@@ -161,12 +163,57 @@ export async function sendDispatchedEmail(order: StoredOrder) {
   }).catch((error) => console.error(`Order ${order.number}: dispatched email failed.`, error));
 }
 
-/** Sends both emails; a failure of one doesn't stop the other. Errors are logged, not thrown. */
-export async function sendPaidOrderEmails(order: StoredOrder, siteUrl: string) {
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Tries a send a few times (Resend has brief hiccups), throwing the last error if every try fails. */
+async function withRetries(send: () => Promise<void>, delaysMs: readonly number[]) {
+  let last: unknown;
+  for (const delay of delaysMs) {
+    if (delay) await sleep(delay);
+    try {
+      return await send();
+    } catch (error) {
+      last = error;
+    }
+  }
+  throw last;
+}
+
+export type EmailsSent = { customer: boolean; team: boolean };
+
+/**
+ * Sends whichever of the two paid-order emails hasn't gone yet (both, the first time), each tried three
+ * times, and records on the order which went (`emails`), so the daily job can resend any that didn't.
+ * A failure of one doesn't stop the other; failures are logged and the team is alerted. Never throws.
+ */
+export async function sendPaidOrderEmails(order: StoredOrder, siteUrl: string, delaysMs: readonly number[] = [0, 2000, 6000]): Promise<EmailsSent> {
   const team = process.env.ORDER_NOTIFICATION_EMAIL;
-  const results = await Promise.allSettled([
-    sendEmail(customerEmail(order, siteUrl)),
-    team ? sendEmail(teamEmail(order, team)) : Promise.reject(new Error("ORDER_NOTIFICATION_EMAIL is not set.")),
+  const already = order.emails ?? { customer: false, team: false };
+  const [customer, teamResult] = await Promise.allSettled([
+    already.customer ? Promise.resolve() : withRetries(() => sendEmail(customerEmail(order, siteUrl)), delaysMs),
+    already.team
+      ? Promise.resolve()
+      : team
+        ? withRetries(() => sendEmail(teamEmail(order, team)), delaysMs)
+        : Promise.reject(new Error("ORDER_NOTIFICATION_EMAIL is not set.")),
   ]);
-  for (const r of results) if (r.status === "rejected") console.error(`Order ${order.number}: email failed.`, r.reason);
+  const sent: EmailsSent = { customer: customer.status === "fulfilled", team: teamResult.status === "fulfilled" };
+  if (customer.status === "rejected") console.error(`Order ${order.number}: customer email failed.`, customer.reason);
+  if (teamResult.status === "rejected") console.error(`Order ${order.number}: team email failed.`, teamResult.reason);
+
+  try {
+    await db().doc(`orders/${order.number}`).update({ "emails.customer": sent.customer, "emails.team": sent.team });
+  } catch (error) {
+    console.error(`Order ${order.number}: couldn't record which emails went.`, error);
+  }
+  if (!sent.customer || !sent.team) {
+    const missing = [!sent.customer && "the buyer's confirmation", !sent.team && "the new-order email to the team"].filter(Boolean).join(" and ");
+    await alertTeam(
+      "order-email",
+      `Order ${order.number}: an email didn't send`,
+      `Order ${order.number} is paid, but ${missing} didn't send. The site tries again in the daily job. ` +
+        `Check the order in admin, and contact ${order.customer.name} (${order.customer.phone}) if it's urgent.`,
+    );
+  }
+  return sent;
 }

@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { z } from "zod";
 import { checkoutSchema } from "@/lib/checkout";
 import { priceOrder } from "@/lib/order-pricing";
+import { alertTeam } from "@/lib/server/alerts";
 import { readCatalog } from "@/lib/server/catalog";
 import { createPendingOrder, discardPendingOrder } from "@/lib/server/orders";
 import { startPayment } from "@/lib/server/paystack";
@@ -38,6 +40,13 @@ export async function POST(request: Request) {
     catalog = await readCatalog();
   } catch (error) {
     console.error("Checkout: couldn't read the catalog.", error);
+    after(() =>
+      alertTeam(
+        "checkout-catalog",
+        "checkout can't reach the database",
+        `A buyer couldn't check out because the shop's database didn't answer: ${String(error)}`,
+      ),
+    );
     return fail(503, "We couldn't reach our shop just now. Try again in a minute.");
   }
 
@@ -78,6 +87,14 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(`Checkout: Paystack couldn't start payment for ${order.number}.`, error);
     await discardPendingOrder(order.number).catch(() => {});
+    after(() =>
+      alertTeam(
+        "checkout-paystack",
+        "Paystack wouldn't open a payment page",
+        `A buyer couldn't pay because Paystack refused to start the payment: ${String(error)}\n` +
+          `If this keeps happening, check the Paystack dashboard (account status, live keys) and the site's PAYSTACK_SECRET_KEY.`,
+      ),
+    );
     return fail(502, "We couldn't open the payment page. Try again in a minute.");
   }
 }

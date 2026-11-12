@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { z } from "zod";
+import { alertTeam } from "@/lib/server/alerts";
 import { sendPaidOrderEmails } from "@/lib/server/order-emails";
 import { confirmPayment, isOrderNumber } from "@/lib/server/orders";
 import { isGenuineWebhook } from "@/lib/server/paystack";
@@ -41,6 +42,13 @@ export async function POST(request: Request) {
     return Response.json({ outcome: result.outcome });
   } catch (error) {
     console.error(`Webhook: couldn't confirm ${reference}; Paystack will retry.`, error);
+    after(() =>
+      alertTeam(
+        "webhook",
+        "a payment couldn't be confirmed yet",
+        `Order ${reference}: ${String(error)}\nPaystack retries on its own, and the daily check catches any it misses.`,
+      ),
+    );
     return new Response("Try again", { status: 500 });
   }
 }

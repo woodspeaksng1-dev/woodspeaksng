@@ -65,6 +65,8 @@ export interface StoredOrder {
   paystack: { transactionId: number; channel: string | null; paidAt: string | null } | null;
   /** Set if Paystack reported a payment we couldn't accept (e.g. a different amount). Staff check these. */
   paymentProblem: string | null;
+  /** Which paid-order emails have gone (set false when paid; orders from before 12 Nov 2026 lack it). */
+  emails?: { customer: boolean; team: boolean };
 }
 
 /** One line in the admin's order list. */
