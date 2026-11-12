@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { saveProduct } from "@/app/admin/(panel)/catalog-actions";
+import { parseAmount } from "@/lib/admin/format";
 import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
+import { formatNaira } from "@/lib/format";
 import type { Occasion, Personalization, Product, Recipient } from "@/lib/types";
 import { Check, TextField, inputClass } from "../ui/FormField";
 import { Card, adminButton } from "./AdminShell";
@@ -44,7 +46,7 @@ function Tags<T extends string>({
   );
 }
 
-const num = (v: string) => (v.trim() === "" ? Number.NaN : Number(v));
+const num = parseAmount;
 
 interface Draft {
   name: string;
@@ -102,6 +104,10 @@ export function ProductEditor({ product }: { product: Product }) {
     });
   };
 
+  // Compared as saved values, so "17,000" and 17000 count as the same price.
+  const asSaved = (d: Draft) => JSON.stringify({ ...d, price: num(d.price) });
+  const unsaved = asSaved(draft) !== asSaved(draftOf(product));
+
   const pz = draft.personalization;
   const limitInput = (value: number, onValue: (n: number) => void) =>
     function LimitField(p: { id: string }) {
@@ -147,7 +153,14 @@ export function ProductEditor({ product }: { product: Product }) {
             <TextField label="Name">
               {(p) => <input {...p} value={draft.name} onChange={(e) => set("name", e.target.value)} className={inputClass} />}
             </TextField>
-            <TextField label="Price (₦)" hint="Whole naira. Checkout always takes the price from here, never from the browser.">
+            <TextField
+              label="Price (₦)"
+              hint={
+                Number.isInteger(num(draft.price)) && num(draft.price) > 0
+                  ? `Shows in the shop as ${formatNaira(num(draft.price))}. Checkout always charges this price.`
+                  : "Whole naira, e.g. 17000 or 17,000. Checkout always charges this price."
+              }
+            >
               {(p) => <input {...p} inputMode="numeric" value={draft.price} onChange={(e) => set("price", e.target.value)} className={inputClass} />}
             </TextField>
             <TextField label="Description">
@@ -197,10 +210,12 @@ export function ProductEditor({ product }: { product: Product }) {
             </TextField>
           </Card>
 
-          <div className="flex flex-wrap items-center gap-4">
+          {/* Stays on screen while scrolling the form, so the price at the top is never edited out of reach of Save. */}
+          <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center gap-x-4 gap-y-2 bg-parchment px-1 py-3">
             <button type="submit" disabled={saving} className={adminButton}>
               {saving ? "Saving…" : "Save changes"}
             </button>
+            {unsaved && !saving && !status && <p className="text-sm text-oxblood">Not saved yet</p>}
             {status && (
               <p role={status.ok ? "status" : "alert"} className={`text-sm ${status.ok ? "text-ink" : "text-oxblood"}`}>
                 {status.text}

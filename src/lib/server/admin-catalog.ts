@@ -17,7 +17,7 @@ const occasion = z.enum(["birthday", "anniversary", "corporate", "wedding", "jus
 const recipient = z.enum(["for-him", "for-her", "couples", "clients"]);
 const text = (max: number) => z.string().trim().max(max, `Keep it under ${max} characters.`);
 const whole = (min: number, max: number, what: string) =>
-  z.number({ error: `Enter ${what}.` }).int(`Enter ${what} as a whole number.`).min(min, `${what} can't be below ${min}.`).max(max, `${what} can't be above ${max}.`);
+  z.number({ error: `Enter ${what} as a number.` }).int(`Enter ${what} as a whole number.`).min(min, `${what} can't be below ${min}.`).max(max, `${what} can't be above ${max}.`);
 
 /** Personalisation limits staff may change. The kind of personalisation itself is fixed per product. */
 const limits = z.discriminatedUnion("kind", [

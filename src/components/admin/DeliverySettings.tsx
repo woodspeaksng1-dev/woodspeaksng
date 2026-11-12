@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createZone, deleteZone, saveCraftingDays, saveZone } from "@/app/admin/(panel)/catalog-actions";
+import { parseAmount } from "@/lib/admin/format";
 import { formatNaira } from "@/lib/format";
 import type { ShippingZone } from "@/lib/types";
 import { inputClass } from "../ui/FormField";
@@ -36,7 +37,7 @@ function ZoneRow({ zone }: { zone: ShippingZone }) {
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          run(() => saveZone(zone.id, { name, fee: fee.trim() === "" ? Number.NaN : Number(fee), estimate, perishables }));
+          run(() => saveZone(zone.id, { name, fee: parseAmount(fee), estimate, perishables }));
         }}
         className="grid grid-cols-[1fr_6rem] items-center gap-2 sm:grid-cols-[1fr_7rem_9rem_auto_auto]"
       >
@@ -101,7 +102,7 @@ function AddZone() {
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await createZone({ name, fee: fee.trim() === "" ? Number.NaN : Number(fee), estimate: "", perishables: true });
+          const r = await createZone({ name, fee: parseAmount(fee), estimate: "", perishables: true });
           setMsg(r);
           if (r.ok) {
             setName("");
@@ -175,7 +176,7 @@ export function DeliverySettings({ zones, craftingDays }: { zones: ShippingZone[
             onSubmit={(e) => {
               e.preventDefault();
               start(async () => {
-                const r = await saveCraftingDays(Number(days));
+                const r = await saveCraftingDays(parseAmount(days));
                 setMsg(r);
                 if (r.ok) router.refresh();
               });

@@ -9,3 +9,12 @@ export function shortDate(iso: string) {
 }
 
 export const shortDateTime = (iso: string) => dateTimeFmt.format(new Date(iso));
+
+/**
+ * A number typed into an admin box, the way people write prices: "17000", "17,000", "₦17,000", "N17 000".
+ * Empty or anything else gives NaN, which the server refuses with a clear message.
+ */
+export function parseAmount(typed: string): number {
+  const cleaned = typed.trim().replace(/^(₦|ngn|n)\s*/i, "").replace(/[,\s]/g, "");
+  return /^\d+(\.\d+)?$/.test(cleaned) ? Number(cleaned) : Number.NaN;
+}
