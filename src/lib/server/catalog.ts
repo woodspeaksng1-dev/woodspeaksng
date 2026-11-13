@@ -59,6 +59,7 @@ const productSchema: z.ZodType<Product> = z.object({
   addOn: z.boolean().optional(),
   hidden: z.boolean().optional(),
   image: z.string().optional(),
+  gallery: z.array(z.string()).optional(),
   dimensions: z.string().optional(),
   included: z.string().optional(),
   seoTitle: z.string().optional(),

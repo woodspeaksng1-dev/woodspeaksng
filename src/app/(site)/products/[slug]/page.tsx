@@ -6,6 +6,7 @@ import { findProductBySlug } from "@/lib/catalog";
 import { getStorefront } from "@/lib/server/catalog";
 import { formatNaira } from "@/lib/format";
 import { ProductImage } from "@/components/product/ProductImage";
+import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductReviews } from "@/components/product/ProductReviews";
 import { AddToCart } from "./AddToCart";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -52,7 +53,11 @@ async function Product({ params }: Pick<PageProps<"/products/[slug]">, "params">
           ]),
         ]}
       />
-      <ProductImage product={product} className="rounded-[2rem] shadow-card" />
+      {product.gallery?.length ? (
+        <ProductGallery product={product} className="rounded-[2rem] shadow-card" />
+      ) : (
+        <ProductImage product={product} className="rounded-[2rem] shadow-card" />
+      )}
       <div className="md:pt-6">
         <h1 className="text-4xl text-oxblood md:text-5xl">{product.name}</h1>
         <p className="mt-3 font-display text-2xl tabular-nums">{formatNaira(product.price)}</p>

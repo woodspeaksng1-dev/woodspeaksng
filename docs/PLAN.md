@@ -106,6 +106,20 @@ Done (frontend, mock data):
   are shrunk in the browser and stored like product photos (/catalog-photo). The four built-in moments
   (public/media/gallery) load into Firestore the first time admin opens Moments; until then, or if Firestore
   can't be read, the shop shows them. `/admin/homepage` now goes to Moments. Brand logos still live in code.
+- Client changes (13 Nov):
+  - More photos per product: a main photo (cards, cart, sharing) plus up to 6 more, added several at a time in
+    admin, reordered, made main or removed (`/api/admin/products/[id]/photos`, `gallery` on the product). The
+    product page swipes through them with thumbnails.
+  - Google sign-in button shows Google's "G" (`public/google-g.svg`).
+  - Google's chooser naming woodspeaks.ng: `/__/auth/*` is proxied to Firebase's handler (next.config.ts).
+    Goes live once the OAuth client lists `https://www.woodspeaks.ng/__/auth/handler` as a redirect URI and
+    Vercel's `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` is `www.woodspeaks.ng` (in that order, then redeploy).
+  - Enquiry spam: as well as the honeypot, our-pages-only and 5 an hour per visitor, a message sent under
+    3 s after the page opened is quietly dropped, and one with more than 2 links is refused. If spam still
+    gets through: Cloudflare Turnstile (free, needs keys).
+  - Refunds policy tightened (draft for the client): 24-hour claims with photos in the original packaging,
+    same day for fresh items, remake before refund, one remake per order, handmade variation, wrong address
+    or no-one home, refunds less the processing fee, chargebacks pause a claim, dishonest claims refused.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:

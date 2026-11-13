@@ -46,27 +46,60 @@ export const POLICIES = {
   },
   refunds: {
     title: "Refunds and remakes",
-    summary: "What we do if something isn't right with your gift.",
+    summary: "What we do if something isn't right with your gift, and what we can't refund.",
     draft: true,
     sections: [
       {
         heading: "Personalised gifts",
         body: [
-          "Personalised gifts are made only for you, so we can't accept returns or give refunds for a change of mind.",
-          "We write and print exactly what you enter. Before you add a personalised gift to your cart, you see a full preview and confirm you've checked the spelling. We can't refund or remake a gift because of a mistake in the text or photo you provided.",
+          "Personalised gifts are made only for you, so we can't accept returns or give refunds for a change of mind, a change of plans, or because the recipient doesn't want the gift.",
+          "We write and print exactly what you enter. Before you add a personalised gift to your cart, you see a full preview and confirm you've checked the spelling. We can't refund or remake a gift because of a mistake in the text or photo you provided, or because a photo you uploaded was low quality.",
+        ],
+      },
+      {
+        heading: "Handmade, so no two are the same",
+        body: [
+          "Every gift is made by hand from natural materials. Wood grain, paper texture, wax colour and small marks of the hand differ from piece to piece and from the photos on this site. These are part of the gift, not faults.",
+          "Colours can look different on your screen from how they look in real life.",
+          "Flowers and treats are fresh. Blooms, wrapping and decoration can vary with the season, and if a flower isn't available we'll use one of the same or higher value.",
         ],
       },
       {
         heading: "When we'll remake your gift",
         body: [
-          "If we make a mistake, such as a word that differs from what you entered, or your gift arrives damaged, we'll make it again and deliver it at no cost.",
-          "Please tell us within 48 hours of delivery, with a photo of the problem, on WhatsApp or by email.",
+          "If we make a mistake, such as a word that differs from what you entered, or your gift arrives damaged, we'll make it again and deliver it at no cost. Remaking is how we put things right; we refund only if we can't remake the gift.",
+          "Tell us within 24 hours of delivery, on WhatsApp or by email, with your order number and clear photos of the problem and of the packaging it came in. For flowers and treats, tell us on the day of delivery.",
+          "Damage must be reported in the packaging it arrived in. We can't accept claims for damage after the gift has been unpacked, used, displayed or handled, or for damage caused after delivery.",
+          "We may ask for the gift back before we remake it. A remake is made from your original order; we can't change the words, photo or design.",
+          "Each order can be remade once.",
+        ],
+      },
+      {
+        heading: "Delivery problems",
+        body: [
+          "Your gift is delivered once it's handed to the recipient or to someone at the address you gave, and our rider records the handover.",
+          "We can't refund or redeliver for free if the address or phone number you gave was wrong or incomplete, or if nobody was available to receive it. A second delivery carries a fee.",
+          "The delivery date you choose at checkout is your preferred date. We work hard to meet it, but a late delivery isn't a reason for a refund of the gift. If we're late through our own fault, we'll refund the delivery fee.",
         ],
       },
       {
         heading: "Cancelling an order",
         body: [
-          "Message us as soon as possible. If we haven't started making your gift, we'll cancel it and refund you in full to your original payment method. Once crafting has started, we can't cancel.",
+          "Message us as soon as possible. If we haven't started making your gift, we'll cancel it and refund you to your original payment method, less the payment processing fee. Once crafting has started, we can't cancel.",
+        ],
+      },
+      {
+        heading: "How refunds work",
+        body: [
+          "When we agree a refund, it goes back to your original payment method, usually within 5 to 10 working days. Refunds are never more than what you paid for the item concerned, and don't include the delivery fee unless the delivery itself was our fault.",
+        ],
+      },
+      {
+        heading: "Disputes and misuse",
+        body: [
+          "Please talk to us before contacting your bank. If you open a chargeback or dispute while we're putting things right, we'll pause the remake or refund until the dispute is closed, and we'll share your order details, preview confirmation and delivery record with our payment provider.",
+          "We look at every claim carefully. We may refuse a claim that's false or misleading, and stop taking orders from anyone who makes repeated or dishonest claims.",
+          "None of this affects your rights under Nigerian consumer protection law.",
         ],
       },
     ],

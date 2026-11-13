@@ -46,7 +46,7 @@ export function productImage(product: Product) {
 
 export function productLd(product: Product) {
   const url = absoluteUrl(`/products/${product.slug}`);
-  const image = productImage(product);
+  const images = [productImage(product), ...(product.gallery ?? [])].filter((i): i is string => !!i);
   const madeToOrder = product.personalization.kind !== "none";
   return {
     "@context": "https://schema.org",
@@ -55,7 +55,7 @@ export function productLd(product: Product) {
     name: product.name,
     description: product.description,
     url,
-    ...(image ? { image: [absoluteUrl(image)] } : {}),
+    ...(images.length ? { image: images.map(absoluteUrl) } : {}),
     sku: product.id,
     brand: { "@type": "Brand", name: SITE.name },
     category: product.category,

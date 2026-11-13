@@ -23,12 +23,13 @@ const actions = await import("@/app/admin/(panel)/enquiries/actions");
 
 const ORIGIN = "http://localhost";
 let ip = 0;
-const post = (body: unknown, headers: Record<string, string> = {}, sameIp?: string) =>
+// Our forms send how long the page was open; a person takes well over MIN_FILL_MS.
+const post = (body: object, headers: Record<string, string> = {}, sameIp?: string) =>
   route.POST(
     new Request(`${ORIGIN}/api/enquiry`, {
       method: "POST",
       headers: { "content-type": "application/json", origin: ORIGIN, "x-forwarded-for": sameIp ?? `10.3.0.${++ip}`, ...headers },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ openedFor: 45_000, ...body }),
     }),
   );
 
@@ -85,6 +86,23 @@ describe("sending an enquiry", () => {
     expect((await post({ ...contact, website: "http://spam.example" })).status).toBe(200);
     expect(await stored()).toHaveLength(0);
     expect(mail.send).not.toHaveBeenCalled();
+  });
+
+  it("quietly drops messages sent faster than anyone could type, and refuses posts not from our forms", async () => {
+    expect((await post({ ...contact, openedFor: 800 })).status).toBe(200);
+    expect((await post({ ...contact, openedFor: undefined })).status).toBe(400);
+    expect((await post({ ...contact, openedFor: "45000" })).status).toBe(400);
+    expect(await stored()).toHaveLength(0);
+    expect(mail.send).not.toHaveBeenCalled();
+  });
+
+  it("refuses a list of links but takes a message with one or two", async () => {
+    const spam = "Cheap SEO https://seo.example/a http://rank.example www.links.example buy now";
+    expect((await post({ ...contact, message: spam })).status).toBe(400);
+    expect((await post({ ...corporate, message: `See ${spam}` })).status).toBe(400);
+    expect(await stored()).toHaveLength(0);
+    expect((await post({ ...contact, message: "Like the one on https://acme.com? Email me at ada@gmail.com" })).status).toBe(200);
+    expect(await stored()).toHaveLength(1);
   });
 
   it("allows five an hour per visitor", async () => {

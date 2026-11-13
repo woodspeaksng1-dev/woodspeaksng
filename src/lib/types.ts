@@ -49,8 +49,10 @@ export interface Product {
   seoTitle?: string;
   /** Photo description for screen readers; falls back to the name. */
   imageAlt?: string;
-  /** Placeholder until the client's photography arrives. */
+  /** The main photo, uploaded by staff in admin: cards, cart, sharing, and first on the product page. */
   image?: string;
+  /** More photos uploaded in admin, shown after the main one on the product page, in this order. */
+  gallery?: string[];
 }
 
 export type CartCustomization =

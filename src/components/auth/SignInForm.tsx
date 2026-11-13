@@ -137,8 +137,11 @@ export function SignInForm({ sessionUrl, linkUrl, after, emailKey }: SignInEndpo
             type="button"
             onClick={google}
             disabled={busy}
-            className="h-12 rounded-full border border-ink/30 bg-vellum text-ink transition-colors hover:border-oxblood disabled:opacity-50"
+            className="flex h-12 items-center justify-center gap-3 rounded-full border border-ink/30 bg-vellum text-ink transition-colors hover:border-oxblood disabled:opacity-50"
           >
+            {/* Google's own "G", in its own colours (their sign-in branding rules). */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/google-g.svg" alt="" width={20} height={20} className="h-5 w-5" />
             Continue with Google
           </button>
           <p className="text-center text-sm text-ink-soft">or</p>

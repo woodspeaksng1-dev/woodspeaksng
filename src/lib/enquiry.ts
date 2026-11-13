@@ -10,6 +10,19 @@ export const BUDGETS = {
   "over-100k": "Over ₦100,000 per gift",
 } as const;
 
+/** Spam is mostly links: a message may carry a couple (a company website, an example) but not a list. */
+const MAX_LINKS = 2;
+const linkCount = (text: string) =>
+  text.match(/(?:https?:\/\/|www\.)\S+|(?<![@\w.-])[a-z0-9-]+\.(?:com|net|org|ru|xyz|top|info|io|ly|site|online|shop)\b/gi)?.length ?? 0;
+const fewLinks = (message: z.ZodString) =>
+  message.refine((m) => linkCount(m) <= MAX_LINKS, "Take out some of the links, or send them to us on WhatsApp.");
+
+/**
+ * How long the page was open before sending, in ms. People need well over this to fill in a form; bots
+ * that load the page and post at once don't. Below it, the route replies as if it worked and keeps nothing.
+ */
+export const MIN_FILL_MS = 3000;
+
 export const enquirySchema = z.object({
   company: z.string().trim().min(2, "Enter your company or organisation.").max(120),
   name: z.string().trim().min(2, "Enter your name.").max(80),
@@ -31,7 +44,7 @@ export const enquirySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Choose the date you need them by.")
     .refine((d) => d > isoDate(new Date()), "Choose a date in the future."),
-  message: z.string().trim().max(1000, "Keep it under 1,000 characters."),
+  message: fewLinks(z.string().trim().max(1000, "Keep it under 1,000 characters.")),
   /** Honeypot: hidden from people, filled in by bots. Any value means the enquiry is dropped. */
   website: z.string().max(0),
 });
@@ -44,7 +57,7 @@ export const contactSchema = z.object({
   name: z.string().trim().min(2, "Enter your name.").max(80),
   email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address.")),
   phone: z.string().trim().max(20),
-  message: z.string().trim().min(10, "Tell us a little more.").max(2000, "Keep it under 2,000 characters."),
+  message: fewLinks(z.string().trim().min(10, "Tell us a little more.").max(2000, "Keep it under 2,000 characters.")),
   website: z.string().max(0),
 });
 
