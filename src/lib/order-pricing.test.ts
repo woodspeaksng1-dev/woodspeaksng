@@ -106,8 +106,11 @@ describe("checks personalisation against the product", () => {
   it("an empty letter", () => expect(priceOrder(catalog, line("scroll", { kind: "letter", text: "   " })).ok).toBe(false));
   it("a letter over the word limit", () =>
     expect(problems(priceOrder(catalog, line("scroll", { kind: "letter", text: "word ".repeat(301) })))).toMatch(/300 words/));
-  it("markup in a letter", () =>
-    expect(problems(priceOrder(catalog, line("scroll", { kind: "letter", text: "<script>alert(1)</script>" })))).toMatch(/unsupported/));
+  it("hidden control characters in a letter", () =>
+    expect(problems(priceOrder(catalog, line("scroll", { kind: "letter", text: "Hello\u0007 there" })))).toMatch(/hidden/));
+  // Any visible character is fine, < and > included: it's only ever shown escaped (React, escapeHtml in emails).
+  it("a letter with symbols and emoji", () =>
+    expect(priceOrder(catalog, line("scroll", { kind: "letter", text: "You’re my everything… “always” <3 😊" })).ok).toBe(true));
   it("a letter at exactly the limit", () => expect(priceOrder(catalog, line("scroll", { kind: "letter", text: "word ".repeat(300) })).ok).toBe(true));
 
   it("custom reasons with one missing", () =>

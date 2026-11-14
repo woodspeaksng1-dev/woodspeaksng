@@ -184,13 +184,27 @@ describe("delivery", () => {
     expect((await readCatalog()).zones.some((z) => z.id === "surulere")).toBe(false);
   });
 
+  it("marks an area as outside Lagos, and back", async () => {
+    const zone = async (id: string) => (await readCatalog()).zones.find((z) => z.id === id);
+    expect((await catalogActions.createZone({ name: "Ibadan", fee: 9000, estimate: "", perishables: false, outsideLagos: true })).ok).toBe(true);
+    expect(await zone("ibadan")).toMatchObject({ outsideLagos: true, perishables: false });
+    expect((await catalogActions.saveZone("ibadan", { name: "Ibadan", fee: 9000, estimate: "", perishables: false, outsideLagos: false })).ok).toBe(true);
+    expect((await zone("ibadan"))?.outsideLagos).toBe(false);
+    expect((await catalogActions.deleteZone("ibadan")).ok).toBe(true);
+  });
+
   it("refuses negative or missing fees", async () => {
     for (const fee of [-1, Number.NaN, 2.5]) expect((await catalogActions.saveZone("yaba", { name: "Yaba", fee, estimate: "", perishables: true })).ok).toBe(false);
   });
 
-  it("sets crafting time between 0 and 30 days", async () => {
-    expect((await catalogActions.saveCraftingDays(4)).ok).toBe(true);
-    expect((await readCatalog()).craftingDays).toBe(4);
-    for (const days of [-1, 31, 2.5, "3"]) expect((await catalogActions.saveCraftingDays(days)).ok).toBe(false);
+  it("sets the earliest delivery for Lagos and outside Lagos, between 0 and 30 days", async () => {
+    expect((await readCatalog()).leadDays).toEqual({ lagos: 1, outside: 3 }); // until staff set them
+    expect((await catalogActions.saveLeadDays(2, 4)).ok).toBe(true);
+    expect((await readCatalog()).leadDays).toEqual({ lagos: 2, outside: 4 });
+    for (const days of [-1, 31, 2.5, "3"]) {
+      expect((await catalogActions.saveLeadDays(days, 3)).ok).toBe(false);
+      expect((await catalogActions.saveLeadDays(1, days)).ok).toBe(false);
+    }
+    expect((await readCatalog()).leadDays).toEqual({ lagos: 2, outside: 4 });
   });
 });

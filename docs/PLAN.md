@@ -120,6 +120,13 @@ Done (frontend, mock data):
   - Refunds policy tightened (draft for the client): 24-hour claims with photos in the original packaging,
     same day for fresh items, remake before refund, one remake per order, handmade variation, wrong address
     or no-one home, refunds less the processing fee, chargebacks pause a claim, dishonest claims refused.
+- Client changes (14 Nov):
+  - Letters and reasons take any visible character (… “ ” & emoji < >); only hidden control characters are
+    refused. A customer's letter was refused for its "…". Shown escaped everywhere (React, emails).
+  - Delivery dates: Lagos areas from the next day, areas ticked "Outside Lagos" (admin → Delivery) from 3 days,
+    never on a Sunday, up to six months ahead; in Lagos time. Both numbers are set in admin (settings/shop
+    lagosDays, outsideLagosDays; they replace crafting days). Checkout has its own calendar so Sundays show
+    greyed out; the server checks the same rules. No outside-Lagos areas exist yet: staff add and tick them.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -258,7 +265,7 @@ Staff run the shop without a developer.
 | Products | Add and edit: photos, price, description, dimensions, included items, add-ons, occasion and recipient tags, personalisation limits, SEO title and image alt text; mark featured (the home page shows 6); hide or show |
 | Homepage | Featured products: on each product (done). Customer moments: add, edit, hide, order (done 12 Nov, Moments). Brand logos: still in code |
 | Reviews | Add and approve real customer reviews (they feed "What they say about us") |
-| Delivery | Edit zone fees and estimates; set crafting time |
+| Delivery | Edit zone fees and estimates; mark areas outside Lagos; set the earliest delivery (Lagos, outside Lagos) |
 | Customers | List of customers and who opted in to emails |
 | Emails | Write a broadcast from a branded template, send a test first, then send to everyone opted in; every email has an unsubscribe link |
 | Reminders | See upcoming customer reminders; they send automatically |

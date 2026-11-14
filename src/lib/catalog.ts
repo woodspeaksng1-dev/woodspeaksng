@@ -190,11 +190,11 @@ export const SHIPPING_ZONES: ShippingZone[] = [
 ];
 
 
-/** Days to make an order before it can be delivered. TO CONFIRM with the client (2–3 days). */
-export const CRAFTING_DAYS = 3;
+/** Earliest delivery, in days after ordering (client, 14 Nov): Lagos the next day, outside Lagos 3 days. Staff change these in admin. */
+export const LEAD_DAYS = { lagos: 1, outside: 3 };
 
 /** Starting catalog, as one object. */
-export const SEED_CATALOG: Catalog = { products: PRODUCTS, zones: SHIPPING_ZONES, craftingDays: CRAFTING_DAYS };
+export const SEED_CATALOG: Catalog = { products: PRODUCTS, zones: SHIPPING_ZONES, leadDays: LEAD_DAYS };
 
 // Lookups on a catalog (the live one from Firestore, or the seed).
 export const findProduct = (c: Catalog, id: string) => c.products.find((p) => p.id === id);

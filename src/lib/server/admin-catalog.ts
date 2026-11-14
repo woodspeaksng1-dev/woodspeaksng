@@ -99,6 +99,7 @@ export const zoneInput = z.object({
   fee: whole(0, 1_000_000, "the fee"),
   estimate: text(60),
   perishables: z.boolean(),
+  outsideLagos: z.boolean().default(false),
 });
 export type ZoneInput = z.infer<typeof zoneInput>;
 
@@ -116,7 +117,7 @@ export async function updateZone(staff: SignedInStaff, id: string, input: ZoneIn
     const snap = await t.get(ref);
     if (!snap.exists) return { ok: false, message: "That area doesn't exist." };
     const before = snap.data() as ShippingZone;
-    t.update(ref, { name: input.name, fee: input.fee, estimate: input.estimate || null, perishables: input.perishables, updatedAt: new Date().toISOString() });
+    t.update(ref, { name: input.name, fee: input.fee, estimate: input.estimate || null, perishables: input.perishables, outsideLagos: input.outsideLagos, updatedAt: new Date().toISOString() });
     const what = before.fee !== input.fee ? `fee ${formatNaira(before.fee ?? 0)} → ${formatNaira(input.fee)}` : "details edited";
     t.create(db().collection("auditLog").doc(), audit(staff, `delivery ${input.name}:`, what));
     return { ok: true, message: `Saved. Checkout charges ${formatNaira(input.fee)} for ${input.name}.` };
@@ -131,7 +132,7 @@ export async function addZone(staff: SignedInStaff, input: ZoneInput): Promise<C
     if ((await t.get(ref)).exists) return { ok: false, message: "There's already an area with that name." };
     const all = await t.get(zones());
     const sortOrder = all.size;
-    t.create(ref, { id, name: input.name, fee: input.fee, estimate: input.estimate || null, perishables: input.perishables, sortOrder, updatedAt: new Date().toISOString() });
+    t.create(ref, { id, name: input.name, fee: input.fee, estimate: input.estimate || null, perishables: input.perishables, outsideLagos: input.outsideLagos, sortOrder, updatedAt: new Date().toISOString() });
     t.create(db().collection("auditLog").doc(), audit(staff, "added delivery area", `${input.name} (${formatNaira(input.fee)})`));
     return { ok: true, message: `Added ${input.name}.` };
   });
@@ -151,14 +152,21 @@ export async function removeZone(staff: SignedInStaff, id: string): Promise<Cata
   });
 }
 
-export async function setCraftingDays(staff: SignedInStaff, days: number): Promise<CatalogResult> {
-  const parsed = whole(0, 30, "the number of days").safeParse(days);
-  if (!parsed.success) return { ok: false, message: parsed.error.issues[0].message };
+/** The earliest delivery, in days after ordering, for Lagos areas and for areas outside Lagos. */
+export async function setLeadDays(staff: SignedInStaff, lagos: number, outside: number): Promise<CatalogResult> {
+  const l = whole(0, 30, "the days for Lagos").safeParse(lagos);
+  if (!l.success) return { ok: false, message: l.error.issues[0].message };
+  const o = whole(0, 30, "the days outside Lagos").safeParse(outside);
+  if (!o.success) return { ok: false, message: o.error.issues[0].message };
   const ref = db().doc("settings/shop");
   await db().runTransaction(async (t) => {
-    const before = (await t.get(ref)).get("craftingDays");
-    t.set(ref, { craftingDays: parsed.data }, { merge: true });
-    t.create(db().collection("auditLog").doc(), audit(staff, "crafting time", `${before ?? "?"} → ${parsed.data} days`));
+    const before = (await t.get(ref)).data() ?? {};
+    t.set(ref, { lagosDays: l.data, outsideLagosDays: o.data }, { merge: true });
+    t.create(
+      db().collection("auditLog").doc(),
+      audit(staff, "earliest delivery", `Lagos ${before.lagosDays ?? "?"} → ${l.data} days, outside Lagos ${before.outsideLagosDays ?? "?"} → ${o.data} days`),
+    );
   });
-  return { ok: true, message: `Saved. The earliest delivery date is now ${parsed.data} days after ordering.` };
+  const plural = (n: number) => (n === 1 ? "1 day" : `${n} days`);
+  return { ok: true, message: `Saved. Earliest delivery: Lagos ${plural(l.data)} after ordering, outside Lagos ${plural(o.data)}. Never on a Sunday.` };
 }

@@ -6,7 +6,8 @@ import type { CustomerProfile } from "@/lib/account";
 import { cartSubtotal, lineTotal, useCart, useCartHydrated } from "@/lib/cart-store";
 import { findProduct, findZone } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
-import { checkoutSchema, earliestDelivery, type CheckoutInput } from "@/lib/checkout";
+import { LATEST_DELIVERY_DAYS, addDays, checkoutSchema, deliveryDateProblem, earliestDelivery, lagosToday, leadDaysFor, shortDate, type CheckoutInput } from "@/lib/checkout";
+import { DeliveryCalendar } from "./DeliveryCalendar";
 import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
 import { OrderLines } from "./OrderLines";
@@ -102,6 +103,14 @@ export function CheckoutForm() {
   };
 
   const zone = findZone(catalog, form.zoneId);
+  const earliest = earliestDelivery(leadDaysFor(zone, catalog.leadDays));
+  const latest = addDays(lagosToday(), LATEST_DELIVERY_DAYS);
+  // Changing area can make the chosen date too early (outside Lagos takes longer): then it's cleared.
+  const chooseZone = (zoneId: string) => {
+    const next = findZone(catalog, zoneId);
+    setForm((f) => ({ ...f, zoneId, deliveryDate: f.deliveryDate && deliveryDateProblem(f.deliveryDate, next, catalog.leadDays) ? "" : f.deliveryDate }));
+    setErrors((e) => ({ ...e, zoneId: undefined }));
+  };
   const perishables = items
     .map((i) => findProduct(catalog, i.productId))
     .filter((p) => p?.perishable)
@@ -248,7 +257,8 @@ export function CheckoutForm() {
                       type="button"
                       aria-pressed={form.address === a.address && form.zoneId === a.zoneId}
                       onClick={() => {
-                        setForm((f) => ({ ...f, zoneId: a.zoneId, address: a.address, landmark: a.landmark }));
+                        chooseZone(a.zoneId);
+                        setForm((f) => ({ ...f, address: a.address, landmark: a.landmark }));
                         setErrors((e) => ({ ...e, zoneId: undefined, address: undefined }));
                       }}
                       className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
@@ -267,7 +277,7 @@ export function CheckoutForm() {
             label="Delivery area"
             hint={
               <>
-                We deliver to these areas of Lagos. Not on the list?{" "}
+                We deliver to these areas. Not on the list?{" "}
                 <a href={CONTACT.whatsappUrl("Hello Woodspeaks, do you deliver to my area?")} className="text-oxblood underline underline-offset-2" rel="noopener">
                   Ask us on WhatsApp
                 </a>
@@ -277,7 +287,7 @@ export function CheckoutForm() {
             error={errors.zoneId}
           >
             {(p) => (
-              <select {...p} value={form.zoneId} onChange={(e) => set("zoneId", e.target.value)} className={inputClass}>
+              <select {...p} value={form.zoneId} onChange={(e) => chooseZone(e.target.value)} className={inputClass}>
                 <option value="" disabled>
                   Choose an area
                 </option>
@@ -315,20 +325,26 @@ export function CheckoutForm() {
           </TextField>
           <TextField
             label="Preferred delivery date"
-            hint={`Each gift takes ${catalog.craftingDays} days to make by hand.`}
+            hint={
+              zone?.outsideLagos
+                ? `Outside Lagos, the earliest is ${shortDate(earliest)}. We don't deliver on Sundays.`
+                : `${zone ? "The earliest" : "In Lagos, the earliest"} is ${shortDate(earliest)}${zone ? "" : `, or ${catalog.leadDays.outside} days after ordering outside Lagos`}. We don't deliver on Sundays.`
+            }
             error={errors.deliveryDate}
           >
             {(p) => (
-              <input
-                {...p}
-                type="date"
-                min={earliestDelivery(catalog.craftingDays)}
+              <DeliveryCalendar
+                id={p.id}
+                invalid={p["aria-invalid"]}
+                describedBy={p["aria-describedby"]}
                 value={form.deliveryDate}
-                onChange={(e) => set("deliveryDate", e.target.value)}
-                className={inputClass}
+                onChange={(date) => set("deliveryDate", date)}
+                earliest={earliest}
+                latest={latest}
               />
             )}
           </TextField>
+          {form.deliveryDate && <p className="-mt-3 text-sm text-ink">Delivery on {shortDate(form.deliveryDate)}</p>}
         </Section>
 
         <Section n={4} title="Gift options">

@@ -72,6 +72,7 @@ const zoneSchema: z.ZodType<ShippingZone> = z.object({
   fee: naira.nullable(),
   estimate: z.string().nullable(),
   perishables: z.boolean(),
+  outsideLagos: z.boolean().optional(),
 });
 
 function parseAll<T>(docs: FirebaseFirestore.QueryDocumentSnapshot[], schema: z.ZodType<T>, what: string): T[] {
@@ -90,11 +91,15 @@ export async function readCatalog(): Promise<Catalog> {
     db().collection("shippingZones").orderBy("sortOrder").get(),
     db().doc("settings/shop").get(),
   ]);
-  const craftingDays = z.number().int().min(0).max(60).safeParse(settings.get("craftingDays"));
+  // settings/shop lagosDays and outsideLagosDays (admin → Delivery). Until staff set them: next day and 3 days.
+  const days = (field: string, fallback: number) => {
+    const parsed = z.number().int().min(0).max(60).safeParse(settings.get(field));
+    return parsed.success ? parsed.data : fallback;
+  };
   return {
     products: parseAll(products.docs, productSchema, "product"),
     zones: parseAll(zones.docs, zoneSchema, "zone"),
-    craftingDays: craftingDays.success ? craftingDays.data : SEED_CATALOG.craftingDays,
+    leadDays: { lagos: days("lagosDays", SEED_CATALOG.leadDays.lagos), outside: days("outsideLagosDays", SEED_CATALOG.leadDays.outside) },
   };
 }
 

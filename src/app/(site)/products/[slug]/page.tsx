@@ -102,10 +102,12 @@ async function Product({ params }: Pick<PageProps<"/products/[slug]">, "params">
               <dd>{product.included}</dd>
             </>
           )}
-          <dt className="text-ink-soft">Crafting time</dt>
-          <dd>About {catalog.craftingDays} days, made by hand</dd>
           <dt className="text-ink-soft">Delivery</dt>
-          <dd>{product.perishable ? "Selected Lagos areas, on the day" : "Fee shown at checkout by area"}</dd>
+          <dd>
+            {product.perishable
+              ? "Selected Lagos areas, fresh on the day"
+              : `In Lagos from ${catalog.leadDays.lagos === 1 ? "the next day" : `${catalog.leadDays.lagos} days after ordering`}, outside Lagos from ${catalog.leadDays.outside} days. Not on Sundays. Fee shown at checkout by area.`}
+          </dd>
         </dl>
 
         <AddToCart product={product} />

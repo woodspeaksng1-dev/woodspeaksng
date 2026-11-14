@@ -2,27 +2,28 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { createZone, deleteZone, saveCraftingDays, saveZone } from "@/app/admin/(panel)/catalog-actions";
+import { createZone, deleteZone, saveLeadDays, saveZone } from "@/app/admin/(panel)/catalog-actions";
 import { parseAmount } from "@/lib/admin/format";
 import { formatNaira } from "@/lib/format";
-import type { ShippingZone } from "@/lib/types";
+import type { LeadDays, ShippingZone } from "@/lib/types";
 import { inputClass } from "../ui/FormField";
 import { AdminHeader, Card, adminButton, adminButtonQuiet } from "./AdminShell";
 
 type Result = { ok: boolean; message: string };
 const compact = `${inputClass} mt-0 h-10`;
 
-/** One area as an editable row: name, fee, estimate, fresh items; save or remove. */
+/** One area as an editable row: name, fee, estimate, fresh items, outside Lagos; save or remove. */
 function ZoneRow({ zone }: { zone: ShippingZone }) {
   const router = useRouter();
   const [name, setName] = useState(zone.name);
   const [fee, setFee] = useState(zone.fee == null ? "" : String(zone.fee));
   const [estimate, setEstimate] = useState(zone.estimate ?? "");
   const [perishables, setPerishables] = useState(zone.perishables);
+  const [outside, setOutside] = useState(!!zone.outsideLagos);
   const [msg, setMsg] = useState<Result | null>(null);
   const [busy, start] = useTransition();
   const dirty =
-    name !== zone.name || fee !== String(zone.fee ?? "") || estimate !== (zone.estimate ?? "") || perishables !== zone.perishables;
+    name !== zone.name || fee !== String(zone.fee ?? "") || estimate !== (zone.estimate ?? "") || perishables !== zone.perishables || outside !== !!zone.outsideLagos;
 
   const run = (action: () => Promise<Result>) =>
     start(async () => {
@@ -37,9 +38,9 @@ function ZoneRow({ zone }: { zone: ShippingZone }) {
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          run(() => saveZone(zone.id, { name, fee: parseAmount(fee), estimate, perishables }));
+          run(() => saveZone(zone.id, { name, fee: parseAmount(fee), estimate, perishables, outsideLagos: outside }));
         }}
-        className="grid grid-cols-[1fr_6rem] items-center gap-2 sm:grid-cols-[1fr_7rem_9rem_auto_auto]"
+        className="grid grid-cols-[1fr_6rem] items-center gap-2 sm:grid-cols-[1fr_7rem_9rem_auto_auto_auto]"
       >
         <input aria-label="Area" value={name} onChange={(e) => setName(e.target.value)} className={compact} />
         <input
@@ -56,7 +57,7 @@ function ZoneRow({ zone }: { zone: ShippingZone }) {
           onChange={(e) => setEstimate(e.target.value)}
           className={`${compact} col-span-2 sm:col-span-1`}
         />
-        <span className="col-span-2 flex items-center justify-between gap-3 sm:contents">
+        <span className="col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:contents">
           <label className="flex items-center gap-2 text-sm whitespace-nowrap">
             <input
               type="checkbox"
@@ -65,6 +66,10 @@ function ZoneRow({ zone }: { zone: ShippingZone }) {
               className="h-4 w-4 accent-oxblood"
             />
             Fresh items
+          </label>
+          <label className="flex items-center gap-2 text-sm whitespace-nowrap">
+            <input type="checkbox" checked={outside} onChange={(e) => setOutside(e.target.checked)} className="h-4 w-4 accent-oxblood" />
+            Outside Lagos
           </label>
           <span className="flex gap-2">
             <button type="submit" disabled={busy || !dirty} className={`${adminButton} h-10 px-4 disabled:opacity-40`}>
@@ -94,6 +99,7 @@ function AddZone() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [fee, setFee] = useState("");
+  const [outside, setOutside] = useState(false);
   const [msg, setMsg] = useState<Result | null>(null);
   const [busy, start] = useTransition();
   return (
@@ -102,11 +108,13 @@ function AddZone() {
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await createZone({ name, fee: parseAmount(fee), estimate: "", perishables: true });
+          // Fresh items (cake, flowers) can't travel outside Lagos, so a new outside area starts without them.
+          const r = await createZone({ name, fee: parseAmount(fee), estimate: "", perishables: !outside, outsideLagos: outside });
           setMsg(r);
           if (r.ok) {
             setName("");
             setFee("");
+            setOutside(false);
             router.refresh();
           }
         });
@@ -114,7 +122,7 @@ function AddZone() {
       className="mt-4 border-t border-rule pt-4"
     >
       <h2 className="font-display text-xl text-oxblood">Add an area</h2>
-      <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_7rem_auto]">
+      <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_7rem_auto_auto] sm:items-center">
         <input
           aria-label="New area name"
           placeholder="e.g. Surulere"
@@ -130,6 +138,10 @@ function AddZone() {
           onChange={(e) => setFee(e.target.value)}
           className={compact}
         />
+        <label className="flex items-center gap-2 text-sm whitespace-nowrap">
+          <input type="checkbox" checked={outside} onChange={(e) => setOutside(e.target.checked)} className="h-4 w-4 accent-oxblood" />
+          Outside Lagos
+        </label>
         <button type="submit" disabled={busy || !name.trim()} className={`${adminButton} h-10 px-5`}>
           Add
         </button>
@@ -143,9 +155,10 @@ function AddZone() {
   );
 }
 
-export function DeliverySettings({ zones, craftingDays }: { zones: ShippingZone[]; craftingDays: number }) {
+export function DeliverySettings({ zones, leadDays }: { zones: ShippingZone[]; leadDays: LeadDays }) {
   const router = useRouter();
-  const [days, setDays] = useState(String(craftingDays));
+  const [lagos, setLagos] = useState(String(leadDays.lagos));
+  const [outside, setOutside] = useState(String(leadDays.outside));
   const [msg, setMsg] = useState<Result | null>(null);
   const [busy, start] = useTransition();
   const fees = zones.map((z) => z.fee ?? 0);
@@ -158,7 +171,7 @@ export function DeliverySettings({ zones, craftingDays }: { zones: ShippingZone[
       />
       <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_18rem]">
         <Card>
-          <p className="hidden gap-2 text-xs text-ink-soft sm:grid sm:grid-cols-[1fr_7rem_9rem_auto_auto]">
+          <p className="hidden gap-2 text-xs text-ink-soft sm:grid sm:grid-cols-[1fr_7rem_9rem_auto_auto_auto]">
             <span>Area</span>
             <span>Fee (₦)</span>
             <span>Estimate</span>
@@ -176,21 +189,27 @@ export function DeliverySettings({ zones, craftingDays }: { zones: ShippingZone[
             onSubmit={(e) => {
               e.preventDefault();
               start(async () => {
-                const r = await saveCraftingDays(parseAmount(days));
+                const r = await saveLeadDays(parseAmount(lagos), parseAmount(outside));
                 setMsg(r);
                 if (r.ok) router.refresh();
               });
             }}
             className="flex flex-col gap-3"
           >
-            <h2 className="text-2xl text-oxblood">Crafting time</h2>
+            <h2 className="text-2xl text-oxblood">Earliest delivery</h2>
             <label className="text-sm text-ink">
-              Days to make an order
-              <input inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} className={inputClass} />
+              Lagos areas: days after ordering
+              <input inputMode="numeric" value={lagos} onChange={(e) => setLagos(e.target.value)} className={inputClass} />
             </label>
-            <p className="text-sm text-ink-soft">Checkout&rsquo;s earliest delivery date and the product pages use this.</p>
+            <label className="text-sm text-ink">
+              Outside Lagos: days after ordering
+              <input inputMode="numeric" value={outside} onChange={(e) => setOutside(e.target.value)} className={inputClass} />
+            </label>
+            <p className="text-sm text-ink-soft">
+              Checkout&rsquo;s calendar starts here and never offers a Sunday. Tick &ldquo;Outside Lagos&rdquo; on the areas it applies to.
+            </p>
             <button type="submit" disabled={busy} className={adminButton}>
-              Save crafting time
+              Save
             </button>
             {msg && (
               <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-ink" : "text-oxblood"}`}>

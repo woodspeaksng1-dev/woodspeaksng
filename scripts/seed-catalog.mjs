@@ -6,7 +6,7 @@
 import nextEnv from "@next/env";
 import { cert, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import { CRAFTING_DAYS, PRODUCTS, SHIPPING_ZONES } from "../src/lib/catalog.ts";
+import { LEAD_DAYS, PRODUCTS, SHIPPING_ZONES } from "../src/lib/catalog.ts";
 import { SEED_REVIEWS } from "../src/lib/reviews.ts";
 
 nextEnv.loadEnvConfig(process.cwd(), false, { info() {}, error: console.error });
@@ -27,7 +27,7 @@ db.settings({ preferRest: !process.env.FIRESTORE_EMULATOR_HOST, ignoreUndefinedP
 const docs = [
   ...PRODUCTS.map((p, i) => [`products/${p.id}`, { ...p, hidden: false, sortOrder: i }]),
   ...SHIPPING_ZONES.map((z, i) => [`shippingZones/${z.id}`, { ...z, sortOrder: i }]),
-  ["settings/shop", { craftingDays: CRAFTING_DAYS }],
+  ["settings/shop", { lagosDays: LEAD_DAYS.lagos, outsideLagosDays: LEAD_DAYS.outside }],
   ...SEED_REVIEWS.map((r) => [`reviews/${r.id}`, { ...r, createdAt: new Date().toISOString(), createdBy: "seed" }]),
 ];
 

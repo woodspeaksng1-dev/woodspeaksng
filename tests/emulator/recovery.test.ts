@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { earliestDelivery } from "@/lib/checkout";
 import { SEED_CATALOG } from "@/lib/catalog";
 import type { StoredOrder } from "@/lib/orders";
 import type { VerifiedTransaction } from "@/lib/payment-check";
@@ -45,7 +46,7 @@ const DETAILS = {
   zoneId: "lekki-phase-1",
   address: "12 Admiralty Way, Lekki Phase 1",
   landmark: "",
-  deliveryDate: "2030-02-14",
+  deliveryDate: earliestDelivery(7), // a week ahead, never a Sunday
   hidePrice: false,
 };
 const SCROLL = { productId: "scroll", quantity: 1, customization: { kind: "letter", text: "Happy anniversary, my love." } };

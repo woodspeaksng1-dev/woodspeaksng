@@ -33,7 +33,7 @@ function faqGroups(catalog: Catalog): { title: string; items: { q: string; a: Re
       },
       {
         q: "How long will my order take?",
-        a: `Every gift is made by hand, which takes about ${catalog.craftingDays} days. At checkout you choose the date you'd like it delivered, from the earliest date we can make it.`,
+        a: `Every gift is made by hand. At checkout you choose the day you'd like it delivered: in Lagos from ${catalog.leadDays.lagos === 1 ? "the day after you order" : `${catalog.leadDays.lagos} days after you order`}, outside Lagos from ${catalog.leadDays.outside} days after. We don't deliver on Sundays.`,
       },
       {
         q: "How much is delivery?",

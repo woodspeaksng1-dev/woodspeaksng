@@ -87,12 +87,19 @@ export interface ShippingZone {
   estimate: string | null;
   /** Cake, flowers and roses can only go to these zones (fresh on the day). */
   perishables: boolean;
+  /** Outside Lagos: the earliest delivery is LeadDays.outside days after ordering, not LeadDays.lagos. */
+  outsideLagos?: boolean;
 }
 
-/** What the shop sells right now: products, delivery zones and making time. Read from Firestore. */
+/** How many days after ordering the earliest delivery is. Never on a Sunday either way. */
+export interface LeadDays {
+  lagos: number;
+  outside: number;
+}
+
+/** What the shop sells right now: products, delivery zones and delivery lead times. Read from Firestore. */
 export interface Catalog {
   products: Product[];
   zones: ShippingZone[];
-  /** Days to make an order before it can be delivered. */
-  craftingDays: number;
+  leadDays: LeadDays;
 }

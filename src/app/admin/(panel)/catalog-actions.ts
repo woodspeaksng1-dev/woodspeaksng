@@ -6,7 +6,7 @@ import {
   addZone,
   productInput,
   removeZone,
-  setCraftingDays,
+  setLeadDays,
   updateProduct,
   updateZone,
   zoneInput,
@@ -70,6 +70,7 @@ export async function deleteZone(zoneId: string): Promise<CatalogResult> {
   });
 }
 
-export async function saveCraftingDays(days: unknown): Promise<CatalogResult> {
-  return withStaff((staff) => setCraftingDays(staff, typeof days === "number" ? days : Number.NaN));
+export async function saveLeadDays(lagos: unknown, outside: unknown): Promise<CatalogResult> {
+  const num = (v: unknown) => (typeof v === "number" ? v : Number.NaN);
+  return withStaff((staff) => setLeadDays(staff, num(lagos), num(outside)));
 }

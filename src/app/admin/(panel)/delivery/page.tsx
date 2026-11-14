@@ -16,7 +16,7 @@ export default function AdminDeliverySettingsPage() {
 
 async function Delivery() {
   await requireStaff();
-  const { zones, craftingDays } = await readCatalog();
+  const { zones, leadDays } = await readCatalog();
   // Keyed by the list of areas, so adding or removing one rebuilds the rows (edits keep their messages).
-  return <DeliverySettings key={zones.map((z) => z.id).join()} zones={zones} craftingDays={craftingDays} />;
+  return <DeliverySettings key={zones.map((z) => z.id).join()} zones={zones} leadDays={leadDays} />;
 }
