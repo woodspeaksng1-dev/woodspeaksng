@@ -333,8 +333,9 @@ export function CheckoutForm() {
             error={errors.deliveryDate}
           >
             {(p) => (
-              // The phone's own date picker. It greys out days before `min` (most browsers), but it can't
-              // grey out Sundays, so a Sunday or too-early pick is flagged as soon as it's chosen.
+              // The phone's own date picker. Android greys out days before `min`; iPhones ignore `min`, and
+              // nothing greys out Sundays. So a date that isn't allowed is refused as soon as it's picked: the
+              // field keeps the last good date (or stays empty) and says why. The server checks again.
               <input
                 {...p}
                 type="date"
@@ -343,8 +344,14 @@ export function CheckoutForm() {
                 value={form.deliveryDate}
                 onChange={(e) => {
                   const date = e.target.value;
+                  const problem = date ? deliveryDateProblem(date, zone, catalog.leadDays) : null;
+                  if (problem) {
+                    e.target.value = form.deliveryDate; // refuse it: back to the last good date (or empty)
+                    setErrors((er) => ({ ...er, deliveryDate: problem }));
+                    return;
+                  }
                   setForm((f) => ({ ...f, deliveryDate: date }));
-                  setErrors((er) => ({ ...er, deliveryDate: date ? (deliveryDateProblem(date, zone, catalog.leadDays) ?? undefined) : undefined }));
+                  setErrors((er) => ({ ...er, deliveryDate: undefined }));
                 }}
                 className={inputClass}
               />
