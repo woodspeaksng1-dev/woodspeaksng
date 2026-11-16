@@ -140,12 +140,15 @@ function teamEmail(order: StoredOrder, to: string) {
   };
 }
 
-/** The one status email (client's choice): the order is on its way. Errors are logged, not thrown. */
-export async function sendDispatchedEmail(order: StoredOrder) {
+/**
+ * The one status email (client's choice): the order is on its way. Tried twice; says whether it went, so
+ * staff are told the truth and can message the buyer if it didn't. Never throws.
+ */
+export async function sendDispatchedEmail(order: StoredOrder): Promise<boolean> {
   const first = order.customer.name.split(" ")[0];
   const to = order.recipient?.name ?? order.customer.name;
   const items = order.lines.map((l) => l.name).join(", ");
-  await sendEmail({
+  const send = () => sendEmail({
     to: order.customer.email,
     subject: `Your Woodspeaks order ${order.number} is on its way`,
     html: page(
@@ -160,7 +163,14 @@ export async function sendDispatchedEmail(order: StoredOrder) {
       `It's on its way, ${first}. ${items} ${order.lines.length > 1 ? "have" : "has"} left our workshop and ` +
       `${order.lines.length > 1 ? "are" : "is"} heading to ${to} in ${order.delivery.zoneName}. Our rider will call on arrival.\n` +
       `Order ${order.number}. Questions? Reply to this email.`,
-  }).catch((error) => console.error(`Order ${order.number}: dispatched email failed.`, error));
+  });
+  return withRetries(send, [0, 1500]).then(
+    () => true,
+    (error) => {
+      console.error(`Order ${order.number}: dispatched email failed.`, error);
+      return false;
+    },
+  );
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

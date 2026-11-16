@@ -1,6 +1,5 @@
 "use server";
 
-import { after } from "next/server";
 import { z } from "zod";
 import { STATUS_FLOW, STATUS_LABEL } from "@/lib/orders";
 import { advanceOrder, markNfcWritten } from "@/lib/server/admin-orders";
@@ -25,9 +24,11 @@ export async function moveOrderOn(number: string, to: string): Promise<ActionRes
   const result = await advanceOrder(staff, input.data.number, input.data.to);
   if (!result.ok) return result;
   if (input.data.to === "dispatched") {
-    const order = result.order;
-    after(() => sendDispatchedEmail(order));
-    return { ok: true, message: "Marked dispatched. The customer has been emailed." };
+    // Waited for, so the message is true either way.
+    const emailed = await sendDispatchedEmail(result.order);
+    return emailed
+      ? { ok: true, message: "Marked dispatched. The customer has been emailed." }
+      : { ok: true, message: "Marked dispatched, but the email to the customer didn't go. Let them know on WhatsApp." };
   }
   return { ok: true, message: `Marked ${STATUS_LABEL[input.data.to].toLowerCase()}.` };
 }

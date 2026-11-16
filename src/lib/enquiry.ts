@@ -70,6 +70,12 @@ export const enquiryRequestSchema = z.discriminatedUnion("kind", [
   enquirySchema.extend({ kind: z.literal("corporate") }),
 ]);
 export type EnquiryRequest = z.output<typeof enquiryRequestSchema>;
+/**
+ * What the forms send: the fields as typed. The server parses them itself. (Sending the browser's parsed
+ * copy broke corporate enquiries from 10 to 16 Nov: parsing turns the quantity into a number, which the
+ * server's schema, expecting typed text, refused.)
+ */
+export type EnquiryRequestInput = z.input<typeof enquiryRequestSchema>;
 
 export type EnquiryStatus = "new" | "handled";
 

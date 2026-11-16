@@ -99,7 +99,9 @@ function AddZone() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [fee, setFee] = useState("");
-  const [outside, setOutside] = useState(false);
+  // No default: staff must say where the area is, because it sets the earliest delivery date (an area
+  // added without it was treated as Lagos, next day).
+  const [where, setWhere] = useState<"lagos" | "outside" | null>(null);
   const [msg, setMsg] = useState<Result | null>(null);
   const [busy, start] = useTransition();
   return (
@@ -107,6 +109,8 @@ function AddZone() {
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
+        if (!where) return setMsg({ ok: false, message: "Choose whether the area is in Lagos or outside Lagos." });
+        const outside = where === "outside";
         start(async () => {
           // Fresh items (cake, flowers) can't travel outside Lagos, so a new outside area starts without them.
           const r = await createZone({ name, fee: parseAmount(fee), estimate: "", perishables: !outside, outsideLagos: outside });
@@ -114,7 +118,7 @@ function AddZone() {
           if (r.ok) {
             setName("");
             setFee("");
-            setOutside(false);
+            setWhere(null);
             router.refresh();
           }
         });
@@ -138,10 +142,15 @@ function AddZone() {
           onChange={(e) => setFee(e.target.value)}
           className={compact}
         />
-        <label className="flex items-center gap-2 text-sm whitespace-nowrap">
-          <input type="checkbox" checked={outside} onChange={(e) => setOutside(e.target.checked)} className="h-4 w-4 accent-oxblood" />
-          Outside Lagos
-        </label>
+        <fieldset className="flex items-center gap-4 text-sm whitespace-nowrap">
+          <legend className="sr-only">Where is it?</legend>
+          {(["lagos", "outside"] as const).map((w) => (
+            <label key={w} className="flex items-center gap-2">
+              <input type="radio" name="where" checked={where === w} onChange={() => setWhere(w)} className="h-4 w-4 accent-oxblood" />
+              {w === "lagos" ? "In Lagos" : "Outside Lagos"}
+            </label>
+          ))}
+        </fieldset>
         <button type="submit" disabled={busy || !name.trim()} className={`${adminButton} h-10 px-5`}>
           Add
         </button>

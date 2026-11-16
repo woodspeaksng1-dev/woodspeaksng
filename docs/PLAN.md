@@ -127,6 +127,23 @@ Done (frontend, mock data):
     never on a Sunday, up to six months ahead; in Lagos time. Both numbers are set in admin (settings/shop
     lagosDays, outsideLagosDays; they replace crafting days). Checkout has its own calendar so Sundays show
     greyed out; the server checks the same rules. No outside-Lagos areas exist yet: staff add and tick them.
+- Site-wide check (16 Nov): live, every page in a phone browser (no script errors, broken images, overflow or
+  dead links), API guards, headers and production settings; locally on the emulator, the whole shopper journey
+  (every personalisation kind, cart, checkout to Paystack's test page, confirmation, contact and corporate
+  forms, Mudi, shop filters, account) and every admin screen and action. Fixed:
+  - Corporate enquiries had failed since 10 Nov (the form sent its parsed copy, with the quantity as a number,
+    which the server refused; buyers only saw "send it on WhatsApp"). Both forms now send what was typed.
+  - Dispatch said "the customer has been emailed" even when the email failed; it now waits, retries once,
+    and says if it didn't go.
+  - 404 page titled "Page not found"; delivery policy wording matches the new delivery dates.
+- Dropped from scope (decided 16 Nov): unpaid-checkout reminder email, double opt-in for the mailing
+  list, the "order by … to receive by …" line, brand logos in admin, and error tracking, uptime monitoring
+  and funnel analytics. Don't flag these as missing.
+- Checkout uses the phone's own date picker again (16 Nov): the custom calendar looked out of place. Days
+  before the earliest are greyed out by the picker; a Sunday or too-early pick shows an error straight away.
+- Adding a delivery area now needs "In Lagos" or "Outside Lagos" chosen (16 Nov). Five areas added on the
+  live site (Abuja, Kaduna, Delta, Edo, Sokoto) weren't ticked Outside Lagos, so they offered next-day
+  delivery and fresh items; staff fix them in admin → Delivery.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:
@@ -232,13 +249,11 @@ After payment:
 - Confirmation email to the customer; **new-order email to the Woodspeaks team** (email only, no WhatsApp
   alerts), with all personalisation text.
 - Status emails as the order moves: crafting, dispatched, delivered.
-- If payment fails or the tab is closed: the cart is kept, and one reminder email goes out if the order
-  stays unpaid.
+- If payment fails or the tab is closed: the cart is kept.
 
 Delivery zones (fees and estimates still to come from the client, `SHIPPING_ZONES` in the catalog):
 Lagos Island/Lekki/Ajah; Lagos Mainland; Lagos outskirts (Ikorodu, Epe, Badagry); Abuja/Port
-Harcourt/Ibadan; other states. Crafting time is 2–3 days (to confirm); product pages show an
-"order by … to receive by …" line.
+Harcourt/Ibadan; other states.
 
 ## Other pages
 
@@ -263,7 +278,7 @@ Staff run the shop without a developer.
 | --- | --- |
 | Orders | See new and past orders; view personalisation text, buyer, recipient and delivery details; move status Paid → Crafting → Dispatched → Delivered (each emails the customer); print an order sheet for the workshop; for NFC orders, download the video or open the link, and mark the tag written |
 | Products | Add and edit: photos, price, description, dimensions, included items, add-ons, occasion and recipient tags, personalisation limits, SEO title and image alt text; mark featured (the home page shows 6); hide or show |
-| Homepage | Featured products: on each product (done). Customer moments: add, edit, hide, order (done 12 Nov, Moments). Brand logos: still in code |
+| Homepage | Featured products: on each product (done). Customer moments: add, edit, hide, order (done 12 Nov, Moments) |
 | Reviews | Add and approve real customer reviews (they feed "What they say about us") |
 | Delivery | Edit zone fees and estimates; mark areas outside Lagos; set the earliest delivery (Lagos, outside Lagos) |
 | Customers | List of customers and who opted in to emails |
@@ -345,7 +360,7 @@ Backend order of work:
    Fixed on the way: product pages failed after an edit (params now read inside Suspense, per the ISR
    with Cache Components guide); admin pages are request-time only (connection()); navbar links and the
    floating helpers sit in Suspense; the emulator uses a throwaway certificate so it behaves like production.
-7. Mailing: opt-in list (double opt-in), template broadcasts, reminder dates, daily job, unpaid nudge
+7. Mailing: opt-in list (the checkout tick), template broadcasts, reminder dates, daily job
 8. Uploads: customer photos and NFC videos (resumable, private, 100 MB cap in Storage rules)
    Built 11 Nov, off until Blaze (`UPLOADS_ENABLED=1`). The server opens a resumable upload fixed to the file's
    exact size and type; the browser sends 8 MB pieces straight to Google and resumes after a dropped connection.
@@ -380,8 +395,6 @@ full checkout on a real phone in test mode, then one small live payment and refu
   backups (7 days) and the rateLimits TTL are on. Product photos upload from admin (12 Nov).
 - Hosting: the project is on Vercel Hobby under the developer's account (non-commercial terms, ~1 hour
   logs). Before long: Vercel Pro on the client's account, or move to Firebase App Hosting (pay as you go)
-- Error tracking (Sentry), uptime monitor, funnel analytics (view, customize, add to
-  cart, checkout, paid); cookie banner only if tracking cookies are used
 - Privacy policy naming Paystack, Firebase, Vercel and the email provider (NDPA 2023 / GAID);
   the client confirms obligations with a Nigerian data protection practitioner
 - Core Web Vitals "good" on a mid-range Android (LCP < 2.5 s, INP < 200 ms, CLS < 0.1)
@@ -415,5 +428,5 @@ Still open:
    Still to decide: a paid plan if they'll email big lists (free plan: 100 a day)
 5. The Firebase Blaze plan: on since 11 Nov, uploads live (set a budget alert at about $10 if not done)
 6. The privacy policy needs a Nigerian data protection practitioner's review; the draft policies hold
-   assumptions to confirm (48-hour damage reports, refunds only before crafting, second delivery attempt fee,
+   assumptions to confirm (24-hour damage reports, refunds only before crafting, second delivery attempt fee,
    data requests within 30 days)

@@ -11,7 +11,7 @@ vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const session = vi.hoisted(() => ({ staff: null as null | { uid: string; email: string; role: "owner" | "staff"; name: string | null } }));
 vi.mock("@/lib/server/admin-session", () => ({ currentStaff: async () => session.staff, requireStaff: async () => session.staff }));
-const mocks = vi.hoisted(() => ({ dispatched: vi.fn(async () => {}), updateTag: vi.fn() }));
+const mocks = vi.hoisted(() => ({ dispatched: vi.fn<(order: unknown) => Promise<boolean>>(async () => true), updateTag: vi.fn() }));
 vi.mock("@/lib/server/order-emails", () => ({ sendDispatchedEmail: mocks.dispatched, sendPaidOrderEmails: vi.fn() }));
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag, cacheLife: () => {}, cacheTag: () => {} }));
 vi.mock("next/server", () => ({ after: (fn: () => unknown) => void fn() }));
@@ -65,6 +65,15 @@ beforeEach(() => {
 });
 
 describe("moving orders on", () => {
+  it("says so when the dispatch email didn't go, and still marks the order dispatched", async () => {
+    const number = await makeOrder({ status: "crafting" });
+    mocks.dispatched.mockResolvedValueOnce(false);
+    const result = await orderActions.moveOrderOn(number, "dispatched");
+    expect(result).toMatchObject({ ok: true });
+    expect(result.message).toMatch(/didn't go.*WhatsApp/);
+    expect((await db().doc(`orders/${number}`).get()).get("status")).toBe("dispatched");
+  });
+
   it("goes paid → crafting → dispatched → delivered, emailing the buyer only on dispatch", async () => {
     const number = await makeOrder();
     expect((await orderActions.moveOrderOn(number, "crafting")).ok).toBe(true);

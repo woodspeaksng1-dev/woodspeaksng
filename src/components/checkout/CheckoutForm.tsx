@@ -7,7 +7,6 @@ import { cartSubtotal, lineTotal, useCart, useCartHydrated } from "@/lib/cart-st
 import { findProduct, findZone } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { LATEST_DELIVERY_DAYS, addDays, checkoutSchema, deliveryDateProblem, earliestDelivery, lagosToday, leadDaysFor, shortDate, type CheckoutInput } from "@/lib/checkout";
-import { DeliveryCalendar } from "./DeliveryCalendar";
 import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
 import { OrderLines } from "./OrderLines";
@@ -108,8 +107,9 @@ export function CheckoutForm() {
   // Changing area can make the chosen date too early (outside Lagos takes longer): then it's cleared.
   const chooseZone = (zoneId: string) => {
     const next = findZone(catalog, zoneId);
-    setForm((f) => ({ ...f, zoneId, deliveryDate: f.deliveryDate && deliveryDateProblem(f.deliveryDate, next, catalog.leadDays) ? "" : f.deliveryDate }));
-    setErrors((e) => ({ ...e, zoneId: undefined }));
+    const problem = form.deliveryDate ? deliveryDateProblem(form.deliveryDate, next, catalog.leadDays) : null;
+    setForm((f) => ({ ...f, zoneId, deliveryDate: problem ? "" : f.deliveryDate }));
+    setErrors((e) => ({ ...e, zoneId: undefined, deliveryDate: problem ?? e.deliveryDate }));
   };
   const perishables = items
     .map((i) => findProduct(catalog, i.productId))
@@ -333,18 +333,24 @@ export function CheckoutForm() {
             error={errors.deliveryDate}
           >
             {(p) => (
-              <DeliveryCalendar
-                id={p.id}
-                invalid={p["aria-invalid"]}
-                describedBy={p["aria-describedby"]}
+              // The phone's own date picker. It greys out days before `min` (most browsers), but it can't
+              // grey out Sundays, so a Sunday or too-early pick is flagged as soon as it's chosen.
+              <input
+                {...p}
+                type="date"
+                min={earliest}
+                max={latest}
                 value={form.deliveryDate}
-                onChange={(date) => set("deliveryDate", date)}
-                earliest={earliest}
-                latest={latest}
+                onChange={(e) => {
+                  const date = e.target.value;
+                  setForm((f) => ({ ...f, deliveryDate: date }));
+                  setErrors((er) => ({ ...er, deliveryDate: date ? (deliveryDateProblem(date, zone, catalog.leadDays) ?? undefined) : undefined }));
+                }}
+                className={inputClass}
               />
             )}
           </TextField>
-          {form.deliveryDate && <p className="-mt-3 text-sm text-ink">Delivery on {shortDate(form.deliveryDate)}</p>}
+          {form.deliveryDate && !errors.deliveryDate && <p className="-mt-3 text-sm text-ink">Delivery on {shortDate(form.deliveryDate)}</p>}
         </Section>
 
         <Section n={4} title="Gift options">

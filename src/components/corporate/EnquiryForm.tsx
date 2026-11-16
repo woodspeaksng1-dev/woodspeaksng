@@ -65,7 +65,7 @@ export function EnquiryForm() {
     }
     setSending(true);
     setFailure(null);
-    const r = await postEnquiry({ kind: "corporate", ...result.data });
+    const r = await postEnquiry({ kind: "corporate", ...form }); // as typed: the server checks it again
     setSending(false);
     // If it can't be sent, WhatsApp with the details filled in is the way through.
     if (r.ok) setSent(true);

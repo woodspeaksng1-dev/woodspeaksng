@@ -40,7 +40,7 @@ export function ContactForm() {
     }
     setSending(true);
     setFailure(null);
-    const r = await postEnquiry({ kind: "contact", ...result.data });
+    const r = await postEnquiry({ kind: "contact", ...form }); // as typed: the server checks it again
     setSending(false);
     if (r.ok) setSent(true);
     else setFailure(r.message);
