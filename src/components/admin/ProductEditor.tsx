@@ -7,9 +7,10 @@ import { saveProduct } from "@/app/admin/(panel)/catalog-actions";
 import { parseAmount } from "@/lib/admin/format";
 import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
 import { formatNaira } from "@/lib/format";
+import { isSoldOut, unitsLeft } from "@/lib/stock";
 import type { Occasion, Personalization, Product, Recipient } from "@/lib/types";
 import { Check, TextField, inputClass } from "../ui/FormField";
-import { Card, adminButton } from "./AdminShell";
+import { Badge, Card, adminButton } from "./AdminShell";
 import { ProductPhoto } from "./ProductPhoto";
 
 function Tags<T extends string>({
@@ -63,6 +64,9 @@ interface Draft {
   perishable: boolean;
   seoTitle: string;
   imageAlt: string;
+  /** Units in stock as typed; "" means not counted. */
+  stock: string;
+  soldOut: boolean;
 }
 
 const draftOf = (p: Product): Draft => ({
@@ -80,7 +84,11 @@ const draftOf = (p: Product): Draft => ({
   perishable: !!p.perishable,
   seoTitle: p.seoTitle ?? "",
   imageAlt: p.imageAlt ?? "",
+  stock: p.stock == null ? "" : String(p.stock),
+  soldOut: !!p.soldOut,
 });
+
+const stockValue = (typed: string) => (typed.trim() === "" ? null : num(typed));
 
 /** Edit one product. Saving goes through the server, which checks everything and updates the shop at once. */
 export function ProductEditor({ product }: { product: Product }) {
@@ -88,6 +96,9 @@ export function ProductEditor({ product }: { product: Product }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(product));
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [saving, startSaving] = useTransition();
+  // The stock the box started from (or last saved). Sent as stockSeen: the server writes stock only when
+  // staff changed it, so orders paid while this page is open aren't undone by saving something else.
+  const [stockSeen, setStockSeen] = useState(() => draftOf(product).stock);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setStatus(null);
@@ -98,15 +109,25 @@ export function ProductEditor({ product }: { product: Product }) {
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     startSaving(async () => {
-      const result = await saveProduct(product.id, { ...draft, price: num(draft.price) });
+      const result = await saveProduct(product.id, {
+        ...draft,
+        price: num(draft.price),
+        stock: stockValue(draft.stock),
+        stockSeen: stockValue(stockSeen),
+      });
       setStatus({ ok: result.ok, text: result.message });
-      if (result.ok) router.refresh();
+      if (result.ok) {
+        setStockSeen(draft.stock);
+        router.refresh();
+      }
     });
   };
 
   // Compared as saved values, so "17,000" and 17000 count as the same price.
-  const asSaved = (d: Draft) => JSON.stringify({ ...d, price: num(d.price) });
-  const unsaved = asSaved(draft) !== asSaved(draftOf(product));
+  // Stock is compared with what the box started from: orders changing it in the meantime aren't an edit.
+  const asSaved = (d: Draft) => JSON.stringify({ ...d, price: num(d.price), stock: null });
+  const unsaved = asSaved(draft) !== asSaved(draftOf(product)) || draft.stock.trim() !== stockSeen.trim();
+  const left = unitsLeft(product);
 
   const pz = draft.personalization;
   const limitInput = (value: number, onValue: (n: number) => void) =>
@@ -143,6 +164,30 @@ export function ProductEditor({ product }: { product: Product }) {
             </Check>
             <Check checked={draft.perishable} onChange={(v) => set("perishable", v)}>
               Fresh item (only to areas that take cake and flowers)
+            </Check>
+          </div>
+          <div className="mt-5 flex flex-col gap-3 border-t border-rule pt-4">
+            <h2 className="text-sm font-semibold text-ink">Stock</h2>
+            <p className="text-sm text-ink" role="status">
+              In the shop now:{" "}
+              {isSoldOut(product) ? (
+                <Badge tone="quiet">Sold out</Badge>
+              ) : left === null ? (
+                "available (stock not counted)"
+              ) : (
+                `${left} left`
+              )}
+            </p>
+            <TextField
+              label="Units in stock"
+              hint="Goes down by itself as orders are paid; at 0 the shop shows it as sold out. Leave empty if you don't count it."
+            >
+              {(p) => (
+                <input {...p} inputMode="numeric" placeholder="Not counted" value={draft.stock} onChange={(e) => set("stock", e.target.value)} className={inputClass} />
+              )}
+            </TextField>
+            <Check checked={draft.soldOut} onChange={(v) => set("soldOut", v)}>
+              Mark as sold out (whatever the count)
             </Check>
           </div>
         </Card>

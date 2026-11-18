@@ -1,4 +1,5 @@
 import "server-only";
+import { isSoldOut } from "@/lib/stock";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import { SEED_CATALOG } from "@/lib/catalog";
@@ -58,6 +59,8 @@ const productSchema: z.ZodType<Product> = z.object({
   featured: z.boolean().optional(),
   addOn: z.boolean().optional(),
   hidden: z.boolean().optional(),
+  stock: z.number().int().nullable().optional(),
+  soldOut: z.boolean().optional(),
   image: z.string().optional(),
   gallery: z.array(z.string()).optional(),
   dimensions: z.string().optional(),
@@ -119,7 +122,16 @@ export async function getCatalog(): Promise<Catalog> {
 }
 
 /** What shoppers see: the cached catalog without hidden products. */
+/**
+ * What shoppers' pages get: visible products, with the stock count taken out (customers don't see how many
+ * are left, client's call 18 Nov). Only "sold out" goes to the browser. Checkout reads the real count itself.
+ */
 export async function getStorefront(): Promise<Catalog> {
   const catalog = await getCatalog();
-  return { ...catalog, products: catalog.products.filter((p) => !p.hidden) };
+  return {
+    ...catalog,
+    products: catalog.products
+      .filter((p) => !p.hidden)
+      .map(({ stock, ...p }) => ({ ...p, soldOut: isSoldOut({ ...p, stock }) })),
+  };
 }

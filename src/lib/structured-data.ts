@@ -1,5 +1,6 @@
 import { SITE, absoluteUrl } from "./site";
 import { imageSrc } from "./media";
+import { isSoldOut } from "./stock";
 import type { Product } from "./types";
 
 const ORG_ID = absoluteUrl("/#organization");
@@ -64,7 +65,11 @@ export function productLd(product: Product) {
       url,
       priceCurrency: "NGN",
       price: product.price,
-      availability: madeToOrder ? "https://schema.org/MadeToOrder" : "https://schema.org/InStock",
+      availability: isSoldOut(product)
+        ? "https://schema.org/OutOfStock"
+        : madeToOrder
+          ? "https://schema.org/MadeToOrder"
+          : "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@id": ORG_ID },
     },

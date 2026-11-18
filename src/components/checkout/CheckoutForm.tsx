@@ -9,6 +9,7 @@ import { useCatalog } from "../catalog/CatalogProvider";
 import { LATEST_DELIVERY_DAYS, addDays, checkoutSchema, deliveryDateProblem, earliestDelivery, lagosToday, leadDaysFor, shortDate, type CheckoutInput } from "@/lib/checkout";
 import { CONTACT } from "@/lib/contact";
 import { formatNaira } from "@/lib/format";
+import { isSoldOut } from "@/lib/stock";
 import { OrderLines } from "./OrderLines";
 import { Check, TextField, inputClass } from "../ui/FormField";
 
@@ -128,6 +129,9 @@ export function CheckoutForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
+    // Sold out, as the shop last showed it. The server checks stock again, fresh (counts never reach the browser).
+    const soldOut = items.map((i) => findProduct(catalog, i.productId)).find((p) => p && isSoldOut(p));
+    if (soldOut) return setServerError(`${soldOut.name} is sold out. Remove it from your cart.`);
     const result = checkoutSchema(catalog).safeParse(form);
     const next: Errors = {};
     if (!result.success)

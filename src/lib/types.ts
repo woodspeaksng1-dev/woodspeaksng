@@ -42,6 +42,10 @@ export interface Product {
   addOn?: boolean;
   /** Hidden by staff: off the shop and refused at checkout, kept for past orders. */
   hidden?: boolean;
+  /** Units in stock, taken off as orders are paid. Absent or null: not counted (never runs out). See lib/stock.ts. */
+  stock?: number | null;
+  /** Marked sold out by staff, whatever the stock count. */
+  soldOut?: boolean;
   /** Set by staff in admin; shown on the product page when filled in. */
   dimensions?: string;
   included?: string;

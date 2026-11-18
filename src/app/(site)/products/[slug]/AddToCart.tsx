@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/lib/cart-store";
 import { formatNaira } from "@/lib/format";
+import { isSoldOut } from "@/lib/stock";
 import type { Product } from "@/lib/types";
 
 /**
@@ -14,7 +15,11 @@ export function AddToCart({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   const personalisable = product.personalization.kind !== "none";
 
-  const button = personalisable ? (
+  const button = isSoldOut(product) ? (
+    <button type="button" disabled className="h-12 w-full cursor-default rounded-full bg-ink/15 text-ink-soft md:w-auto md:px-10">
+      Sold out
+    </button>
+  ) : personalisable ? (
     <Link
       href={`/products/${product.slug}/personalise`}
       className="flex h-12 w-full items-center justify-center rounded-full bg-oxblood text-vellum transition-colors hover:bg-wine md:inline-flex md:w-auto md:px-10"
@@ -34,6 +39,11 @@ export function AddToCart({ product }: { product: Product }) {
   return (
     <>
       <div className="mt-10 hidden md:block">{button}</div>
+      {isSoldOut(product) && (
+        <p className="mt-3 text-sm text-ink-soft">
+          Sold out for now. Message us on WhatsApp and we&rsquo;ll tell you when it&rsquo;s back.
+        </p>
+      )}
       <div data-sticky-bar className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-4 border-t border-rule bg-vellum/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
         <span className="font-display text-xl tabular-nums">{formatNaira(product.price)}</span>
         <div className="flex-1">{button}</div>

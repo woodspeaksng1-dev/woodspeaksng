@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatNaira } from "@/lib/format";
+import { isSoldOut } from "@/lib/stock";
 import { ProductImage } from "./ProductImage";
 import { CardAction } from "./CardAction";
 import { CATEGORY_TONE } from "./tones";
@@ -12,6 +13,7 @@ import { CATEGORY_TONE } from "./tones";
 export function ProductCard({ product }: { product: Product }) {
   const sheet = CATEGORY_TONE[product.category].sheet;
   const made = product.personalization.kind !== "none";
+  const soldOut = isSoldOut(product);
   return (
     <article className="group relative pr-2.5 pb-3.5 sm:pr-3.5 sm:pb-4">
       <div
@@ -24,9 +26,13 @@ export function ProductCard({ product }: { product: Product }) {
       />
       <div className="relative rounded-[1.6rem] bg-vellum p-1.5 shadow-card ring-1 ring-ink/[0.04] transition-transform duration-500 ease-quill group-hover:-translate-y-1 sm:p-2">
         <Link href={`/products/${product.slug}`} tabIndex={-1} aria-hidden className="block">
-          <ProductImage product={product} className="rounded-[1.2rem]" />
+          <ProductImage product={product} className={`rounded-[1.2rem] ${soldOut ? "opacity-60 grayscale-[35%]" : ""}`} />
         </Link>
-        {made && (
+        {soldOut ? (
+          <span className="absolute top-3.5 left-3.5 rounded-full bg-ink px-2.5 py-1 text-[0.7rem] text-vellum shadow-sm sm:top-4 sm:left-4 sm:text-xs">
+            Sold out
+          </span>
+        ) : made && (
           <span className="absolute top-3.5 left-3.5 rounded-full bg-vellum/90 px-2.5 py-1 text-[0.7rem] text-ink shadow-sm sm:top-4 sm:left-4 sm:text-xs">
             Your words
           </span>

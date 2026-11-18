@@ -48,6 +48,14 @@ export const productInput = z.object({
   perishable: z.boolean(),
   seoTitle: text(70),
   imageAlt: text(200),
+  /** Units in stock; null: not counted. */
+  stock: whole(0, 1_000_000, "the stock").nullable().default(null),
+  /**
+   * The stock the editor showed when it opened. Stock is written only if staff changed it, so saving other
+   * fields never puts back units that orders took while the page was open.
+   */
+  stockSeen: z.number().int().nullable().default(null),
+  soldOut: z.boolean().default(false),
 });
 export type ProductInput = z.infer<typeof productInput>;
 
@@ -62,6 +70,8 @@ function describeChanges(before: Product, after: ProductInput): string {
   if (before.price !== after.price) changes.push(`price ${formatNaira(before.price)} → ${formatNaira(after.price)}`);
   if (!!before.hidden !== after.hidden) changes.push(after.hidden ? "hidden from the shop" : "shown in the shop");
   if (!!before.featured !== after.featured) changes.push(after.featured ? "added to the home page" : "taken off the home page");
+  if (after.stock !== after.stockSeen) changes.push(`stock ${before.stock ?? "not counted"} → ${after.stock ?? "not counted"}`);
+  if (!!before.soldOut !== after.soldOut) changes.push(after.soldOut ? "marked sold out" : "no longer marked sold out");
   const other = (["description", "dimensions", "included", "occasions", "recipients", "personalization", "addOn", "perishable", "seoTitle", "imageAlt"] as const).filter(
     (k) => JSON.stringify(before[k] ?? (typeof after[k] === "boolean" ? false : "")) !== JSON.stringify(after[k]),
   );
@@ -85,7 +95,13 @@ export async function updateProduct(staff: SignedInStaff, id: string, input: Pro
     }
     const summary = describeChanges(before, input);
     if (summary === "no changes") return { ok: true, message: "No changes to save." };
-    const update: Partial<Product> & { updatedAt: string } = { ...input, personalization: input.personalization as Personalization, updatedAt: new Date().toISOString() };
+    const { stock, stockSeen, ...rest } = input;
+    const update: Partial<Product> & { updatedAt: string } = {
+      ...rest,
+      ...(stock !== stockSeen ? { stock } : {}), // only when staff changed it (see stockSeen)
+      personalization: input.personalization as Personalization,
+      updatedAt: new Date().toISOString(),
+    };
     t.update(ref, update);
     t.create(db().collection("auditLog").doc(), audit(staff, `edited ${input.name}:`, summary));
     return { ok: true, message: "Saved. The shop shows the change now." };

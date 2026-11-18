@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { isSoldOut } from "@/lib/stock";
 import { useSearchParams } from "next/navigation";
 import { OCCASION_LABELS, RECIPIENT_LABELS } from "@/lib/catalog";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
-import type { Occasion, Recipient } from "@/lib/types";
+import type { Occasion, Product, Recipient } from "@/lib/types";
 import { ProductCard } from "@/components/product/ProductCard";
 
 type Sort = "featured" | "price-asc" | "price-desc";
@@ -63,9 +64,11 @@ export function ShopGrid({ personalisedOnly }: { personalisedOnly: boolean }) {
         (!recipient || p.recipients.includes(recipient)) &&
         (!onlyPersonalised || p.personalization.kind !== "none"),
     );
-    if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
-    if (sort === "price-desc") return [...list].sort((a, b) => b.price - a.price);
-    return [...list].sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+    // Sold-out products go to the end, whatever the order.
+    const available = (a: Product, b: Product) => Number(isSoldOut(a)) - Number(isSoldOut(b));
+    if (sort === "price-asc") return [...list].sort((a, b) => available(a, b) || a.price - b.price);
+    if (sort === "price-desc") return [...list].sort((a, b) => available(a, b) || b.price - a.price);
+    return [...list].sort((a, b) => available(a, b) || Number(!!b.featured) - Number(!!a.featured));
   }, [catalog.products, occasion, recipient, onlyPersonalised, sort]);
 
   const filtered = !!occasion || !!recipient || onlyPersonalised;

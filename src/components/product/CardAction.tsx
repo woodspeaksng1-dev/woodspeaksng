@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCart } from "@/lib/cart-store";
+import { isSoldOut } from "@/lib/stock";
 import type { Product } from "@/lib/types";
 import { BagIcon, PenIcon } from "../ui/icons";
 
@@ -11,6 +12,7 @@ const pill =
 /** The dark pill on each card: personalise (goes to the product) or add straight to the cart. */
 export function CardAction({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
+  if (isSoldOut(product)) return null; // the card's photo carries the "Sold out" badge
   if (product.personalization.kind !== "none") {
     return (
       <Link href={`/products/${product.slug}`} className={pill} aria-label={`Personalise the ${product.name}`}>

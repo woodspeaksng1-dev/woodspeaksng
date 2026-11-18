@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { findProduct, findZone } from "./catalog";
 import { unitPrice } from "./pricing";
+import { isSoldOut, unitsLeft } from "./stock";
 import type { CartCustomization, Catalog, Product, ShippingZone } from "./types";
 import { uploadId } from "./uploads";
 import { letterSchema, reasonsSchema, videoLinkSchema } from "./validation";
@@ -129,6 +130,10 @@ export function priceOrder(catalog: Catalog, request: unknown): PricingResult {
       problems.push({ line: index, message: "This item is no longer available. Remove it from your cart." });
       return;
     }
+    if (isSoldOut(product)) {
+      problems.push({ line: index, message: `${product.name} is sold out. Remove it from your cart.` });
+      return;
+    }
     const custom = customizationSchema(product).safeParse(line.customization);
     if (!custom.success) {
       problems.push({ line: index, message: `${product.name}: ${custom.error.issues[0]?.message ?? "check the personalisation."}` });
@@ -148,6 +153,19 @@ export function priceOrder(catalog: Catalog, request: unknown): PricingResult {
       customization: custom.data,
     });
   });
+
+  // Counted stock: all the lines for one product together (two personalised scrolls are two lines).
+  const wanted = new Map<string, number>();
+  for (const l of lines) wanted.set(l.productId, (wanted.get(l.productId) ?? 0) + l.quantity);
+  for (const [productId, quantity] of wanted) {
+    const product = findProduct(catalog, productId)!;
+    const left = unitsLeft(product);
+    if (left !== null && quantity > left)
+      problems.push({
+        line: parsed.data.lines.findIndex((l) => l.productId === productId),
+        message: `We don't have that many ${product.name} in stock. Lower the quantity, or message us on WhatsApp.`,
+      });
+  }
 
   if (problems.length || !zone) return { ok: false, problems };
 

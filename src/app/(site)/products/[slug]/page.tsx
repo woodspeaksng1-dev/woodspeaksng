@@ -12,6 +12,7 @@ import { AddToCart } from "./AddToCart";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbLd, productLd } from "@/lib/structured-data";
 import { imageSrc } from "@/lib/media";
+import { isSoldOut } from "@/lib/stock";
 
 export async function generateStaticParams() {
   return (await getStorefront()).products.map((p) => ({ slug: p.slug }));
@@ -61,6 +62,7 @@ async function Product({ params }: Pick<PageProps<"/products/[slug]">, "params">
       <div className="md:pt-6">
         <h1 className="text-4xl text-oxblood md:text-5xl">{product.name}</h1>
         <p className="mt-3 font-display text-2xl tabular-nums">{formatNaira(product.price)}</p>
+        {isSoldOut(product) && <p className="mt-2 inline-block rounded-full bg-ink px-3 py-1 text-sm text-vellum">Sold out</p>}
         <p className="mt-6 max-w-prose text-lg text-ink-soft">{product.description}</p>
 
         <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 border-t border-rule pt-6 text-sm">

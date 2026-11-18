@@ -7,6 +7,7 @@ import { cartSubtotal, lineTotal, useCart } from "@/lib/cart-store";
 import { findProduct } from "@/lib/catalog";
 import { useCatalog } from "../catalog/CatalogProvider";
 import { formatNaira } from "@/lib/format";
+import { isSoldOut } from "@/lib/stock";
 import type { CartItem } from "@/lib/types";
 import { CloseIcon, MinusIcon, PlusIcon } from "../ui/icons";
 import { ProductImage } from "../product/ProductImage";
@@ -103,6 +104,7 @@ export function CartDrawer() {
                     const product = findProduct(catalog, item.productId);
                     if (!product) return null;
                     const summary = customizationSummary(item);
+                    const soldOut = isSoldOut(product);
                     return (
                       <li key={item.lineId} className="flex gap-4 py-5">
                         <ProductImage product={product} className="w-20 shrink-0 rounded-xl [&_span]:text-xs" />
@@ -129,6 +131,11 @@ export function CartDrawer() {
                               </Link>
                             </p>
                           )}
+                          {soldOut && (
+                            <p className="text-sm text-oxblood" role="alert">
+                              Sold out. Remove it to check out.
+                            </p>
+                          )}
                           <div className="mt-2 flex items-center justify-between">
                             <div className="flex items-center rounded-full border border-rule">
                               <button
@@ -144,8 +151,9 @@ export function CartDrawer() {
                               </span>
                               <button
                                 type="button"
-                                className="flex h-9 w-9 items-center justify-center"
+                                className="flex h-9 w-9 items-center justify-center disabled:opacity-30"
                                 onClick={() => setQuantity(item.lineId, item.quantity + 1)}
+                                disabled={soldOut}
                                 aria-label={`Increase quantity of ${product.name}`}
                               >
                                 <PlusIcon width={16} height={16} />

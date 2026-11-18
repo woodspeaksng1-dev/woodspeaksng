@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { isSoldOut } from "@/lib/stock";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -36,7 +37,7 @@ const HELLO_WORD_MS = 55;
 type Hello = "waiting" | "on" | "leaving" | "done";
 
 function pickSuggestions(products: Product[], recipient: Recipient, occasion: Occasion, count = 3): Product[] {
-  const sellable = products.filter((p) => !p.addOn);
+  const sellable = products.filter((p) => !p.addOn && !isSoldOut(p)); // never suggest what can't be bought
   const matches = sellable.filter((p) => p.recipients.includes(recipient) && p.occasions.includes(occasion));
   const pool = matches.length >= count ? matches : [...matches, ...sellable.filter((p) => p.featured && !matches.includes(p))];
   return [...pool].sort(() => Math.random() - 0.5).slice(0, count);

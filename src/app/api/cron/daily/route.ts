@@ -1,7 +1,9 @@
 import { timingSafeEqual } from "node:crypto";
+import { revalidateTag } from "next/cache";
 import { lagosToday } from "@/lib/reminders";
 import { SITE } from "@/lib/site";
 import { alertTeam } from "@/lib/server/alerts";
+import { CATALOG_TAG } from "@/lib/server/catalog";
 import { runBroadcasts } from "@/lib/server/broadcasts";
 import { recoverOrders } from "@/lib/server/order-recovery";
 import { sendDueReminders } from "@/lib/server/reminders";
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
     console.error("Daily job: order checks failed.", error);
     return null;
   });
+  if (orders?.recovered.length) revalidateTag(CATALOG_TAG, { expire: 0 }); // their stock was taken off
   const reminders = await sendDueReminders(today, SITE.url); // not request.url: Vercel calls this on an internal address
   const broadcasts = await runBroadcasts({ today, deadline: started + 50_000 });
   const uploadsDeleted = uploadsEnabled()

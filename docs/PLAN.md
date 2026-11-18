@@ -144,6 +144,16 @@ Done (frontend, mock data):
 - Adding a delivery area now needs "In Lagos" or "Outside Lagos" chosen (16 Nov). Five areas added on the
   live site (Abuja, Kaduna, Delta, Edo, Sokoto) weren't ticked Outside Lagos, so they offered next-day
   delivery and fresh items; staff fix them in admin → Delivery.
+- Stock (18 Nov, client request): each product has "Units in stock" in admin (empty: not counted) and
+  "Mark as sold out". Paid orders take units off in the same transaction that marks them paid (so a repeated
+  webhook can't take twice); at 0 the product is sold out. Checkout refuses sold-out products and more than
+  are left (all lines of a product together), reading stock fresh. Two buyers paying for the last unit at
+  once: stock stops at 0 and the team gets an alert. Saving a product only writes stock if staff changed the
+  box (`stockSeen`), so orders paid while the editor is open aren't undone. Shop: "Sold out" badge, sold out
+  last in the shop, no buy buttons, Mudi skips sold-out products, Google sees OutOfStock. Customers never see
+  the count (client's call): getStorefront strips it, so shop pages only get `soldOut`, and checkout's
+  message says "we don't have that many" without a number. The webhook and daily job refresh the shop after a
+  payment (the confirmation page can't refresh the cache itself). Rules in `src/lib/stock.ts`.
 - Media slots (`public/media`), SEO foundation (metadata, sitemap, robots, structured data, share images)
 
 Next, in this order:

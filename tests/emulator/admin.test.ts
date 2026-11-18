@@ -161,6 +161,29 @@ describe("editing products", () => {
     expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 
+  it("sets stock and sold out, and never undoes units that orders took while the page was open", async () => {
+    const watch = async () => (await readCatalog()).products.find((p) => p.id === "pocket-watch")!;
+    expect((await edit("pocket-watch", { stock: 80, stockSeen: null })).ok).toBe(true);
+    expect((await watch()).stock).toBe(80);
+
+    await db().doc("products/pocket-watch").update({ stock: 77 }); // three paid for meanwhile
+    expect((await edit("pocket-watch", { price: 19000, stock: 80, stockSeen: 80 })).ok).toBe(true); // stock box untouched
+    expect(await watch()).toMatchObject({ price: 19000, stock: 77 });
+
+    expect((await edit("pocket-watch", { stock: 50, stockSeen: 80 })).ok).toBe(true); // staff typed a new count
+    expect((await watch()).stock).toBe(50);
+    expect((await edit("pocket-watch", { stock: null, stockSeen: 50 })).ok).toBe(true); // emptied: not counted
+    expect((await watch()).stock).toBeNull();
+
+    expect((await edit("pocket-watch", { soldOut: true })).ok).toBe(true);
+    expect((await watch()).soldOut).toBe(true);
+    for (const stock of [-1, 2.5, "9"]) expect((await edit("pocket-watch", { stock, stockSeen: null })).ok).toBe(false);
+    const log = await db().collection("auditLog").where("action", "==", "edited Pocket Watch:").get();
+    const targets = log.docs.map((d) => String(d.get("target"))).join(" ");
+    expect(targets).toContain("stock 77 → 50");
+    expect(targets).toContain("marked sold out");
+  });
+
   it("won't change the kind of personalisation", async () => {
     expect((await edit("scroll", { personalization: { kind: "none" } })).ok).toBe(false);
   });

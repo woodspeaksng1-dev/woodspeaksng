@@ -25,6 +25,10 @@ vi.mock("@/lib/server/paystack", async (original) => ({
 const emails = vi.hoisted(() => ({ send: vi.fn(async () => {}) }));
 vi.mock("@/lib/server/order-emails", () => ({ sendPaidOrderEmails: emails.send }));
 vi.mock("next/server", () => ({ after: (fn: () => unknown) => void fn() }));
+const cache = vi.hoisted(() => ({ revalidateTag: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidateTag: cache.revalidateTag, updateTag: vi.fn(), cacheLife: () => {}, cacheTag: () => {} }));
+const alerts = vi.hoisted(() => ({ send: vi.fn(async () => true) }));
+vi.mock("@/lib/server/alerts", () => ({ alertTeam: alerts.send }));
 
 const { db } = await import("@/lib/server/firebase");
 const { confirmPayment, getOrder } = await import("@/lib/server/orders");
@@ -210,5 +214,61 @@ describe("Paystack webhook", () => {
     paystack.verify.mockRejectedValue(new Error("network"));
     const res = await webhook.POST(signedWebhook({ event: "charge.success", data: { reference: order.number } }));
     expect(res.status).toBe(500);
+  });
+});
+
+describe("stock", () => {
+  const WATCH = { productId: "pocket-watch", quantity: 2, customization: { kind: "none" } };
+  const stockOf = async (id: string) => (await db().doc(`products/${id}`).get()).get("stock") as number | null | undefined;
+  const pay = async (order: StoredOrder) => {
+    paystack.verify.mockResolvedValue(success(order));
+    return webhook.POST(signedWebhook({ event: "charge.success", data: { reference: order.number } }));
+  };
+
+  beforeEach(async () => {
+    alerts.send.mockClear();
+    cache.revalidateTag.mockClear();
+    await db().doc("products/pocket-watch").update({ stock: 5, soldOut: false });
+  });
+
+  it("a paid order takes its units off once, however often Paystack confirms it, and refreshes the shop", async () => {
+    const order = await placeOrder([WATCH, SCROLL]);
+    expect(await stockOf("pocket-watch")).toBe(5); // checkout alone doesn't take any
+    for (let i = 0; i < 3; i++) expect((await pay(order)).status).toBe(200);
+    expect(await stockOf("pocket-watch")).toBe(3);
+    expect(await stockOf("scroll")).toBeUndefined(); // not counted: left alone
+    expect(cache.revalidateTag).toHaveBeenCalledWith("catalog", { expire: 0 });
+  });
+
+  it("checkout refuses more than are left, and a sold-out product", async () => {
+    await db().doc("products/pocket-watch").update({ stock: 1 });
+    const res = await checkout.POST(post("http://localhost/api/checkout", { details: DETAILS, lines: [WATCH] }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).message).toMatch(/don't have that many Pocket Watch/);
+    await db().doc("products/pocket-watch").update({ stock: 9, soldOut: true });
+    const sold = await checkout.POST(post("http://localhost/api/checkout", { details: DETAILS, lines: [WATCH] }));
+    expect((await sold.json()).message).toMatch(/sold out/);
+  });
+
+  it("shop pages never get the count, only whether it's sold out", async () => {
+    const { getStorefront } = await import("@/lib/server/catalog");
+    const watch = (await getStorefront()).products.find((p) => p.id === "pocket-watch")!;
+    expect(watch).not.toHaveProperty("stock");
+    expect(watch.soldOut).toBe(false);
+    await db().doc("products/pocket-watch").update({ stock: 0 });
+    expect((await getStorefront()).products.find((p) => p.id === "pocket-watch")!.soldOut).toBe(true);
+  });
+
+  it("the last units sold twice at once: stock stops at 0 and the team is told", async () => {
+    const first = await placeOrder([WATCH]);
+    const second = await placeOrder([WATCH]);
+    await db().doc("products/pocket-watch").update({ stock: 3 }); // sold elsewhere while both were paying
+    await pay(first);
+    expect(await stockOf("pocket-watch")).toBe(1);
+    expect(alerts.send).not.toHaveBeenCalled();
+    await pay(second);
+    expect(await stockOf("pocket-watch")).toBe(0);
+    expect(alerts.send).toHaveBeenCalledWith(`oversold-${second.number}`, expect.stringContaining("more than was in stock"), expect.stringContaining("Pocket Watch"));
+    expect((await getOrder(second.number))!.status).toBe("paid"); // the buyer paid: the order stands
   });
 });

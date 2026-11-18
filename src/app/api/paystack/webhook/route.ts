@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { after } from "next/server";
 import { z } from "zod";
 import { alertTeam } from "@/lib/server/alerts";
+import { CATALOG_TAG } from "@/lib/server/catalog";
 import { sendPaidOrderEmails } from "@/lib/server/order-emails";
 import { confirmPayment, isOrderNumber } from "@/lib/server/orders";
 import { isGenuineWebhook } from "@/lib/server/paystack";
@@ -39,6 +41,9 @@ export async function POST(request: Request) {
     if (result.outcome === "paid-now") {
       after(() => sendPaidOrderEmails(result.order, SITE.url));
     }
+    // A payment takes units off stock: refresh the shop so counts and "sold out" are current. Also when the
+    // confirmation page marked it paid first, since a page can't refresh the cache itself.
+    if (result.outcome === "paid-now" || result.outcome === "already-paid") revalidateTag(CATALOG_TAG, { expire: 0 });
     return Response.json({ outcome: result.outcome });
   } catch (error) {
     console.error(`Webhook: couldn't confirm ${reference}; Paystack will retry.`, error);

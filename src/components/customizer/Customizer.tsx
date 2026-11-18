@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart-store";
+import { isSoldOut } from "@/lib/stock";
 import { formatNaira } from "@/lib/format";
 import type { CartCustomization, PhotoCrop, Product } from "@/lib/types";
 import { letterSchema, reasonsSchema, videoLinkSchema } from "@/lib/validation";
@@ -112,6 +113,7 @@ export function Customizer({ product, uploads }: { product: Product; uploads: bo
   const p = product.personalization;
   const router = useRouter();
   const add = useCart((s) => s.add);
+  const room = !isSoldOut(product);
 
   const [draft, setDraft] = useState(() => loadDraft(slug, p.kind === "reasons" ? p.count : 0));
   const [photo, setPhoto] = useState<ChosenPhoto | null>(null);
@@ -200,7 +202,7 @@ export function Customizer({ product, uploads }: { product: Product; uploads: bo
 
   const addToCart = () => {
     const c = customization();
-    if (typeof c === "string" || !checked || !fileReady) return;
+    if (typeof c === "string" || !checked || !fileReady || !room) return;
     add(product.id, c);
     try {
       sessionStorage.removeItem(draftKey(slug));
@@ -359,11 +361,17 @@ export function Customizer({ product, uploads }: { product: Product; uploads: bo
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
-                disabled={!checked || !fileReady}
+                disabled={!checked || !fileReady || !room}
                 onClick={addToCart}
                 className="h-12 rounded-full bg-oxblood px-10 text-vellum transition-colors hover:bg-wine disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {fileReady ? `Add to cart · ${formatNaira(price)}` : upload.state.status === "failed" ? "Upload didn't finish" : "Waiting for the upload…"}
+                {!room
+                  ? "Sold out"
+                  : fileReady
+                    ? `Add to cart · ${formatNaira(price)}`
+                    : upload.state.status === "failed"
+                      ? "Upload didn't finish"
+                      : "Waiting for the upload…"}
               </button>
               <button
                 type="button"

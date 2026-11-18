@@ -82,7 +82,7 @@ export async function getOrder(number: string): Promise<StoredOrder | null> {
 }
 
 export type ConfirmOutcome =
-  | { outcome: "paid-now"; order: StoredOrder }
+  | { outcome: "paid-now"; order: StoredOrder; /** Products that had fewer units left than this order took. */ oversold?: string[] }
   | { outcome: "already-paid"; order: StoredOrder }
   | { outcome: "not-paid"; order: StoredOrder; reason: string }
   | { outcome: "rejected"; order: StoredOrder; reason: string }
@@ -117,6 +117,12 @@ export async function confirmPayment(
       return { outcome: "rejected", order: { ...order, paymentProblem: decision.reason }, reason: decision.reason };
     }
 
+    // Stock: read every product on the order now (a transaction reads before it writes), take units off below.
+    const quantities = new Map<string, number>();
+    for (const l of order.lines) quantities.set(l.productId, (quantities.get(l.productId) ?? 0) + l.quantity);
+    const productRefs = [...quantities.keys()].map((id) => db().collection("products").doc(id));
+    const productSnaps = productRefs.length ? await t.getAll(...productRefs) : [];
+
     const paid: StoredOrder = {
       ...order,
       status: "paid",
@@ -132,6 +138,16 @@ export async function confirmPayment(
       amountKobo: tx.amount,
       recordedAt: paid.paidAt,
     });
+    // Take the units off counted stock. Checkout refuses more than are left, but two buyers can pay for the
+    // last one at the same moment: then it stops at 0 and the team is told (below) to sort it out.
+    const oversold: string[] = [];
+    for (const snap of productSnaps) {
+      const stock = snap.get("stock");
+      if (!snap.exists || typeof stock !== "number") continue;
+      const taken = quantities.get(snap.id) ?? 0;
+      if (taken > stock) oversold.push(`${snap.get("name")} (${stock} left, order took ${taken})`);
+      t.update(snap.ref, { stock: Math.max(0, stock - taken) });
+    }
     // Link the buyer's files to this order, so the weekly clean-up keeps them.
     for (const id of uploadIdsOf(order.lines)) t.set(db().collection("uploads").doc(id), { orderNumber: reference }, { merge: true });
     t.create(db().collection("auditLog").doc(), {
@@ -140,8 +156,16 @@ export async function confirmPayment(
       action: "payment received",
       target: `${reference} (${paid.total.toLocaleString("en-NG")} naira)`,
     });
-    return { outcome: "paid-now", order: paid };
+    return { outcome: "paid-now", order: paid, oversold };
   });
+
+  if (result.outcome === "paid-now" && result.oversold?.length)
+    await alertTeam(
+      `oversold-${reference}`,
+      `Order ${reference} took more than was in stock`,
+      `Order ${reference} was paid for, but there weren't enough units left: ${result.oversold.join("; ")}.\n` +
+        `Check what's on the shelf, then make it, or contact the buyer about a refund or a wait. Stock is now 0 for these.`,
+    );
 
   // A payment that doesn't match its order needs a person: tell the team the first time it's seen.
   if (result.outcome === "rejected" && existing.paymentProblem !== result.reason)
